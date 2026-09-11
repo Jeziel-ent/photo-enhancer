@@ -1,0 +1,36 @@
+device: cuda
+images: ['1.jpeg', '2.jpeg', '3.jpeg', '4.jpeg', '5.jpeg', '6.jpeg', 'mumbai-01.jpeg']
+
+== 1.jpeg ==
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\timm\models\layers\__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\torch\functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\native\TensorShape.cpp:4223.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+variant                   psnr    ssim   hist  e_align    sharp  noise   gain   pdiff    pct%   rt_s
+baseline                33.177  0.9558 0.9338   0.9999    118.9  1.271  28.56  2.3146  17.155   1.23
+self_env_k3             32.879  0.9606 0.9335      1.0    130.1  1.271  31.25  2.2281  17.175   1.18
+self_env_k5_cap10       35.404  0.9695 0.9353   0.9999     76.8  1.271  18.43  1.8909  17.035   1.09
+hybrid_50               31.385  0.9455 0.9318      1.0    155.0  1.271  37.22  2.6254  17.162   1.12
+
+== 2.jpeg ==
+variant                   psnr    ssim   hist  e_align    sharp  noise   gain   pdiff    pct%   rt_s
+baseline                31.728  0.9621 0.9332      1.0    269.8  2.499  14.06   2.795  19.142   1.07
+self_env_k3             29.833  0.9552 0.9311      1.0    410.9  2.499  21.41  3.1277  19.037   1.05
+self_env_k5_cap10       33.799  0.9739 0.9352      1.0    183.7  2.499   9.57  2.2541  18.682   1.05
+hybrid_50               29.419   0.949 0.9302      1.0    420.6  2.499  21.91  3.3419  19.114    1.1
+
+== 3.jpeg ==
+variant                   psnr    ssim   hist  e_align    sharp  noise   gain   pdiff    pct%   rt_s
+baseline                32.558  0.9639 0.9342   0.9991    246.3  2.985  11.95  2.4308  18.038   1.03
+self_env_k3             30.912  0.9602 0.9327   0.9999    364.1  2.985  17.66  2.6329  17.889   1.07
+self_env_k5_cap10       34.584  0.9744 0.9359   0.9989    172.3  2.985   8.36  1.9828  17.504    1.1
+hybrid_50               30.596  0.9553 0.9321   0.9997    365.3  2.985  17.72  2.7901  18.003    1.1
+
+== 4.jpeg ==
+variant                   psnr    ssim   hist  e_align    sharp  noise   gain   pdiff    pct%   rt_s
+baseline                33.595  0.9778  0.912   0.9996    201.8  0.748   9.74  1.8125   11.89   1.04
+self_env_k3             30.694  0.9699 0.9099      1.0    395.6  0.748   19.1  2.2244  11.862   1.11
+self_env_k5_cap10       35.426  0.9838 0.9126   0.9995    145.8  0.748   7.04  1.5126  11.484   1.11
+hybrid_50               30.813  0.9686 0.9098   0.9998    362.8  0.748  17.51  2.2452  11.906   1.06
+
+== 5.jpeg ==

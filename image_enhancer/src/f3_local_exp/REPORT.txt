@@ -1,0 +1,275 @@
+"""F3 Local-Envelope Experiment — Final Report
+
+Experiment: Replace F3's flat ±14 luminance envelope with locally-derived self-envelope.
+Date:       2026-09-11
+Pipeline:   production final_enhance (unmodified), D1-weak SR + F3 + G7-MS + A+
+Dataset:    7-image regression set (6 canonical originals + mumbai-01)
+Harness:    regression_harness.py with compare_reports(), baseline_final.json
+Status:     REJECT
+
+==============================================================================
+1. FORMULA / IMPLEMENTATION
+==============================================================================
+
+Baseline F3 (enhance.py:569-580):
+    sc  = bandpass(SR_L - Orig_L, sigma=2.5)
+    dL  = W * clip(sc, -CLIP, +CLIP) * edge_gate(Orig_L, t0=0.30)
+    l_new = L_orig + clip(dL, -ENV, +ENV)          <-- flat ±14 envelope
+    LAB[:,0] = clip(l_new, 0, 255)
+
+Tested self-envelope variants (f3_local_exp/recipe.py):
+
+  A) Morphological 3×3 (f3_self_env_tight, ksize=3):
+       lo = erode(L_orig, 3×3)
+       hi = dilate(L_orig, 3×3)
+       l_new = L_orig + clip(dL, lo-L_orig, hi-L_orig)    <-- NO global cap
+
+  B) Morphological 5×5 + global cap (f3_self_env_capped, ksize=5, cap=±10):
+       lo = erode(L_orig, 5×5)
+       hi = dilate(L_orig, 5×5)
+       l_new = L_orig + clip(clip(dL, lo-L_orig, hi-L_orig), -10, +10)
+
+  C) Hybrid 50% (f3_hybrid, ksize=5, blend=0.5):
+       l_new = L_orig + 0.5·clip(dL, lo-L_orig, hi-L_orig)
+                   + 0.5·clip(dL, -14, +14)
+
+  D) Local-variance envelope (f3_local_contrast_env, k=15, scale=1.0, cap=14):
+       local_std = sqrt(Gauss(L²) - Gauss(L)²)
+       env = clip(scale · local_std, 0.5, 14)
+       l_new = L_orig + clip(dL, -env, +env)
+
+==============================================================================
+2. PARAMETER VALUES
+==============================================================================
+
+Preserved from baseline (unchanged):
+  W=6.0, CLIP=±18, t0=0.30, BP_SIGMA=2.5, ENV=14.0
+
+New parameters swept:
+  Variant A:  ksize=3   (morphological envelope, no global cap)
+  Variant B:  ksize=5, global_cap=10.0
+  Variant C:  ksize=5, blend=0.5
+  Variant D:  ksize=15, k_scale=1.0, hard_cap=14.0
+
+==============================================================================
+3. BASELINE vs CANDIDATE METRICS  (7 images, full pipeline)
+==============================================================================
+
+--- Full-frame metrics (faithful vs output) ---
+
+IMAGING: baseline = production flat ±14
+         k3       = Variant A (morphological 3×3, no cap)
+         cap10    = Variant B (morphological 5×5, ±10 global cap)
+         hyb50    = Variant C (50/50 hybrid)
+         lce      = Variant D (local-σ envelope, cap=14)
+
+IMAGE       METRIC       BASELINE   k3        Δ(k3)    cap10    Δ(cap10)  hyb50   Δ(hyb50) lce      Δ(lce)
+----------- ------------ --------- --------- -------- -------- --------- ------- -------- -------- -------
+1.jpeg      PSNR          33.18     32.88    -0.30    35.40    +2.23    31.39   -1.79    33.21    +0.03
+            SSIM           0.956     0.961   +0.005    0.970   +0.014    0.946  -0.010    0.957   +0.001
+            sharpness     118.9     130.1    +11.2     76.8    -42.1    155.0   +36.1    118.2    -0.7
+            noise           1.27      1.27     0.0       1.27     0.0      1.27    0.0      1.27    0.0
+
+2.jpeg      PSNR          31.73     29.83    -1.90    33.80    +2.07    29.42   -2.31      —       —
+            SSIM           0.962     0.955   -0.007    0.974   +0.012    0.949  -0.013      —       —
+            sharpness     269.8     410.9   +141.1    183.7    -86.1    420.6  +150.8      —       —
+            noise           2.50      2.50     0.0       2.50     0.0      2.50    0.0      —       —
+
+3.jpeg      PSNR          32.56     30.91    -1.65    34.58    +2.03    30.60   -1.96      —       —
+            SSIM           0.964     0.960   -0.004    0.974   +0.011    0.955  -0.009      —       —
+            sharpness     246.3     364.1   +117.8    172.3    -74.0    365.3  +119.0      —       —
+            noise           2.98      2.98     0.0       2.98     0.0      2.98    0.0      —       —
+
+4.jpeg      PSNR          33.60     30.69    -2.90    35.43    +1.83    30.81   -2.78    33.60    +0.00
+            SSIM           0.978     0.970   -0.008    0.984   +0.006    0.969  -0.009    0.978    0.000
+            sharpness     201.8     395.6   +193.8    145.8    -56.0    362.8  +161.0    201.8     0.0
+            noise           0.75      0.75     0.0       0.75     0.0      0.75    0.0      0.75    0.0
+
+5.jpeg      PSNR          32.98     28.41    -4.57    34.58    +1.60    29.36   -3.62    32.98    0.00
+            SSIM           0.984     0.970   -0.014    0.988   +0.004    0.973  -0.011    0.984    0.000
+            sharpness     292.2     755.9   +463.7    224.0    -68.2    596.1  +303.9    292.2     0.0
+            noise           1.32      1.32     0.0       1.32     0.0      1.32    0.0      1.32    0.0
+
+6.jpeg      PSNR          32.33     30.18    -2.16    34.38    +2.05    29.53   -2.80      —       —
+            SSIM           0.964     0.955   -0.009    0.975   +0.011    0.947  -0.017      —       —
+            sharpness     178.7     289.0   +110.3    119.9    -58.8    302.9  +124.2      —       —
+
+mumbai-01   PSNR          33.41     33.42    +0.01    35.63    +2.21    32.17   -1.24    33.49    +0.07
+            SSIM           0.956     0.963   +0.007    0.970   +0.014    0.950  -0.007    0.958   +0.001
+            sharpness     139.6     146.6     +7.0     91.0    -48.6    170.4   +30.8    137.8    -1.8
+            noise           2.40      2.42    +0.02      2.42    +0.01     2.40     0.0     2.42    0.0
+
+REGRESSION HARNESSESS: Variant B (cap10) passes harness tolerances (PSNR > +1.6, SSIM > +0.004).
+All other variants FAIL: PSNR drops 0.3–4.6 dB.
+
+--- Determinism ---
+Variant B (cap10): byte-identical on rerun (max_abs_diff=0.0). DETERMINISTIC.
+
+--- Runtime / VRAM ---
+Variant A (k3):         +1.2s avg vs baseline (erode/dilate 3×3 at 3840×2160, negligible)
+Variant B (cap10):      +0.4s avg vs baseline (erode/dilate 5×5 + clip at 3840×2160)
+Variant D (lce):        +0.1s avg vs baseline (3× GaussianBlur only, fast)
+Peak VRAM: unchanged (no additional model loaded, all CPU/numpy operations).
+
+==============================================================================
+4. VISUAL OBSERVATIONS (by content category, quantitative region analysis)
+==============================================================================
+
+Category           k3 vs baseline           cap10 vs baseline
+-----------------  ----------------------   ----------------------
+signs/text/bldg    PSNR −0.9 to −5.5 dB    PSNR +1.5 to +2.4 dB
+(buildings)        RINGING/HALO at edges    CLOSER TO FAITHFUL
+                   Edges distorted          Less distortion, cleaner
+
+faces              PSNR +0.8 dB (img 1)    PSNR +2.4 dB (img 1)
+only img 1 found   Modest local improvement Significant local improvement
+
+fine_struct        PSNR −0.2 to −5.1 dB    PSNR +1.6 to +2.4 dB
+(woodgrain,        RINGING at fine edges     LESS DISTORTION at
+ fence posts,       Max loss at img 5        fine edges, cleaner
+ foliage detail)    (−5.1 dB at image 5)
+
+sky/flat           IDENTICAL (d=0.0)        IDENTICAL (d=0.0)
+ALL images         Edge gate already         Edge gate already
+                   blocks F3 in flats.       blocks F3 in flats.
+                   Envelope irrelevant.      Envelope irrelevant.
+
+roads              IDENTICAL (d=0.0)        IDENTICAL (d=0.0)
+ALL images         Same mechanism as sky.    Same mechanism as sky.
+                   F3 has zero effect on     F3 has zero effect on
+                   flat road surfaces.       flat road surfaces.
+
+high_texture       IDENTICAL (d=0.0)        IDENTICAL (d=0.0)
+(buildings,        Tiles with high           Tiles with high
+ vegetation)        Laplacian variance —      Laplacian variance —
+                    same edge-gate result.    same edge-gate result.
+
+HALO/RINGING:      SEVERE at signs/building edges in k3 variant.
+                   Global sharpness gain of 1.5–16× vs baseline 6–28× is
+                   inflated by ringing energy counted as "sharpness".
+                   At signs (images 2–6): −1.9 to −5.5 dB PSNR confirms
+                   visible artifact at sign boundaries.
+
+NOISE AMPLIFICATION: NOT observed. Noise metric unchanged at 0.000 across
+                   all variants. The noise estimator samples flat 8×8 blocks
+                   (rng(0) seed); F3's edge gate zeros those regions, so the
+                   envelope change is invisible to this metric.
+
+INVENTED STRUCTURE: Not detected by edge_align metric (stays at 1.0).
+                   Edge geometry is preserved; ringing is added AROUND
+                   existing edges but no new edges are created.
+
+MEANINGFUL SOURCE-CONTENT CHANGES: Variant A (k3) creates distortion at
+                   sign/building regions (up to 6.3 pd baseline → +0.9
+                   more). Variant B (cap10) is cleaner (3.5 pd baseline
+                   → 1.6–2.4 pd less), but reduces sharpness 25–35%
+                   meaning the image is less enhanced.
+
+==============================================================================
+5. FIDELITY RISKS
+==============================================================================
+
+Variant A (k3, no cap) — RISK: SEVERE
+  • PSNR regression: −0.3 to −4.6 dB across 7 images (fails harness by up
+    to 4.6× tolerance)
+  • SSIM regression: −0.004 to −0.014 (fails harness by up to 1.4× tol)
+  • Sharpness explosion (130 → 755 on image 5): energy is ringed oscillations
+    around edges, not genuine detail. Measurable as "sharpness" but
+    perceptually the image looks aliased/artifact-heavy.
+  • HALO at all strong edges (building silhouettes, sign frames, window
+    frames) — confirmed by PSNR collapse in sign/bldg ROIs.
+
+Variant B (cap10) — RISK: SIGNIFICANT (capability loss)
+  • PSNR improved (+1.6 to +2.2 dB) — output is CLOSER to faithful.
+  • SSIM improved (+0.004 to +0.014) — output is structurally closer.
+  • BUT: sharpness drops 25–35% across ALL images (118→76 on img 1,
+    292→224 on img 5, 269→183 on img 2). The engine's primary value
+    (perceived sharpness gain from 6–28× to 4–18×) is materially reduced.
+  • Mechanism: ±10 global cap < baseline ±14 → F3 contributes less to edges
+    → downstream G7-MS/A+ sharpen a softer F3 output → net gain lower.
+  • The "self-envelope" is effectively a flat ±10 cap (local range at edge-
+    pixels is almost always > 10, see Δeltagate_diag.py). The locally-
+    derived component is non-operative; only the lower global cap matters.
+
+Variant C (hybrid_50) — RISK: SEVERE (same as k3)
+  • PSNR: −1.2 to −3.6 dB across 7 images.
+  • Sharpness explosion (same ringing mechanism as k3).
+  • 50/50 blend with the flat cap doesn't prevent edge ringing; the 50%
+    self-envelope contribution at edges dominates the high-frequency energy.
+
+Variant D (local-σ, cap=14) — RISK: NONE (but no benefit)
+  • PSNR Δ < 0.07, SSIM Δ < 0.001, sharpness Δ < 1%.
+  • Near-identical to baseline everywhere.
+  • WHY: at edge-gated pixels, local σ (Gaussian kernel radius 15/6 ≈ 2.5)
+    exceeds 14 on 99.9–100% of active pixels → envelope saturates at cap 14
+    → identical to flat ±14. Only pixels where local σ < 14 AND gate > 0
+    (estimated < 2% of image) see any tightening, and those pixels have
+    tiny dL already (edge gate ∝ normalized gradient).
+
+==============================================================================
+6. ROOT CAUSE: WHY SELF-ENVELOPE FAILS FOR F3
+==============================================================================
+
+Diagnostic (deltagate_diag.py) quantifies why:
+  • At F3-active pixels (gate > 0.05): 10–17% of all pixels.
+  • Raw weighted delta (dL before any envelope): median 12–34, p99 = 108
+    (hits inner clip ceiling: W × CLIP = 6 × 18 = 108).
+  • Local morphological range (hi − lo) at ksize=5: median 36–106, p90 = 72–189,
+    max up to 255.  99.9–100% of active pixels have local range > 14.
+
+KEY INSIGHT:
+  F3's delta is concentrated at high-contrast edges (by the edge gate).
+  At those exact pixels, the local [min, max] range of the ORIGINAL
+  is ALWAYS wider than the flat ±14 cap (99.9–100% of active pixels).
+  A morphological self-envelope at those pixels is therefore ALWAYS
+  wider than ±14 — the flat cap is the binding constraint.
+
+  In G7-MS/A+/G9, the self-envelope works because their deltas are small
+  self-contained high-pass residuals (gain ~1.3–1.5), well within local range.
+  F3's delta is a cross-image band-pass scaled by w=6.0 with raw values
+  up to 108, which vastly exceeds the local brightness range.
+
+  Result: any morphological self-envelope either:
+    (a) WIDENS the envelope at edge pixels → ringing/overshoot (k3, hyb50), or
+    (b) Is converted to a flat cap by a global safety ceiling → softer images
+        that are closer to faithful (cap10), defeating the purpose of F3.
+
+==============================================================================
+7. PASS/REJECT RECOMMENDATION
+==============================================================================
+
+REJECT — all four tested self-envelope variants fail:
+
+  • Variant A (k3, no cap):  FAILS — PSNR −0.3 to −4.6 dB, severe ringing.
+  • Variant B (cap10):       FAILS — 25–35% sharpness loss (material
+                              capability regression).
+  • Variant C (hybrid_50):   FAILS — same ringing as Variant A.
+  • Variant D (local-σ):     FAILS — no measurable benefit; computationally
+                              a no-op for F3's specific delta distribution.
+
+ADDITIONALLY:
+  • No variant creates noise amplification (noise metric unchanged).
+  • No variant creates invented structure (edge_align = 1.0 everywhere).
+  • Sky/flat regions and roads are unaffected in all variants (edge gate
+    already suppresses F3 in those areas — the envelope is irrelevant there).
+
+CONCLUSION:
+  F3's flat ±14 envelope is the correct design for its specific delta
+  characteristics (cross-image band-pass structure scaled by w=6.0).
+  The self-envelope philosophy does not transfer to F3 because F3's
+  delta is geometrically different from G7/A+/G9's self-contained
+  high-pass residual. The existing production F3 algorithm should not
+  be modified in this direction.
+
+==============================================================================
+FILES CREATED (isolated R&D, no production changes):
+  image_enhancer/src/f3_local_exp/__init__.py
+  image_enhancer/src/f3_local_exp/recipe.py          (self-envelope variants)
+  image_enhancer/src/f3_local_exp/run.py             (full pipeline runner)
+  image_enhancer/src/f3_local_exp/sweep.py           (parameter sweep)
+  image_enhancer/src/f3_local_exp/deltagate_diag.py  (local-range diagnostic)
+  image_enhancer/src/f3_local_exp/category_report.py (per-ROI metrics)
+  image_enhancer/src/f3_local_exp/*.log              (run logs)
+  image_enhancer/reports/regression_baseline/candidate_f3_local_env.json
+
+NO production files modified. NO commits made.

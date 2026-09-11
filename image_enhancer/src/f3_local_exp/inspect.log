@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "D:\Ai-development\ppt-automation\image_enhancer\src\f3_local_exp\inspect.py", line 24, in <module>
+    import enhance  # noqa: E402
+  File "D:\Ai-development\ppt-automation\image_enhancer\src\enhance.py", line 27, in <module>
+    import torch
+  File "D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\torch\__init__.py", line 16, in <module>
+    import inspect
+  File "D:\Ai-development\ppt-automation\image_enhancer\src\f3_local_exp\inspect.py", line 25, in <module>
+    import quality  # noqa: E402
+  File "D:\Ai-development\ppt-automation\image_enhancer\src\quality.py", line 10, in <module>
+    from skimage.metrics import structural_similarity as ssim_metric
+ImportError: cannot import name 'structural_similarity' from 'skimage.metrics' (D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\skimage\metrics\__init__.py)

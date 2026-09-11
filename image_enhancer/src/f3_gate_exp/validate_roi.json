@@ -1,0 +1,4947 @@
+{
+  "category_aggregates": {
+    "buildings": {
+      "base": {
+        "psnr": 48.0,
+        "ssim": 0.9957,
+        "pd": 10.051,
+        "pct_gt10": 47.021,
+        "pct_gt20": 19.112,
+        "max_diff": 49.0
+      },
+      "cand": {
+        "psnr": 47.53,
+        "ssim": 0.9952,
+        "pd": 10.38,
+        "pct_gt10": 48.93,
+        "pct_gt20": 19.234,
+        "max_diff": 49.0
+      }
+    },
+    "faces": {
+      "base": {
+        "psnr": 31.35,
+        "ssim": 0.9424,
+        "pd": 3.612,
+        "pct_gt10": 17.102,
+        "pct_gt20": 2.352,
+        "max_diff": 33.0
+      },
+      "cand": {
+        "psnr": 31.04,
+        "ssim": 0.9382,
+        "pd": 3.902,
+        "pct_gt10": 18.505,
+        "pct_gt20": 2.395,
+        "max_diff": 33.0
+      }
+    },
+    "fine_struct": {
+      "base": {
+        "psnr": 28.52,
+        "ssim": 0.9175,
+        "pd": 5.494,
+        "pct_gt10": 24.86,
+        "pct_gt20": 8.295,
+        "max_diff": 36.0
+      },
+      "cand": {
+        "psnr": 28.35,
+        "ssim": 0.9118,
+        "pd": 5.749,
+        "pct_gt10": 26.827,
+        "pct_gt20": 8.378,
+        "max_diff": 36.0
+      }
+    },
+    "foliage": {
+      "base": {
+        "psnr": 38.35,
+        "ssim": 0.9822,
+        "pd": 7.754,
+        "pct_gt10": 34.819,
+        "pct_gt20": 12.809,
+        "max_diff": 47.0
+      },
+      "cand": {
+        "psnr": 37.79,
+        "ssim": 0.978,
+        "pd": 8.082,
+        "pct_gt10": 37.254,
+        "pct_gt20": 13.007,
+        "max_diff": 46.0
+      }
+    },
+    "road": {
+      "base": {
+        "psnr": 54.12,
+        "ssim": 0.9989,
+        "pd": 0.934,
+        "pct_gt10": 0.413,
+        "pct_gt20": 0.024,
+        "max_diff": 25.0
+      },
+      "cand": {
+        "psnr": 54.12,
+        "ssim": 0.9989,
+        "pd": 0.934,
+        "pct_gt10": 0.429,
+        "pct_gt20": 0.026,
+        "max_diff": 25.0
+      }
+    },
+    "signs_text": {
+      "base": {
+        "psnr": 29.655,
+        "ssim": 0.9404,
+        "pd": 3.8,
+        "pct_gt10": 14.574,
+        "pct_gt20": 6.9725,
+        "max_diff": 36.0
+      },
+      "cand": {
+        "psnr": 29.485,
+        "ssim": 0.9349,
+        "pd": 3.985,
+        "pct_gt10": 15.4155,
+        "pct_gt20": 7.0885,
+        "max_diff": 36.0
+      }
+    },
+    "sky_flat": {
+      "base": {
+        "psnr": 58.19,
+        "ssim": 0.9998,
+        "pd": 1.115,
+        "pct_gt10": 0.734,
+        "pct_gt20": 0.087,
+        "max_diff": 28.0
+      },
+      "cand": {
+        "psnr": 58.19,
+        "ssim": 0.9998,
+        "pd": 1.161,
+        "pct_gt10": 0.95,
+        "pct_gt20": 0.085,
+        "max_diff": 28.0
+      }
+    },
+    "vehicles": {
+      "base": {
+        "psnr": 51.5,
+        "ssim": 0.9971,
+        "pd": 8.347,
+        "pct_gt10": 38.914,
+        "pct_gt20": 14.203,
+        "max_diff": 42.0
+      },
+      "cand": {
+        "psnr": 51.37,
+        "ssim": 0.9966,
+        "pd": 8.864,
+        "pct_gt10": 40.993,
+        "pct_gt20": 14.543,
+        "max_diff": 42.0
+      }
+    }
+  },
+  "worst_per_category": {
+    "buildings": {
+      "image": "site_19.jpeg",
+      "base": {
+        "psnr": 48.64,
+        "ssim": 0.9974,
+        "pd": 9.723,
+        "pct_gt10": 47.347,
+        "pct_gt20": 15.161,
+        "max_diff": 46.0,
+        "n_rois": 166
+      },
+      "cand": {
+        "psnr": 47.74,
+        "ssim": 0.9966,
+        "pd": 10.361,
+        "pct_gt10": 50.702,
+        "pct_gt20": 15.603,
+        "max_diff": 47.0,
+        "n_rois": 166
+      },
+      "ea_base": 1.0,
+      "ea_cand": 1.0,
+      "delta_pd": 0.638,
+      "delta_tail": 0.442,
+      "delta_max": 1.0,
+      "delta_ea": 0.0
+    },
+    "faces": {
+      "image": "1.jpeg",
+      "base": {
+        "psnr": 31.35,
+        "ssim": 0.9166,
+        "pd": 3.612,
+        "pct_gt10": 17.102,
+        "pct_gt20": 2.352,
+        "max_diff": 27.0,
+        "n_rois": 1
+      },
+      "cand": {
+        "psnr": 31.04,
+        "ssim": 0.9084,
+        "pd": 3.902,
+        "pct_gt10": 18.505,
+        "pct_gt20": 2.395,
+        "max_diff": 27.0,
+        "n_rois": 1
+      },
+      "ea_base": 1.0,
+      "ea_cand": 1.0,
+      "delta_pd": 0.29,
+      "delta_tail": 0.043,
+      "delta_max": 0.0,
+      "delta_ea": 0.0
+    },
+    "fine_struct": {
+      "image": "site_11.jpeg",
+      "base": {
+        "psnr": 29.02,
+        "ssim": 0.9306,
+        "pd": 4.812,
+        "pct_gt10": 19.888,
+        "pct_gt20": 7.349,
+        "max_diff": 46.0,
+        "n_rois": 1
+      },
+      "cand": {
+        "psnr": 28.85,
+        "ssim": 0.9237,
+        "pd": 5.067,
+        "pct_gt10": 21.098,
+        "pct_gt20": 7.433,
+        "max_diff": 48.0,
+        "n_rois": 1
+      },
+      "ea_base": 0.9938,
+      "ea_cand": 0.9898,
+      "delta_pd": 0.255,
+      "delta_tail": 0.084,
+      "delta_max": 2.0,
+      "delta_ea": -0.004
+    },
+    "foliage": {
+      "image": "site_11.jpeg",
+      "base": {
+        "psnr": 34.74,
+        "ssim": 0.9664,
+        "pd": 7.754,
+        "pct_gt10": 32.054,
+        "pct_gt20": 14.197,
+        "max_diff": 57.0,
+        "n_rois": 19
+      },
+      "cand": {
+        "psnr": 34.45,
+        "ssim": 0.9632,
+        "pd": 8.015,
+        "pct_gt10": 33.445,
+        "pct_gt20": 14.185,
+        "max_diff": 60.0,
+        "n_rois": 19
+      },
+      "ea_base": 1.0,
+      "ea_cand": 1.0,
+      "delta_pd": 0.261,
+      "delta_tail": -0.012,
+      "delta_max": 3.0,
+      "delta_ea": 0.0
+    },
+    "road": {
+      "image": "site_08.jpeg",
+      "base": {
+        "psnr": 51.24,
+        "ssim": 0.9968,
+        "pd": 0.711,
+        "pct_gt10": 0.012,
+        "pct_gt20": 0.0,
+        "max_diff": 13.0,
+        "n_rois": 4
+      },
+      "cand": {
+        "psnr": 50.95,
+        "ssim": 0.9966,
+        "pd": 0.716,
+        "pct_gt10": 0.024,
+        "pct_gt20": 0.0,
+        "max_diff": 15.0,
+        "n_rois": 4
+      },
+      "ea_base": 0.9984,
+      "ea_cand": 0.9983,
+      "delta_pd": 0.005,
+      "delta_tail": 0.0,
+      "delta_max": 2.0,
+      "delta_ea": -0.0001
+    },
+    "signs_text": {
+      "image": "1.jpeg",
+      "base": {
+        "psnr": 30.89,
+        "ssim": 0.9328,
+        "pd": 3.49,
+        "pct_gt10": 15.249,
+        "pct_gt20": 4.5,
+        "max_diff": 35.0,
+        "n_rois": 1
+      },
+      "cand": {
+        "psnr": 30.76,
+        "ssim": 0.9279,
+        "pd": 3.624,
+        "pct_gt10": 15.913,
+        "pct_gt20": 4.495,
+        "max_diff": 34.0,
+        "n_rois": 1
+      },
+      "ea_base": 1.0,
+      "ea_cand": 1.0,
+      "delta_pd": 0.134,
+      "delta_tail": -0.005,
+      "delta_max": -1.0,
+      "delta_ea": 0.0
+    },
+    "sky_flat": {
+      "image": "4.jpeg",
+      "base": {
+        "psnr": Infinity,
+        "ssim": 1.0,
+        "pd": 0.959,
+        "pct_gt10": 0.01,
+        "pct_gt20": 0.0,
+        "max_diff": 12.0,
+        "n_rois": 169
+      },
+      "cand": {
+        "psnr": Infinity,
+        "ssim": 1.0,
+        "pd": 0.959,
+        "pct_gt10": 0.037,
+        "pct_gt20": 0.0,
+        "max_diff": 16.0,
+        "n_rois": 169
+      },
+      "ea_base": 0.887,
+      "ea_cand": 0.887,
+      "delta_pd": 0.0,
+      "delta_tail": 0.0,
+      "delta_max": 4.0,
+      "delta_ea": 0.0
+    },
+    "vehicles": {
+      "image": "site_20.jpeg",
+      "base": {
+        "psnr": 48.62,
+        "ssim": 0.9943,
+        "pd": 9.649,
+        "pct_gt10": 44.285,
+        "pct_gt20": 15.476,
+        "max_diff": 50.0,
+        "n_rois": 117
+      },
+      "cand": {
+        "psnr": 47.52,
+        "ssim": 0.9936,
+        "pd": 10.203,
+        "pct_gt10": 47.327,
+        "pct_gt20": 15.863,
+        "max_diff": 52.0,
+        "n_rois": 117
+      },
+      "ea_base": 1.0,
+      "ea_cand": 1.0,
+      "delta_pd": 0.554,
+      "delta_tail": 0.387,
+      "delta_max": 2.0,
+      "delta_ea": 0.0
+    }
+  },
+  "per_image": [
+    {
+      "image": "1.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 50.83,
+          "ssim": 0.9962,
+          "pd": 9.665,
+          "pct_gt10": 47.021,
+          "pct_gt20": 17.745,
+          "max_diff": 43.0,
+          "n_rois": 113
+        },
+        "cand": {
+          "psnr": 49.14,
+          "ssim": 0.9953,
+          "pd": 9.852,
+          "pct_gt10": 48.09,
+          "pct_gt20": 17.548,
+          "max_diff": 43.0,
+          "n_rois": 113
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.187,
+        "delta_tail": -0.197,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "faces": {
+        "base": {
+          "psnr": 31.35,
+          "ssim": 0.9166,
+          "pd": 3.612,
+          "pct_gt10": 17.102,
+          "pct_gt20": 2.352,
+          "max_diff": 27.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 31.04,
+          "ssim": 0.9084,
+          "pd": 3.902,
+          "pct_gt10": 18.505,
+          "pct_gt20": 2.395,
+          "max_diff": 27.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.29,
+        "delta_tail": 0.043,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 27.73,
+          "ssim": 0.8698,
+          "pd": 6.803,
+          "pct_gt10": 32.738,
+          "pct_gt20": 8.585,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 27.57,
+          "ssim": 0.86,
+          "pd": 7.128,
+          "pct_gt10": 34.38,
+          "pct_gt20": 8.628,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.325,
+        "delta_tail": 0.043,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "foliage": {
+        "base": {
+          "psnr": 36.27,
+          "ssim": 0.9584,
+          "pd": 6.92,
+          "pct_gt10": 33.498,
+          "pct_gt20": 8.813,
+          "max_diff": 33.0,
+          "n_rois": 26
+        },
+        "cand": {
+          "psnr": 35.53,
+          "ssim": 0.9501,
+          "pd": 7.226,
+          "pct_gt10": 35.199,
+          "pct_gt20": 8.828,
+          "max_diff": 33.0,
+          "n_rois": 26
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.306,
+        "delta_tail": 0.015,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 56.11,
+          "ssim": 0.9991,
+          "pd": 1.293,
+          "pct_gt10": 0.0,
+          "pct_gt20": 0.0,
+          "max_diff": 9.0,
+          "n_rois": 18
+        },
+        "cand": {
+          "psnr": 56.11,
+          "ssim": 0.9991,
+          "pd": 1.293,
+          "pct_gt10": 0.0,
+          "pct_gt20": 0.0,
+          "max_diff": 10.0,
+          "n_rois": 18
+        },
+        "ea_base": 0.9983,
+        "ea_cand": 0.9983,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 1.0,
+        "delta_ea": 0.0
+      },
+      "signs_text": {
+        "base": {
+          "psnr": 30.89,
+          "ssim": 0.9328,
+          "pd": 3.49,
+          "pct_gt10": 15.249,
+          "pct_gt20": 4.5,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 30.76,
+          "ssim": 0.9279,
+          "pd": 3.624,
+          "pct_gt10": 15.913,
+          "pct_gt20": 4.495,
+          "max_diff": 34.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.134,
+        "delta_tail": -0.005,
+        "delta_max": -1.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 55.27,
+          "ssim": 0.9997,
+          "pd": 1.175,
+          "pct_gt10": 0.006,
+          "pct_gt20": 0.0,
+          "max_diff": 14.0,
+          "n_rois": 166
+        },
+        "cand": {
+          "psnr": 55.27,
+          "ssim": 0.9997,
+          "pd": 1.175,
+          "pct_gt10": 0.006,
+          "pct_gt20": 0.0,
+          "max_diff": 15.0,
+          "n_rois": 166
+        },
+        "ea_base": 0.9771,
+        "ea_cand": 0.9771,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 1.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 55.69,
+          "ssim": 0.9989,
+          "pd": 9.56,
+          "pct_gt10": 50.102,
+          "pct_gt20": 11.507,
+          "max_diff": 40.0,
+          "n_rois": 157
+        },
+        "cand": {
+          "psnr": 55.68,
+          "ssim": 0.9989,
+          "pd": 10.023,
+          "pct_gt10": 52.608,
+          "pct_gt20": 11.664,
+          "max_diff": 40.0,
+          "n_rois": 157
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.463,
+        "delta_tail": 0.157,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "2.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 46.51,
+          "ssim": 0.9952,
+          "pd": 10.502,
+          "pct_gt10": 48.997,
+          "pct_gt20": 19.112,
+          "max_diff": 60.0,
+          "n_rois": 108
+        },
+        "cand": {
+          "psnr": 46.25,
+          "ssim": 0.995,
+          "pd": 11.028,
+          "pct_gt10": 51.941,
+          "pct_gt20": 19.629,
+          "max_diff": 60.0,
+          "n_rois": 108
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.526,
+        "delta_tail": 0.517,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 26.09,
+          "ssim": 0.8997,
+          "pd": 8.694,
+          "pct_gt10": 40.152,
+          "pct_gt20": 15.712,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 25.91,
+          "ssim": 0.8914,
+          "pd": 9.152,
+          "pct_gt10": 42.588,
+          "pct_gt20": 15.951,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.458,
+        "delta_tail": 0.239,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "foliage": {
+        "base": {
+          "psnr": 32.16,
+          "ssim": 0.9682,
+          "pd": 9.385,
+          "pct_gt10": 45.241,
+          "pct_gt20": 17.633,
+          "max_diff": 48.0,
+          "n_rois": 46
+        },
+        "cand": {
+          "psnr": 32.04,
+          "ssim": 0.9658,
+          "pd": 10.157,
+          "pct_gt10": 49.567,
+          "pct_gt20": 17.849,
+          "max_diff": 46.0,
+          "n_rois": 46
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.772,
+        "delta_tail": 0.216,
+        "delta_max": -2.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 48.71,
+          "ssim": 0.9948,
+          "pd": 0.465,
+          "pct_gt10": 0.12,
+          "pct_gt20": 0.028,
+          "max_diff": 26.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 48.18,
+          "ssim": 0.9946,
+          "pd": 0.474,
+          "pct_gt10": 0.163,
+          "pct_gt20": 0.035,
+          "max_diff": 26.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.009,
+        "delta_tail": 0.007,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "signs_text": {
+        "base": {
+          "psnr": 28.96,
+          "ssim": 0.9456,
+          "pd": 4.663,
+          "pct_gt10": 19.289,
+          "pct_gt20": 8.036,
+          "max_diff": 41.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 28.76,
+          "ssim": 0.9398,
+          "pd": 4.945,
+          "pct_gt10": 20.64,
+          "pct_gt20": 8.161,
+          "max_diff": 41.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.282,
+        "delta_tail": 0.125,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 54.84,
+          "ssim": 0.9995,
+          "pd": 2.057,
+          "pct_gt10": 0.527,
+          "pct_gt20": 0.096,
+          "max_diff": 29.0,
+          "n_rois": 156
+        },
+        "cand": {
+          "psnr": 54.84,
+          "ssim": 0.9995,
+          "pd": 2.057,
+          "pct_gt10": 0.576,
+          "pct_gt20": 0.096,
+          "max_diff": 29.0,
+          "n_rois": 156
+        },
+        "ea_base": 0.9592,
+        "ea_cand": 0.9592,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 53.86,
+          "ssim": 0.9999,
+          "pd": 10.131,
+          "pct_gt10": 49.266,
+          "pct_gt20": 18.018,
+          "max_diff": 45.0,
+          "n_rois": 169
+        },
+        "cand": {
+          "psnr": 53.83,
+          "ssim": 0.9998,
+          "pd": 10.984,
+          "pct_gt10": 54.002,
+          "pct_gt20": 18.589,
+          "max_diff": 45.0,
+          "n_rois": 169
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.853,
+        "delta_tail": 0.571,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "3.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 43.09,
+          "ssim": 0.9943,
+          "pd": 9.59,
+          "pct_gt10": 43.876,
+          "pct_gt20": 21.873,
+          "max_diff": 59.0,
+          "n_rois": 147
+        },
+        "cand": {
+          "psnr": 42.94,
+          "ssim": 0.9943,
+          "pd": 10.157,
+          "pct_gt10": 46.969,
+          "pct_gt20": 21.922,
+          "max_diff": 59.0,
+          "n_rois": 147
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.567,
+        "delta_tail": 0.049,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 25.94,
+          "ssim": 0.8858,
+          "pd": 8.891,
+          "pct_gt10": 40.178,
+          "pct_gt20": 17.092,
+          "max_diff": 52.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 25.75,
+          "ssim": 0.8769,
+          "pd": 9.391,
+          "pct_gt10": 42.847,
+          "pct_gt20": 17.434,
+          "max_diff": 52.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.5,
+        "delta_tail": 0.342,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "foliage": {
+        "base": {
+          "psnr": 31.89,
+          "ssim": 0.9534,
+          "pd": 8.665,
+          "pct_gt10": 39.107,
+          "pct_gt20": 15.194,
+          "max_diff": 48.0,
+          "n_rois": 30
+        },
+        "cand": {
+          "psnr": 31.55,
+          "ssim": 0.9467,
+          "pd": 9.189,
+          "pct_gt10": 42.399,
+          "pct_gt20": 15.784,
+          "max_diff": 48.0,
+          "n_rois": 30
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.524,
+        "delta_tail": 0.59,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 51.8,
+          "ssim": 0.9968,
+          "pd": 0.498,
+          "pct_gt10": 0.087,
+          "pct_gt20": 0.0,
+          "max_diff": 17.0,
+          "n_rois": 4
+        },
+        "cand": {
+          "psnr": 51.72,
+          "ssim": 0.9968,
+          "pd": 0.503,
+          "pct_gt10": 0.118,
+          "pct_gt20": 0.0,
+          "max_diff": 17.0,
+          "n_rois": 4
+        },
+        "ea_base": 0.9936,
+        "ea_cand": 0.992,
+        "delta_pd": 0.005,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": -0.0016
+      },
+      "signs_text": {
+        "base": {
+          "psnr": 29.59,
+          "ssim": 0.9352,
+          "pd": 3.893,
+          "pct_gt10": 13.899,
+          "pct_gt20": 6.789,
+          "max_diff": 59.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 29.39,
+          "ssim": 0.93,
+          "pd": 4.097,
+          "pct_gt10": 14.918,
+          "pct_gt20": 6.961,
+          "max_diff": 59.0,
+          "n_rois": 1
+        },
+        "ea_base": 0.9987,
+        "ea_cand": 0.9964,
+        "delta_pd": 0.204,
+        "delta_tail": 0.172,
+        "delta_max": 0.0,
+        "delta_ea": -0.0023
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 53.13,
+          "ssim": 0.9991,
+          "pd": 1.218,
+          "pct_gt10": 0.555,
+          "pct_gt20": 0.028,
+          "max_diff": 28.0,
+          "n_rois": 139
+        },
+        "cand": {
+          "psnr": 53.13,
+          "ssim": 0.9991,
+          "pd": 1.218,
+          "pct_gt10": 0.58,
+          "pct_gt20": 0.033,
+          "max_diff": 28.0,
+          "n_rois": 139
+        },
+        "ea_base": 0.91,
+        "ea_cand": 0.91,
+        "delta_pd": 0.0,
+        "delta_tail": 0.005,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 53.08,
+          "ssim": 0.9984,
+          "pd": 9.374,
+          "pct_gt10": 43.532,
+          "pct_gt20": 17.2,
+          "max_diff": 39.0,
+          "n_rois": 160
+        },
+        "cand": {
+          "psnr": 53.05,
+          "ssim": 0.9984,
+          "pd": 9.909,
+          "pct_gt10": 46.57,
+          "pct_gt20": 17.666,
+          "max_diff": 39.0,
+          "n_rois": 160
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.535,
+        "delta_tail": 0.466,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "4.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 49.36,
+          "ssim": 0.9979,
+          "pd": 9.272,
+          "pct_gt10": 38.477,
+          "pct_gt20": 20.268,
+          "max_diff": 57.0,
+          "n_rois": 111
+        },
+        "cand": {
+          "psnr": 48.03,
+          "ssim": 0.9978,
+          "pd": 9.604,
+          "pct_gt10": 40.859,
+          "pct_gt20": 20.467,
+          "max_diff": 57.0,
+          "n_rois": 111
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.332,
+        "delta_tail": 0.199,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 26.63,
+          "ssim": 0.9175,
+          "pd": 7.315,
+          "pct_gt10": 29.641,
+          "pct_gt20": 14.414,
+          "max_diff": 57.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 26.47,
+          "ssim": 0.9118,
+          "pd": 7.648,
+          "pct_gt10": 31.301,
+          "pct_gt20": 14.709,
+          "max_diff": 57.0,
+          "n_rois": 1
+        },
+        "ea_base": 0.9998,
+        "ea_cand": 0.9997,
+        "delta_pd": 0.333,
+        "delta_tail": 0.295,
+        "delta_max": 0.0,
+        "delta_ea": -0.0001
+      },
+      "foliage": {
+        "base": {
+          "psnr": 36.12,
+          "ssim": 0.9778,
+          "pd": 7.458,
+          "pct_gt10": 30.155,
+          "pct_gt20": 13.924,
+          "max_diff": 43.0,
+          "n_rois": 26
+        },
+        "cand": {
+          "psnr": 35.55,
+          "ssim": 0.977,
+          "pd": 7.85,
+          "pct_gt10": 32.125,
+          "pct_gt20": 14.056,
+          "max_diff": 43.0,
+          "n_rois": 26
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.392,
+        "delta_tail": 0.132,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 53.21,
+          "ssim": 0.9999,
+          "pd": 0.778,
+          "pct_gt10": 0.0,
+          "pct_gt20": 0.0,
+          "max_diff": 4.0,
+          "n_rois": 23
+        },
+        "cand": {
+          "psnr": 53.21,
+          "ssim": 0.9999,
+          "pd": 0.778,
+          "pct_gt10": 0.0,
+          "pct_gt20": 0.0,
+          "max_diff": 4.0,
+          "n_rois": 23
+        },
+        "ea_base": 0.9865,
+        "ea_cand": 0.9865,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "signs_text": {
+        "base": {
+          "psnr": 30.11,
+          "ssim": 0.9542,
+          "pd": 3.475,
+          "pct_gt10": 13.412,
+          "pct_gt20": 6.303,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 29.91,
+          "ssim": 0.9509,
+          "pd": 3.643,
+          "pct_gt10": 14.266,
+          "pct_gt20": 6.491,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.168,
+        "delta_tail": 0.188,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 0.959,
+          "pct_gt10": 0.01,
+          "pct_gt20": 0.0,
+          "max_diff": 12.0,
+          "n_rois": 169
+        },
+        "cand": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 0.959,
+          "pct_gt10": 0.037,
+          "pct_gt20": 0.0,
+          "max_diff": 16.0,
+          "n_rois": 169
+        },
+        "ea_base": 0.887,
+        "ea_cand": 0.887,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 4.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 53.78,
+          "ssim": 0.9987,
+          "pd": 10.774,
+          "pct_gt10": 40.125,
+          "pct_gt20": 26.67,
+          "max_diff": 44.0,
+          "n_rois": 151
+        },
+        "cand": {
+          "psnr": 53.78,
+          "ssim": 0.9987,
+          "pd": 10.997,
+          "pct_gt10": 41.341,
+          "pct_gt20": 26.709,
+          "max_diff": 44.0,
+          "n_rois": 151
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.223,
+        "delta_tail": 0.039,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "5.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 51.68,
+          "ssim": 0.9991,
+          "pd": 10.051,
+          "pct_gt10": 39.598,
+          "pct_gt20": 23.126,
+          "max_diff": 43.0,
+          "n_rois": 125
+        },
+        "cand": {
+          "psnr": 50.13,
+          "ssim": 0.9991,
+          "pd": 10.38,
+          "pct_gt10": 42.499,
+          "pct_gt20": 23.378,
+          "max_diff": 43.0,
+          "n_rois": 125
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.329,
+        "delta_tail": 0.252,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 26.33,
+          "ssim": 0.9468,
+          "pd": 7.67,
+          "pct_gt10": 30.178,
+          "pct_gt20": 15.728,
+          "max_diff": 43.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 26.2,
+          "ssim": 0.9431,
+          "pd": 7.99,
+          "pct_gt10": 31.81,
+          "pct_gt20": 15.917,
+          "max_diff": 43.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 0.9999,
+        "delta_pd": 0.32,
+        "delta_tail": 0.189,
+        "delta_max": 0.0,
+        "delta_ea": -0.0001
+      },
+      "foliage": {
+        "base": {
+          "psnr": 51.56,
+          "ssim": 0.9951,
+          "pd": 6.446,
+          "pct_gt10": 26.335,
+          "pct_gt20": 12.307,
+          "max_diff": 36.0,
+          "n_rois": 3
+        },
+        "cand": {
+          "psnr": 51.55,
+          "ssim": 0.9951,
+          "pd": 6.816,
+          "pct_gt10": 27.993,
+          "pct_gt20": 12.59,
+          "max_diff": 36.0,
+          "n_rois": 3
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.37,
+        "delta_tail": 0.283,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 52.5,
+          "ssim": 0.9987,
+          "pd": 0.403,
+          "pct_gt10": 0.0,
+          "pct_gt20": 0.0,
+          "max_diff": 3.0,
+          "n_rois": 3
+        },
+        "cand": {
+          "psnr": 52.5,
+          "ssim": 0.9987,
+          "pd": 0.403,
+          "pct_gt10": 0.0,
+          "pct_gt20": 0.0,
+          "max_diff": 3.0,
+          "n_rois": 3
+        },
+        "ea_base": 0.9991,
+        "ea_cand": 0.9991,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "signs_text": {
+        "base": {
+          "psnr": 29.72,
+          "ssim": 0.9717,
+          "pd": 3.707,
+          "pct_gt10": 13.114,
+          "pct_gt20": 7.156,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 29.58,
+          "ssim": 0.9692,
+          "pd": 3.873,
+          "pct_gt10": 13.854,
+          "pct_gt20": 7.216,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 0.9997,
+        "delta_pd": 0.166,
+        "delta_tail": 0.06,
+        "delta_max": 0.0,
+        "delta_ea": -0.0003
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 57.02,
+          "ssim": 0.9999,
+          "pd": 1.467,
+          "pct_gt10": 0.024,
+          "pct_gt20": 0.012,
+          "max_diff": 35.0,
+          "n_rois": 174
+        },
+        "cand": {
+          "psnr": 57.02,
+          "ssim": 0.9999,
+          "pd": 1.467,
+          "pct_gt10": 0.035,
+          "pct_gt20": 0.012,
+          "max_diff": 35.0,
+          "n_rois": 174
+        },
+        "ea_base": 0.8889,
+        "ea_cand": 0.8889,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 56.56,
+          "ssim": 0.9988,
+          "pd": 8.941,
+          "pct_gt10": 35.482,
+          "pct_gt20": 19.191,
+          "max_diff": 44.0,
+          "n_rois": 175
+        },
+        "cand": {
+          "psnr": 56.13,
+          "ssim": 0.9988,
+          "pd": 9.244,
+          "pct_gt10": 36.955,
+          "pct_gt20": 19.342,
+          "max_diff": 44.0,
+          "n_rois": 175
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.303,
+        "delta_tail": 0.151,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "6.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 47.76,
+          "ssim": 0.9974,
+          "pd": 9.296,
+          "pct_gt10": 40.997,
+          "pct_gt20": 18.402,
+          "max_diff": 51.0,
+          "n_rois": 141
+        },
+        "cand": {
+          "psnr": 47.65,
+          "ssim": 0.9974,
+          "pd": 9.559,
+          "pct_gt10": 42.664,
+          "pct_gt20": 18.427,
+          "max_diff": 51.0,
+          "n_rois": 141
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.263,
+        "delta_tail": 0.025,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 27.65,
+          "ssim": 0.9052,
+          "pd": 6.796,
+          "pct_gt10": 31.174,
+          "pct_gt20": 8.862,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 27.44,
+          "ssim": 0.8955,
+          "pd": 7.227,
+          "pct_gt10": 33.301,
+          "pct_gt20": 9.057,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.431,
+        "delta_tail": 0.195,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "foliage": {
+        "base": {
+          "psnr": 33.48,
+          "ssim": 0.9639,
+          "pd": 8.263,
+          "pct_gt10": 37.569,
+          "pct_gt20": 12.809,
+          "max_diff": 58.0,
+          "n_rois": 15
+        },
+        "cand": {
+          "psnr": 33.22,
+          "ssim": 0.9595,
+          "pd": 8.672,
+          "pct_gt10": 39.589,
+          "pct_gt20": 13.007,
+          "max_diff": 58.0,
+          "n_rois": 15
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.409,
+        "delta_tail": 0.198,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 55.14,
+          "ssim": 0.9986,
+          "pd": 0.6,
+          "pct_gt10": 0.181,
+          "pct_gt20": 0.0,
+          "max_diff": 19.0,
+          "n_rois": 10
+        },
+        "cand": {
+          "psnr": 55.14,
+          "ssim": 0.9986,
+          "pd": 0.6,
+          "pct_gt10": 0.212,
+          "pct_gt20": 0.0,
+          "max_diff": 19.0,
+          "n_rois": 10
+        },
+        "ea_base": 0.9949,
+        "ea_cand": 0.9949,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "signs_text": {
+        "base": {
+          "psnr": 27.67,
+          "ssim": 0.921,
+          "pd": 6.291,
+          "pct_gt10": 28.069,
+          "pct_gt20": 10.135,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 27.51,
+          "ssim": 0.9135,
+          "pd": 6.602,
+          "pct_gt10": 29.621,
+          "pct_gt20": 10.239,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.311,
+        "delta_tail": 0.104,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 60.17,
+          "ssim": 0.9998,
+          "pd": 1.853,
+          "pct_gt10": 0.108,
+          "pct_gt20": 0.006,
+          "max_diff": 27.0,
+          "n_rois": 147
+        },
+        "cand": {
+          "psnr": 60.17,
+          "ssim": 0.9998,
+          "pd": 1.853,
+          "pct_gt10": 0.116,
+          "pct_gt20": 0.006,
+          "max_diff": 27.0,
+          "n_rois": 147
+        },
+        "ea_base": 0.9029,
+        "ea_cand": 0.9053,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0024
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 52.76,
+          "ssim": 0.9987,
+          "pd": 9.725,
+          "pct_gt10": 45.353,
+          "pct_gt20": 17.438,
+          "max_diff": 62.0,
+          "n_rois": 167
+        },
+        "cand": {
+          "psnr": 52.73,
+          "ssim": 0.9987,
+          "pd": 10.091,
+          "pct_gt10": 47.597,
+          "pct_gt20": 17.619,
+          "max_diff": 62.0,
+          "n_rois": 167
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.366,
+        "delta_tail": 0.181,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "mumbai-01.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 53.94,
+          "ssim": 0.9984,
+          "pd": 12.278,
+          "pct_gt10": 58.16,
+          "pct_gt20": 21.877,
+          "max_diff": 36.0,
+          "n_rois": 243
+        },
+        "cand": {
+          "psnr": 52.68,
+          "ssim": 0.998,
+          "pd": 12.7,
+          "pct_gt10": 60.636,
+          "pct_gt20": 22.074,
+          "max_diff": 36.0,
+          "n_rois": 243
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.422,
+        "delta_tail": 0.197,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 28.31,
+          "ssim": 0.9032,
+          "pd": 5.494,
+          "pct_gt10": 24.698,
+          "pct_gt20": 8.295,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 28.16,
+          "ssim": 0.8963,
+          "pd": 5.749,
+          "pct_gt10": 25.93,
+          "pct_gt20": 8.378,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "ea_base": 0.9999,
+        "ea_cand": 0.9983,
+        "delta_pd": 0.255,
+        "delta_tail": 0.083,
+        "delta_max": 0.0,
+        "delta_ea": -0.0016
+      },
+      "foliage": {
+        "base": {
+          "psnr": 42.72,
+          "ssim": 0.9859,
+          "pd": 5.003,
+          "pct_gt10": 23.061,
+          "pct_gt20": 7.676,
+          "max_diff": 34.0,
+          "n_rois": 16
+        },
+        "cand": {
+          "psnr": 41.84,
+          "ssim": 0.9827,
+          "pd": 5.225,
+          "pct_gt10": 23.952,
+          "pct_gt20": 7.727,
+          "max_diff": 34.0,
+          "n_rois": 16
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.222,
+        "delta_tail": 0.051,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 61.04,
+          "ssim": 0.9997,
+          "pd": 0.52,
+          "pct_gt10": 0.165,
+          "pct_gt20": 0.0,
+          "max_diff": 17.0,
+          "n_rois": 14
+        },
+        "cand": {
+          "psnr": 60.72,
+          "ssim": 0.9997,
+          "pd": 0.522,
+          "pct_gt10": 0.165,
+          "pct_gt20": 0.0,
+          "max_diff": 18.0,
+          "n_rois": 14
+        },
+        "ea_base": 0.98,
+        "ea_cand": 0.9842,
+        "delta_pd": 0.002,
+        "delta_tail": 0.0,
+        "delta_max": 1.0,
+        "delta_ea": 0.0042
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 0.088,
+          "pct_gt10": 0.153,
+          "pct_gt20": 0.031,
+          "max_diff": 26.0,
+          "n_rois": 41
+        },
+        "cand": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 0.088,
+          "pct_gt10": 0.153,
+          "pct_gt20": 0.031,
+          "max_diff": 26.0,
+          "n_rois": 41
+        },
+        "ea_base": 0.0,
+        "ea_cand": 0.0,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 51.17,
+          "ssim": 0.9959,
+          "pd": 7.945,
+          "pct_gt10": 40.497,
+          "pct_gt20": 8.73,
+          "max_diff": 35.0,
+          "n_rois": 166
+        },
+        "cand": {
+          "psnr": 49.56,
+          "ssim": 0.9937,
+          "pd": 8.301,
+          "pct_gt10": 42.592,
+          "pct_gt20": 8.706,
+          "max_diff": 35.0,
+          "n_rois": 166
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.356,
+        "delta_tail": -0.024,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_02.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 47.12,
+          "ssim": 0.999,
+          "pd": 10.105,
+          "pct_gt10": 44.167,
+          "pct_gt20": 19.301,
+          "max_diff": 54.0,
+          "n_rois": 187
+        },
+        "cand": {
+          "psnr": 46.19,
+          "ssim": 0.9989,
+          "pd": 10.448,
+          "pct_gt10": 46.503,
+          "pct_gt20": 19.448,
+          "max_diff": 54.0,
+          "n_rois": 187
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.343,
+        "delta_tail": 0.147,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 29.18,
+          "ssim": 0.9453,
+          "pd": 4.359,
+          "pct_gt10": 18.243,
+          "pct_gt20": 7.422,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 29.01,
+          "ssim": 0.9394,
+          "pd": 4.582,
+          "pct_gt10": 19.395,
+          "pct_gt20": 7.554,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "ea_base": 0.9997,
+        "ea_cand": 0.9984,
+        "delta_pd": 0.223,
+        "delta_tail": 0.132,
+        "delta_max": 0.0,
+        "delta_ea": -0.0013
+      },
+      "foliage": {
+        "base": {
+          "psnr": 44.58,
+          "ssim": 0.9929,
+          "pd": 5.014,
+          "pct_gt10": 20.589,
+          "pct_gt20": 6.46,
+          "max_diff": 36.0,
+          "n_rois": 19
+        },
+        "cand": {
+          "psnr": 43.37,
+          "ssim": 0.9922,
+          "pd": 5.36,
+          "pct_gt10": 22.27,
+          "pct_gt20": 6.667,
+          "max_diff": 36.0,
+          "n_rois": 19
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.346,
+        "delta_tail": 0.207,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 58.84,
+          "ssim": 0.9995,
+          "pd": 1.721,
+          "pct_gt10": 2.049,
+          "pct_gt20": 0.008,
+          "max_diff": 28.0,
+          "n_rois": 6
+        },
+        "cand": {
+          "psnr": 58.84,
+          "ssim": 0.9995,
+          "pd": 1.721,
+          "pct_gt10": 2.049,
+          "pct_gt20": 0.008,
+          "max_diff": 28.0,
+          "n_rois": 6
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 2.357,
+          "pct_gt10": 8.246,
+          "pct_gt20": 1.937,
+          "max_diff": 32.0,
+          "n_rois": 105
+        },
+        "cand": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 2.357,
+          "pct_gt10": 8.246,
+          "pct_gt20": 1.937,
+          "max_diff": 32.0,
+          "n_rois": 105
+        },
+        "ea_base": 0.0,
+        "ea_cand": 0.0,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 54.25,
+          "ssim": 0.999,
+          "pd": 8.139,
+          "pct_gt10": 35.012,
+          "pct_gt20": 14.333,
+          "max_diff": 44.0,
+          "n_rois": 163
+        },
+        "cand": {
+          "psnr": 54.16,
+          "ssim": 0.9988,
+          "pd": 8.524,
+          "pct_gt10": 37.177,
+          "pct_gt20": 14.646,
+          "max_diff": 44.0,
+          "n_rois": 163
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.385,
+        "delta_tail": 0.313,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_03.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 46.41,
+          "ssim": 0.9972,
+          "pd": 9.396,
+          "pct_gt10": 43.463,
+          "pct_gt20": 16.661,
+          "max_diff": 47.0,
+          "n_rois": 273
+        },
+        "cand": {
+          "psnr": 44.81,
+          "ssim": 0.997,
+          "pd": 9.751,
+          "pct_gt10": 45.31,
+          "pct_gt20": 17.037,
+          "max_diff": 47.0,
+          "n_rois": 273
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.355,
+        "delta_tail": 0.376,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "faces": {
+        "base": {
+          "psnr": 30.11,
+          "ssim": 0.9259,
+          "pd": 4.086,
+          "pct_gt10": 18.268,
+          "pct_gt20": 5.129,
+          "max_diff": 34.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 29.82,
+          "ssim": 0.9181,
+          "pd": 4.415,
+          "pct_gt10": 19.817,
+          "pct_gt20": 5.321,
+          "max_diff": 34.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.329,
+        "delta_tail": 0.192,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 28.97,
+          "ssim": 0.9161,
+          "pd": 5.04,
+          "pct_gt10": 22.234,
+          "pct_gt20": 7.247,
+          "max_diff": 47.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 28.78,
+          "ssim": 0.909,
+          "pd": 5.313,
+          "pct_gt10": 23.564,
+          "pct_gt20": 7.365,
+          "max_diff": 47.0,
+          "n_rois": 1
+        },
+        "ea_base": 0.9999,
+        "ea_cand": 0.9995,
+        "delta_pd": 0.273,
+        "delta_tail": 0.118,
+        "delta_max": 0.0,
+        "delta_ea": -0.0004
+      },
+      "foliage": {
+        "base": {
+          "psnr": 33.52,
+          "ssim": 0.9532,
+          "pd": 6.56,
+          "pct_gt10": 31.748,
+          "pct_gt20": 8.449,
+          "max_diff": 36.0,
+          "n_rois": 14
+        },
+        "cand": {
+          "psnr": 33.14,
+          "ssim": 0.9473,
+          "pd": 7.069,
+          "pct_gt10": 34.587,
+          "pct_gt20": 8.594,
+          "max_diff": 36.0,
+          "n_rois": 14
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.509,
+        "delta_tail": 0.145,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 59.78,
+          "ssim": 0.9995,
+          "pd": 0.934,
+          "pct_gt10": 1.508,
+          "pct_gt20": 0.413,
+          "max_diff": 27.0,
+          "n_rois": 69
+        },
+        "cand": {
+          "psnr": 59.78,
+          "ssim": 0.9995,
+          "pd": 0.934,
+          "pct_gt10": 1.613,
+          "pct_gt20": 0.458,
+          "max_diff": 27.0,
+          "n_rois": 69
+        },
+        "ea_base": 0.9998,
+        "ea_cand": 0.9999,
+        "delta_pd": 0.0,
+        "delta_tail": 0.045,
+        "delta_max": 0.0,
+        "delta_ea": 0.0001
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 56.93,
+          "ssim": 0.9988,
+          "pd": 0.68,
+          "pct_gt10": 0.844,
+          "pct_gt20": 0.12,
+          "max_diff": 27.0,
+          "n_rois": 16
+        },
+        "cand": {
+          "psnr": 56.93,
+          "ssim": 0.9988,
+          "pd": 0.68,
+          "pct_gt10": 1.08,
+          "pct_gt20": 0.118,
+          "max_diff": 28.0,
+          "n_rois": 16
+        },
+        "ea_base": 0.9812,
+        "ea_cand": 0.9937,
+        "delta_pd": 0.0,
+        "delta_tail": -0.002,
+        "delta_max": 1.0,
+        "delta_ea": 0.0125
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 43.34,
+          "ssim": 0.9914,
+          "pd": 9.007,
+          "pct_gt10": 44.342,
+          "pct_gt20": 15.633,
+          "max_diff": 42.0,
+          "n_rois": 108
+        },
+        "cand": {
+          "psnr": 42.54,
+          "ssim": 0.9906,
+          "pd": 9.245,
+          "pct_gt10": 45.506,
+          "pct_gt20": 15.743,
+          "max_diff": 42.0,
+          "n_rois": 108
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.238,
+        "delta_tail": 0.11,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_04.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 43.88,
+          "ssim": 0.9941,
+          "pd": 12.149,
+          "pct_gt10": 58.085,
+          "pct_gt20": 22.447,
+          "max_diff": 36.0,
+          "n_rois": 265
+        },
+        "cand": {
+          "psnr": 43.04,
+          "ssim": 0.993,
+          "pd": 12.75,
+          "pct_gt10": 61.438,
+          "pct_gt20": 23.049,
+          "max_diff": 36.0,
+          "n_rois": 265
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.601,
+        "delta_tail": 0.602,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "faces": {
+        "base": {
+          "psnr": 37.91,
+          "ssim": 0.9845,
+          "pd": 1.075,
+          "pct_gt10": 2.786,
+          "pct_gt20": 0.644,
+          "max_diff": 31.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 37.62,
+          "ssim": 0.9828,
+          "pd": 1.157,
+          "pct_gt10": 2.992,
+          "pct_gt20": 0.658,
+          "max_diff": 31.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.082,
+        "delta_tail": 0.014,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 26.07,
+          "ssim": 0.888,
+          "pd": 8.861,
+          "pct_gt10": 40.529,
+          "pct_gt20": 14.031,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 25.87,
+          "ssim": 0.8795,
+          "pd": 9.34,
+          "pct_gt10": 43.038,
+          "pct_gt20": 14.357,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.479,
+        "delta_tail": 0.326,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "foliage": {
+        "base": {
+          "psnr": 38.35,
+          "ssim": 0.9849,
+          "pd": 4.964,
+          "pct_gt10": 21.313,
+          "pct_gt20": 3.813,
+          "max_diff": 34.0,
+          "n_rois": 14
+        },
+        "cand": {
+          "psnr": 37.88,
+          "ssim": 0.9822,
+          "pd": 5.397,
+          "pct_gt10": 23.258,
+          "pct_gt20": 3.945,
+          "max_diff": 34.0,
+          "n_rois": 14
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.433,
+        "delta_tail": 0.132,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 54.12,
+          "ssim": 0.9994,
+          "pd": 1.052,
+          "pct_gt10": 1.699,
+          "pct_gt20": 0.433,
+          "max_diff": 31.0,
+          "n_rois": 40
+        },
+        "cand": {
+          "psnr": 54.12,
+          "ssim": 0.9994,
+          "pd": 1.087,
+          "pct_gt10": 2.032,
+          "pct_gt20": 0.456,
+          "max_diff": 31.0,
+          "n_rois": 40
+        },
+        "ea_base": 0.9997,
+        "ea_cand": 1.0,
+        "delta_pd": 0.035,
+        "delta_tail": 0.023,
+        "delta_max": 0.0,
+        "delta_ea": 0.0003
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 0.657,
+          "pct_gt10": 1.536,
+          "pct_gt20": 0.281,
+          "max_diff": 31.0,
+          "n_rois": 30
+        },
+        "cand": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 0.742,
+          "pct_gt10": 2.091,
+          "pct_gt20": 0.281,
+          "max_diff": 31.0,
+          "n_rois": 30
+        },
+        "ea_base": 0.9191,
+        "ea_cand": 0.9191,
+        "delta_pd": 0.085,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 45.92,
+          "ssim": 0.9935,
+          "pd": 8.265,
+          "pct_gt10": 37.054,
+          "pct_gt20": 12.459,
+          "max_diff": 42.0,
+          "n_rois": 131
+        },
+        "cand": {
+          "psnr": 45.22,
+          "ssim": 0.9927,
+          "pd": 8.739,
+          "pct_gt10": 39.478,
+          "pct_gt20": 12.742,
+          "max_diff": 42.0,
+          "n_rois": 131
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.474,
+        "delta_tail": 0.283,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_05.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 50.8,
+          "ssim": 0.9966,
+          "pd": 12.507,
+          "pct_gt10": 58.913,
+          "pct_gt20": 21.13,
+          "max_diff": 35.0,
+          "n_rois": 219
+        },
+        "cand": {
+          "psnr": 49.86,
+          "ssim": 0.9958,
+          "pd": 12.905,
+          "pct_gt10": 61.251,
+          "pct_gt20": 21.236,
+          "max_diff": 35.0,
+          "n_rois": 219
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.398,
+        "delta_tail": 0.106,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 28.52,
+          "ssim": 0.8958,
+          "pd": 5.568,
+          "pct_gt10": 25.567,
+          "pct_gt20": 6.956,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 28.35,
+          "ssim": 0.8866,
+          "pd": 5.848,
+          "pct_gt10": 26.972,
+          "pct_gt20": 7.023,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "ea_base": 0.9944,
+        "ea_cand": 0.9922,
+        "delta_pd": 0.28,
+        "delta_tail": 0.067,
+        "delta_max": 0.0,
+        "delta_ea": -0.0022
+      },
+      "foliage": {
+        "base": {
+          "psnr": 45.74,
+          "ssim": 0.9859,
+          "pd": 6.137,
+          "pct_gt10": 29.108,
+          "pct_gt20": 9.07,
+          "max_diff": 35.0,
+          "n_rois": 21
+        },
+        "cand": {
+          "psnr": 44.84,
+          "ssim": 0.9845,
+          "pd": 6.504,
+          "pct_gt10": 30.717,
+          "pct_gt20": 9.104,
+          "max_diff": 35.0,
+          "n_rois": 21
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.367,
+        "delta_tail": 0.034,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 89.03,
+          "ssim": 1.0,
+          "pd": 0.588,
+          "pct_gt10": 0.33,
+          "pct_gt20": 0.083,
+          "max_diff": 24.0,
+          "n_rois": 41
+        },
+        "cand": {
+          "psnr": 89.03,
+          "ssim": 1.0,
+          "pd": 0.588,
+          "pct_gt10": 0.429,
+          "pct_gt20": 0.087,
+          "max_diff": 24.0,
+          "n_rois": 41
+        },
+        "ea_base": 0.9999,
+        "ea_cand": 0.9999,
+        "delta_pd": 0.0,
+        "delta_tail": 0.004,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 58.19,
+          "ssim": 0.9999,
+          "pd": 1.727,
+          "pct_gt10": 0.462,
+          "pct_gt20": 0.037,
+          "max_diff": 26.0,
+          "n_rois": 63
+        },
+        "cand": {
+          "psnr": 58.19,
+          "ssim": 0.9999,
+          "pd": 1.727,
+          "pct_gt10": 0.521,
+          "pct_gt20": 0.047,
+          "max_diff": 26.0,
+          "n_rois": 63
+        },
+        "ea_base": 0.9701,
+        "ea_cand": 0.9701,
+        "delta_pd": 0.0,
+        "delta_tail": 0.01,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 59.34,
+          "ssim": 0.9995,
+          "pd": 7.753,
+          "pct_gt10": 36.943,
+          "pct_gt20": 12.962,
+          "max_diff": 35.0,
+          "n_rois": 136
+        },
+        "cand": {
+          "psnr": 59.19,
+          "ssim": 0.9995,
+          "pd": 8.054,
+          "pct_gt10": 38.367,
+          "pct_gt20": 12.87,
+          "max_diff": 35.0,
+          "n_rois": 136
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.301,
+        "delta_tail": -0.092,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_06.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 45.61,
+          "ssim": 0.9968,
+          "pd": 8.868,
+          "pct_gt10": 38.835,
+          "pct_gt20": 17.373,
+          "max_diff": 52.0,
+          "n_rois": 172
+        },
+        "cand": {
+          "psnr": 45.47,
+          "ssim": 0.9967,
+          "pd": 9.298,
+          "pct_gt10": 41.195,
+          "pct_gt20": 17.657,
+          "max_diff": 52.0,
+          "n_rois": 172
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.43,
+        "delta_tail": 0.284,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 29.74,
+          "ssim": 0.9416,
+          "pd": 4.292,
+          "pct_gt10": 17.692,
+          "pct_gt20": 5.876,
+          "max_diff": 45.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 29.48,
+          "ssim": 0.9356,
+          "pd": 4.581,
+          "pct_gt10": 19.135,
+          "pct_gt20": 6.067,
+          "max_diff": 45.0,
+          "n_rois": 1
+        },
+        "ea_base": 0.9999,
+        "ea_cand": 0.9995,
+        "delta_pd": 0.289,
+        "delta_tail": 0.191,
+        "delta_max": 0.0,
+        "delta_ea": -0.0004
+      },
+      "foliage": {
+        "base": {
+          "psnr": 38.37,
+          "ssim": 0.9822,
+          "pd": 8.658,
+          "pct_gt10": 39.856,
+          "pct_gt20": 13.963,
+          "max_diff": 57.0,
+          "n_rois": 27
+        },
+        "cand": {
+          "psnr": 37.79,
+          "ssim": 0.9808,
+          "pd": 9.163,
+          "pct_gt10": 42.623,
+          "pct_gt20": 14.329,
+          "max_diff": 57.0,
+          "n_rois": 27
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.505,
+        "delta_tail": 0.366,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 52.44,
+          "ssim": 0.9966,
+          "pd": 1.175,
+          "pct_gt10": 0.155,
+          "pct_gt20": 0.0,
+          "max_diff": 12.0,
+          "n_rois": 4
+        },
+        "cand": {
+          "psnr": 52.44,
+          "ssim": 0.9966,
+          "pd": 1.175,
+          "pct_gt10": 0.155,
+          "pct_gt20": 0.0,
+          "max_diff": 12.0,
+          "n_rois": 4
+        },
+        "ea_base": 0.9892,
+        "ea_cand": 0.9892,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 53.3,
+          "ssim": 0.9992,
+          "pd": 0.792,
+          "pct_gt10": 0.659,
+          "pct_gt20": 0.002,
+          "max_diff": 21.0,
+          "n_rois": 114
+        },
+        "cand": {
+          "psnr": 53.3,
+          "ssim": 0.9992,
+          "pd": 0.792,
+          "pct_gt10": 0.95,
+          "pct_gt20": 0.008,
+          "max_diff": 21.0,
+          "n_rois": 114
+        },
+        "ea_base": 0.9532,
+        "ea_cand": 0.9532,
+        "delta_pd": 0.0,
+        "delta_tail": 0.006,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 46.69,
+          "ssim": 0.9859,
+          "pd": 8.347,
+          "pct_gt10": 36.719,
+          "pct_gt20": 14.266,
+          "max_diff": 56.0,
+          "n_rois": 163
+        },
+        "cand": {
+          "psnr": 46.66,
+          "ssim": 0.9856,
+          "pd": 8.82,
+          "pct_gt10": 39.174,
+          "pct_gt20": 14.602,
+          "max_diff": 56.0,
+          "n_rois": 163
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.473,
+        "delta_tail": 0.336,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_07.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 50.99,
+          "ssim": 0.9967,
+          "pd": 10.327,
+          "pct_gt10": 48.092,
+          "pct_gt20": 16.451,
+          "max_diff": 41.0,
+          "n_rois": 172
+        },
+        "cand": {
+          "psnr": 50.34,
+          "ssim": 0.9962,
+          "pd": 10.806,
+          "pct_gt10": 50.736,
+          "pct_gt20": 16.728,
+          "max_diff": 41.0,
+          "n_rois": 172
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.479,
+        "delta_tail": 0.277,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 29.4,
+          "ssim": 0.9317,
+          "pd": 4.545,
+          "pct_gt10": 19.458,
+          "pct_gt20": 6.536,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 29.2,
+          "ssim": 0.9249,
+          "pd": 4.809,
+          "pct_gt10": 20.733,
+          "pct_gt20": 6.629,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "ea_base": 0.9996,
+        "ea_cand": 0.9992,
+        "delta_pd": 0.264,
+        "delta_tail": 0.093,
+        "delta_max": 0.0,
+        "delta_ea": -0.0004
+      },
+      "foliage": {
+        "base": {
+          "psnr": 51.77,
+          "ssim": 0.9961,
+          "pd": 8.472,
+          "pct_gt10": 38.513,
+          "pct_gt20": 13.448,
+          "max_diff": 49.0,
+          "n_rois": 52
+        },
+        "cand": {
+          "psnr": 51.76,
+          "ssim": 0.9961,
+          "pd": 8.868,
+          "pct_gt10": 40.609,
+          "pct_gt20": 13.831,
+          "max_diff": 49.0,
+          "n_rois": 52
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.396,
+        "delta_tail": 0.383,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 54.19,
+          "ssim": 0.9992,
+          "pd": 1.621,
+          "pct_gt10": 0.761,
+          "pct_gt20": 0.047,
+          "max_diff": 25.0,
+          "n_rois": 55
+        },
+        "cand": {
+          "psnr": 54.19,
+          "ssim": 0.9992,
+          "pd": 1.621,
+          "pct_gt10": 0.911,
+          "pct_gt20": 0.075,
+          "max_diff": 25.0,
+          "n_rois": 55
+        },
+        "ea_base": 0.9971,
+        "ea_cand": 0.9971,
+        "delta_pd": 0.0,
+        "delta_tail": 0.028,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 57.52,
+          "ssim": 0.9998,
+          "pd": 1.284,
+          "pct_gt10": 0.14,
+          "pct_gt20": 0.0,
+          "max_diff": 18.0,
+          "n_rois": 82
+        },
+        "cand": {
+          "psnr": 57.52,
+          "ssim": 0.9998,
+          "pd": 1.284,
+          "pct_gt10": 0.244,
+          "pct_gt20": 0.0,
+          "max_diff": 18.0,
+          "n_rois": 82
+        },
+        "ea_base": 0.9155,
+        "ea_cand": 0.9155,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 51.95,
+          "ssim": 0.9972,
+          "pd": 6.828,
+          "pct_gt10": 32.052,
+          "pct_gt20": 10.59,
+          "max_diff": 36.0,
+          "n_rois": 119
+        },
+        "cand": {
+          "psnr": 51.83,
+          "ssim": 0.9971,
+          "pd": 7.078,
+          "pct_gt10": 33.23,
+          "pct_gt20": 10.716,
+          "max_diff": 36.0,
+          "n_rois": 119
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.25,
+        "delta_tail": 0.126,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_08.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 45.61,
+          "ssim": 0.9938,
+          "pd": 9.415,
+          "pct_gt10": 39.882,
+          "pct_gt20": 19.181,
+          "max_diff": 52.0,
+          "n_rois": 189
+        },
+        "cand": {
+          "psnr": 45.07,
+          "ssim": 0.9933,
+          "pd": 9.808,
+          "pct_gt10": 41.964,
+          "pct_gt20": 19.234,
+          "max_diff": 52.0,
+          "n_rois": 189
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.393,
+        "delta_tail": 0.053,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 29.44,
+          "ssim": 0.945,
+          "pd": 4.346,
+          "pct_gt10": 16.704,
+          "pct_gt20": 7.0,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 29.3,
+          "ssim": 0.9401,
+          "pd": 4.533,
+          "pct_gt10": 17.626,
+          "pct_gt20": 7.048,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "ea_base": 0.998,
+        "ea_cand": 0.9962,
+        "delta_pd": 0.187,
+        "delta_tail": 0.048,
+        "delta_max": 0.0,
+        "delta_ea": -0.0018
+      },
+      "foliage": {
+        "base": {
+          "psnr": 39.72,
+          "ssim": 0.9825,
+          "pd": 7.745,
+          "pct_gt10": 33.118,
+          "pct_gt20": 14.404,
+          "max_diff": 40.0,
+          "n_rois": 16
+        },
+        "cand": {
+          "psnr": 38.98,
+          "ssim": 0.9792,
+          "pd": 8.082,
+          "pct_gt10": 34.908,
+          "pct_gt20": 14.539,
+          "max_diff": 38.0,
+          "n_rois": 16
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.337,
+        "delta_tail": 0.135,
+        "delta_max": -2.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 51.24,
+          "ssim": 0.9968,
+          "pd": 0.711,
+          "pct_gt10": 0.012,
+          "pct_gt20": 0.0,
+          "max_diff": 13.0,
+          "n_rois": 4
+        },
+        "cand": {
+          "psnr": 50.95,
+          "ssim": 0.9966,
+          "pd": 0.716,
+          "pct_gt10": 0.024,
+          "pct_gt20": 0.0,
+          "max_diff": 15.0,
+          "n_rois": 4
+        },
+        "ea_base": 0.9984,
+        "ea_cand": 0.9983,
+        "delta_pd": 0.005,
+        "delta_tail": 0.0,
+        "delta_max": 2.0,
+        "delta_ea": -0.0001
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 60.96,
+          "ssim": 0.9999,
+          "pd": 0.961,
+          "pct_gt10": 1.08,
+          "pct_gt20": 0.319,
+          "max_diff": 31.0,
+          "n_rois": 109
+        },
+        "cand": {
+          "psnr": 60.96,
+          "ssim": 0.9999,
+          "pd": 0.961,
+          "pct_gt10": 1.339,
+          "pct_gt20": 0.332,
+          "max_diff": 31.0,
+          "n_rois": 109
+        },
+        "ea_base": 0.9929,
+        "ea_cand": 0.9951,
+        "delta_pd": 0.0,
+        "delta_tail": 0.013,
+        "delta_max": 0.0,
+        "delta_ea": 0.0022
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 54.35,
+          "ssim": 0.9993,
+          "pd": 5.106,
+          "pct_gt10": 20.117,
+          "pct_gt20": 5.015,
+          "max_diff": 33.0,
+          "n_rois": 162
+        },
+        "cand": {
+          "psnr": 53.3,
+          "ssim": 0.9991,
+          "pd": 5.654,
+          "pct_gt10": 22.709,
+          "pct_gt20": 5.402,
+          "max_diff": 33.0,
+          "n_rois": 162
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.548,
+        "delta_tail": 0.387,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_09.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 48.0,
+          "ssim": 0.993,
+          "pd": 7.115,
+          "pct_gt10": 32.939,
+          "pct_gt20": 12.71,
+          "max_diff": 35.0,
+          "n_rois": 208
+        },
+        "cand": {
+          "psnr": 46.95,
+          "ssim": 0.9926,
+          "pd": 7.333,
+          "pct_gt10": 34.226,
+          "pct_gt20": 12.823,
+          "max_diff": 35.0,
+          "n_rois": 208
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.218,
+        "delta_tail": 0.113,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 31.39,
+          "ssim": 0.9282,
+          "pd": 3.421,
+          "pct_gt10": 15.209,
+          "pct_gt20": 2.835,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 31.15,
+          "ssim": 0.9214,
+          "pd": 3.645,
+          "pct_gt10": 16.262,
+          "pct_gt20": 2.899,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "ea_base": 0.9963,
+        "ea_cand": 0.9924,
+        "delta_pd": 0.224,
+        "delta_tail": 0.064,
+        "delta_max": 0.0,
+        "delta_ea": -0.0039
+      },
+      "foliage": {
+        "base": {
+          "psnr": 46.44,
+          "ssim": 0.9896,
+          "pd": 6.522,
+          "pct_gt10": 29.97,
+          "pct_gt20": 10.474,
+          "max_diff": 35.0,
+          "n_rois": 66
+        },
+        "cand": {
+          "psnr": 45.42,
+          "ssim": 0.988,
+          "pd": 6.811,
+          "pct_gt10": 30.979,
+          "pct_gt20": 10.575,
+          "max_diff": 35.0,
+          "n_rois": 66
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.289,
+        "delta_tail": 0.101,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 85.5,
+          "ssim": 1.0,
+          "pd": 0.654,
+          "pct_gt10": 0.413,
+          "pct_gt20": 0.063,
+          "max_diff": 25.0,
+          "n_rois": 23
+        },
+        "cand": {
+          "psnr": 85.5,
+          "ssim": 1.0,
+          "pd": 0.654,
+          "pct_gt10": 0.423,
+          "pct_gt20": 0.061,
+          "max_diff": 25.0,
+          "n_rois": 23
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.0,
+        "delta_tail": -0.002,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 53.64,
+          "ssim": 0.9996,
+          "pd": 0.788,
+          "pct_gt10": 0.806,
+          "pct_gt20": 0.033,
+          "max_diff": 23.0,
+          "n_rois": 29
+        },
+        "cand": {
+          "psnr": 53.64,
+          "ssim": 0.9996,
+          "pd": 0.81,
+          "pct_gt10": 1.67,
+          "pct_gt20": 0.043,
+          "max_diff": 23.0,
+          "n_rois": 29
+        },
+        "ea_base": 0.9886,
+        "ea_cand": 0.9919,
+        "delta_pd": 0.022,
+        "delta_tail": 0.01,
+        "delta_max": 0.0,
+        "delta_ea": 0.0033
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 45.59,
+          "ssim": 0.9939,
+          "pd": 8.059,
+          "pct_gt10": 38.914,
+          "pct_gt20": 10.498,
+          "max_diff": 41.0,
+          "n_rois": 154
+        },
+        "cand": {
+          "psnr": 44.89,
+          "ssim": 0.9932,
+          "pd": 8.379,
+          "pct_gt10": 40.993,
+          "pct_gt20": 10.612,
+          "max_diff": 41.0,
+          "n_rois": 154
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.32,
+        "delta_tail": 0.114,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_10.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 50.43,
+          "ssim": 0.9955,
+          "pd": 12.287,
+          "pct_gt10": 52.069,
+          "pct_gt20": 27.738,
+          "max_diff": 59.0,
+          "n_rois": 184
+        },
+        "cand": {
+          "psnr": 49.67,
+          "ssim": 0.9952,
+          "pd": 12.628,
+          "pct_gt10": 53.941,
+          "pct_gt20": 27.783,
+          "max_diff": 59.0,
+          "n_rois": 184
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.341,
+        "delta_tail": 0.045,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 26.4,
+          "ssim": 0.93,
+          "pd": 7.565,
+          "pct_gt10": 32.759,
+          "pct_gt20": 14.508,
+          "max_diff": 37.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 26.29,
+          "ssim": 0.9235,
+          "pd": 7.868,
+          "pct_gt10": 34.34,
+          "pct_gt20": 14.595,
+          "max_diff": 37.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.303,
+        "delta_tail": 0.087,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "foliage": {
+        "base": {
+          "psnr": 38.11,
+          "ssim": 0.9896,
+          "pd": 9.412,
+          "pct_gt10": 42.299,
+          "pct_gt20": 16.081,
+          "max_diff": 53.0,
+          "n_rois": 85
+        },
+        "cand": {
+          "psnr": 37.53,
+          "ssim": 0.9879,
+          "pd": 9.864,
+          "pct_gt10": 44.562,
+          "pct_gt20": 16.335,
+          "max_diff": 53.0,
+          "n_rois": 85
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.452,
+        "delta_tail": 0.254,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 54.69,
+          "ssim": 0.9985,
+          "pd": 1.285,
+          "pct_gt10": 0.846,
+          "pct_gt20": 0.057,
+          "max_diff": 28.0,
+          "n_rois": 67
+        },
+        "cand": {
+          "psnr": 54.43,
+          "ssim": 0.9984,
+          "pd": 1.34,
+          "pct_gt10": 1.08,
+          "pct_gt20": 0.057,
+          "max_diff": 28.0,
+          "n_rois": 67
+        },
+        "ea_base": 0.9975,
+        "ea_cand": 0.9982,
+        "delta_pd": 0.055,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0007
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 52.71,
+          "ssim": 0.9969,
+          "pd": 0.809,
+          "pct_gt10": 1.422,
+          "pct_gt20": 0.446,
+          "max_diff": 31.0,
+          "n_rois": 37
+        },
+        "cand": {
+          "psnr": 52.71,
+          "ssim": 0.9969,
+          "pd": 0.861,
+          "pct_gt10": 1.719,
+          "pct_gt20": 0.444,
+          "max_diff": 31.0,
+          "n_rois": 37
+        },
+        "ea_base": 0.9838,
+        "ea_cand": 0.9888,
+        "delta_pd": 0.052,
+        "delta_tail": -0.002,
+        "delta_max": 0.0,
+        "delta_ea": 0.005
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 51.39,
+          "ssim": 0.9971,
+          "pd": 7.947,
+          "pct_gt10": 34.841,
+          "pct_gt20": 16.608,
+          "max_diff": 44.0,
+          "n_rois": 107
+        },
+        "cand": {
+          "psnr": 50.58,
+          "ssim": 0.9966,
+          "pd": 8.271,
+          "pct_gt10": 36.483,
+          "pct_gt20": 16.62,
+          "max_diff": 44.0,
+          "n_rois": 107
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.324,
+        "delta_tail": 0.012,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_11.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 51.34,
+          "ssim": 0.9974,
+          "pd": 8.955,
+          "pct_gt10": 38.157,
+          "pct_gt20": 17.19,
+          "max_diff": 53.0,
+          "n_rois": 176
+        },
+        "cand": {
+          "psnr": 49.06,
+          "ssim": 0.9972,
+          "pd": 9.319,
+          "pct_gt10": 40.094,
+          "pct_gt20": 17.379,
+          "max_diff": 53.0,
+          "n_rois": 176
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.364,
+        "delta_tail": 0.189,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 29.02,
+          "ssim": 0.9306,
+          "pd": 4.812,
+          "pct_gt10": 19.888,
+          "pct_gt20": 7.349,
+          "max_diff": 46.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 28.85,
+          "ssim": 0.9237,
+          "pd": 5.067,
+          "pct_gt10": 21.098,
+          "pct_gt20": 7.433,
+          "max_diff": 48.0,
+          "n_rois": 1
+        },
+        "ea_base": 0.9938,
+        "ea_cand": 0.9898,
+        "delta_pd": 0.255,
+        "delta_tail": 0.084,
+        "delta_max": 2.0,
+        "delta_ea": -0.004
+      },
+      "foliage": {
+        "base": {
+          "psnr": 34.74,
+          "ssim": 0.9664,
+          "pd": 7.754,
+          "pct_gt10": 32.054,
+          "pct_gt20": 14.197,
+          "max_diff": 57.0,
+          "n_rois": 19
+        },
+        "cand": {
+          "psnr": 34.45,
+          "ssim": 0.9632,
+          "pd": 8.015,
+          "pct_gt10": 33.445,
+          "pct_gt20": 14.185,
+          "max_diff": 60.0,
+          "n_rois": 19
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.261,
+        "delta_tail": -0.012,
+        "delta_max": 3.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 52.87,
+          "ssim": 0.9971,
+          "pd": 1.238,
+          "pct_gt10": 0.299,
+          "pct_gt20": 0.018,
+          "max_diff": 26.0,
+          "n_rois": 28
+        },
+        "cand": {
+          "psnr": 52.87,
+          "ssim": 0.9971,
+          "pd": 1.238,
+          "pct_gt10": 0.342,
+          "pct_gt20": 0.026,
+          "max_diff": 26.0,
+          "n_rois": 28
+        },
+        "ea_base": 0.9966,
+        "ea_cand": 0.9974,
+        "delta_pd": 0.0,
+        "delta_tail": 0.008,
+        "delta_max": 0.0,
+        "delta_ea": 0.0008
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 0.999,
+          "pct_gt10": 0.533,
+          "pct_gt20": 0.122,
+          "max_diff": 28.0,
+          "n_rois": 110
+        },
+        "cand": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 0.999,
+          "pct_gt10": 0.596,
+          "pct_gt20": 0.159,
+          "max_diff": 28.0,
+          "n_rois": 110
+        },
+        "ea_base": 0.0,
+        "ea_cand": 0.0,
+        "delta_pd": 0.0,
+        "delta_tail": 0.037,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 55.49,
+          "ssim": 0.9983,
+          "pd": 5.732,
+          "pct_gt10": 26.284,
+          "pct_gt20": 5.646,
+          "max_diff": 40.0,
+          "n_rois": 147
+        },
+        "cand": {
+          "psnr": 55.49,
+          "ssim": 0.9983,
+          "pd": 6.551,
+          "pct_gt10": 30.747,
+          "pct_gt20": 6.142,
+          "max_diff": 40.0,
+          "n_rois": 147
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.819,
+        "delta_tail": 0.496,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_12.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 51.74,
+          "ssim": 0.9957,
+          "pd": 10.339,
+          "pct_gt10": 52.478,
+          "pct_gt20": 16.252,
+          "max_diff": 44.0,
+          "n_rois": 173
+        },
+        "cand": {
+          "psnr": 51.1,
+          "ssim": 0.9952,
+          "pd": 10.802,
+          "pct_gt10": 55.09,
+          "pct_gt20": 16.597,
+          "max_diff": 44.0,
+          "n_rois": 173
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.463,
+        "delta_tail": 0.345,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 29.05,
+          "ssim": 0.898,
+          "pd": 5.259,
+          "pct_gt10": 24.86,
+          "pct_gt20": 5.615,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 28.79,
+          "ssim": 0.8874,
+          "pd": 5.65,
+          "pct_gt10": 26.827,
+          "pct_gt20": 5.736,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 0.9999,
+        "delta_pd": 0.391,
+        "delta_tail": 0.121,
+        "delta_max": 0.0,
+        "delta_ea": -0.0001
+      },
+      "foliage": {
+        "base": {
+          "psnr": 40.03,
+          "ssim": 0.9786,
+          "pd": 7.052,
+          "pct_gt10": 34.819,
+          "pct_gt20": 10.138,
+          "max_diff": 40.0,
+          "n_rois": 50
+        },
+        "cand": {
+          "psnr": 38.51,
+          "ssim": 0.978,
+          "pd": 7.529,
+          "pct_gt10": 37.254,
+          "pct_gt20": 10.173,
+          "max_diff": 42.0,
+          "n_rois": 50
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.477,
+        "delta_tail": 0.035,
+        "delta_max": 2.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 55.21,
+          "ssim": 0.9989,
+          "pd": 1.157,
+          "pct_gt10": 0.698,
+          "pct_gt20": 0.124,
+          "max_diff": 26.0,
+          "n_rois": 22
+        },
+        "cand": {
+          "psnr": 55.21,
+          "ssim": 0.9989,
+          "pd": 1.158,
+          "pct_gt10": 1.023,
+          "pct_gt20": 0.136,
+          "max_diff": 27.0,
+          "n_rois": 22
+        },
+        "ea_base": 0.9974,
+        "ea_cand": 0.9984,
+        "delta_pd": 0.001,
+        "delta_tail": 0.012,
+        "delta_max": 1.0,
+        "delta_ea": 0.001
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 61.04,
+          "ssim": 0.9998,
+          "pd": 1.096,
+          "pct_gt10": 0.848,
+          "pct_gt20": 0.138,
+          "max_diff": 27.0,
+          "n_rois": 89
+        },
+        "cand": {
+          "psnr": 61.04,
+          "ssim": 0.9998,
+          "pd": 1.096,
+          "pct_gt10": 1.164,
+          "pct_gt20": 0.136,
+          "max_diff": 27.0,
+          "n_rois": 89
+        },
+        "ea_base": 0.8985,
+        "ea_cand": 0.8985,
+        "delta_pd": 0.0,
+        "delta_tail": -0.002,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 43.7,
+          "ssim": 0.9937,
+          "pd": 9.33,
+          "pct_gt10": 46.722,
+          "pct_gt20": 14.203,
+          "max_diff": 43.0,
+          "n_rois": 146
+        },
+        "cand": {
+          "psnr": 42.84,
+          "ssim": 0.9935,
+          "pd": 9.733,
+          "pct_gt10": 49.996,
+          "pct_gt20": 14.345,
+          "max_diff": 43.0,
+          "n_rois": 146
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.403,
+        "delta_tail": 0.142,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_13.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 48.8,
+          "ssim": 0.9951,
+          "pd": 9.935,
+          "pct_gt10": 46.627,
+          "pct_gt20": 16.762,
+          "max_diff": 46.0,
+          "n_rois": 216
+        },
+        "cand": {
+          "psnr": 48.23,
+          "ssim": 0.9945,
+          "pd": 10.307,
+          "pct_gt10": 48.584,
+          "pct_gt20": 16.897,
+          "max_diff": 46.0,
+          "n_rois": 216
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.372,
+        "delta_tail": 0.135,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 28.74,
+          "ssim": 0.8967,
+          "pd": 5.34,
+          "pct_gt10": 23.641,
+          "pct_gt20": 7.076,
+          "max_diff": 46.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 28.55,
+          "ssim": 0.889,
+          "pd": 5.638,
+          "pct_gt10": 25.039,
+          "pct_gt20": 7.206,
+          "max_diff": 46.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 0.9998,
+        "delta_pd": 0.298,
+        "delta_tail": 0.13,
+        "delta_max": 0.0,
+        "delta_ea": -0.0002
+      },
+      "foliage": {
+        "base": {
+          "psnr": 35.28,
+          "ssim": 0.9756,
+          "pd": 4.847,
+          "pct_gt10": 21.313,
+          "pct_gt20": 7.277,
+          "max_diff": 38.0,
+          "n_rois": 9
+        },
+        "cand": {
+          "psnr": 35.21,
+          "ssim": 0.9746,
+          "pd": 5.098,
+          "pct_gt10": 22.375,
+          "pct_gt20": 7.507,
+          "max_diff": 38.0,
+          "n_rois": 9
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.251,
+        "delta_tail": 0.23,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 53.52,
+          "ssim": 0.9982,
+          "pd": 0.857,
+          "pct_gt10": 0.35,
+          "pct_gt20": 0.002,
+          "max_diff": 21.0,
+          "n_rois": 29
+        },
+        "cand": {
+          "psnr": 53.42,
+          "ssim": 0.9982,
+          "pd": 0.868,
+          "pct_gt10": 0.393,
+          "pct_gt20": 0.002,
+          "max_diff": 21.0,
+          "n_rois": 29
+        },
+        "ea_base": 0.9966,
+        "ea_cand": 0.9979,
+        "delta_pd": 0.011,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0013
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 63.95,
+          "ssim": 1.0,
+          "pd": 1.115,
+          "pct_gt10": 0.968,
+          "pct_gt20": 0.096,
+          "max_diff": 31.0,
+          "n_rois": 77
+        },
+        "cand": {
+          "psnr": 63.95,
+          "ssim": 1.0,
+          "pd": 1.18,
+          "pct_gt10": 1.16,
+          "pct_gt20": 0.106,
+          "max_diff": 31.0,
+          "n_rois": 77
+        },
+        "ea_base": 0.986,
+        "ea_cand": 0.9861,
+        "delta_pd": 0.065,
+        "delta_tail": 0.01,
+        "delta_max": 0.0,
+        "delta_ea": 0.0001
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 55.92,
+          "ssim": 0.9987,
+          "pd": 9.441,
+          "pct_gt10": 42.548,
+          "pct_gt20": 17.185,
+          "max_diff": 36.0,
+          "n_rois": 149
+        },
+        "cand": {
+          "psnr": 55.57,
+          "ssim": 0.9986,
+          "pd": 9.857,
+          "pct_gt10": 44.545,
+          "pct_gt20": 17.352,
+          "max_diff": 36.0,
+          "n_rois": 149
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.416,
+        "delta_tail": 0.167,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_14.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 50.47,
+          "ssim": 0.9952,
+          "pd": 9.603,
+          "pct_gt10": 45.414,
+          "pct_gt20": 15.682,
+          "max_diff": 45.0,
+          "n_rois": 243
+        },
+        "cand": {
+          "psnr": 49.89,
+          "ssim": 0.9949,
+          "pd": 10.242,
+          "pct_gt10": 48.93,
+          "pct_gt20": 15.839,
+          "max_diff": 45.0,
+          "n_rois": 243
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.639,
+        "delta_tail": 0.157,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "faces": {
+        "base": {
+          "psnr": 34.21,
+          "ssim": 0.9688,
+          "pd": 1.789,
+          "pct_gt10": 6.772,
+          "pct_gt20": 1.612,
+          "max_diff": 33.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 33.82,
+          "ssim": 0.965,
+          "pd": 1.949,
+          "pct_gt10": 7.548,
+          "pct_gt20": 1.687,
+          "max_diff": 33.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.16,
+        "delta_tail": 0.075,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 31.0,
+          "ssim": 0.9547,
+          "pd": 3.38,
+          "pct_gt10": 13.79,
+          "pct_gt20": 4.084,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 30.67,
+          "ssim": 0.9482,
+          "pd": 3.684,
+          "pct_gt10": 15.184,
+          "pct_gt20": 4.233,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.304,
+        "delta_tail": 0.149,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "foliage": {
+        "base": {
+          "psnr": 44.29,
+          "ssim": 0.9899,
+          "pd": 7.872,
+          "pct_gt10": 35.752,
+          "pct_gt20": 12.443,
+          "max_diff": 42.0,
+          "n_rois": 57
+        },
+        "cand": {
+          "psnr": 43.07,
+          "ssim": 0.9879,
+          "pd": 8.372,
+          "pct_gt10": 38.116,
+          "pct_gt20": 12.821,
+          "max_diff": 42.0,
+          "n_rois": 57
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.5,
+        "delta_tail": 0.378,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 41.47,
+          "ssim": 0.9922,
+          "pd": 0.975,
+          "pct_gt10": 2.002,
+          "pct_gt20": 0.643,
+          "max_diff": 32.0,
+          "n_rois": 2
+        },
+        "cand": {
+          "psnr": 40.9,
+          "ssim": 0.9913,
+          "pd": 1.015,
+          "pct_gt10": 2.234,
+          "pct_gt20": 0.736,
+          "max_diff": 32.0,
+          "n_rois": 2
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.04,
+        "delta_tail": 0.093,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 1.117,
+          "pct_gt10": 1.872,
+          "pct_gt20": 0.557,
+          "max_diff": 31.0,
+          "n_rois": 28
+        },
+        "cand": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 1.161,
+          "pct_gt10": 2.014,
+          "pct_gt20": 0.572,
+          "max_diff": 31.0,
+          "n_rois": 28
+        },
+        "ea_base": 0.9937,
+        "ea_cand": 0.9958,
+        "delta_pd": 0.044,
+        "delta_tail": 0.015,
+        "delta_max": 0.0,
+        "delta_ea": 0.0021
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 40.15,
+          "ssim": 0.9878,
+          "pd": 9.595,
+          "pct_gt10": 39.113,
+          "pct_gt20": 18.689,
+          "max_diff": 48.0,
+          "n_rois": 150
+        },
+        "cand": {
+          "psnr": 39.69,
+          "ssim": 0.9873,
+          "pd": 9.874,
+          "pct_gt10": 40.885,
+          "pct_gt20": 18.923,
+          "max_diff": 48.0,
+          "n_rois": 150
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.279,
+        "delta_tail": 0.234,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_15.png",
+      "buildings": {
+        "base": {
+          "psnr": 38.89,
+          "ssim": 0.992,
+          "pd": 11.266,
+          "pct_gt10": 51.796,
+          "pct_gt20": 21.857,
+          "max_diff": 49.0,
+          "n_rois": 106
+        },
+        "cand": {
+          "psnr": 38.85,
+          "ssim": 0.9918,
+          "pd": 11.817,
+          "pct_gt10": 54.962,
+          "pct_gt20": 22.697,
+          "max_diff": 49.0,
+          "n_rois": 106
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.551,
+        "delta_tail": 0.84,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 26.47,
+          "ssim": 0.9319,
+          "pd": 7.896,
+          "pct_gt10": 35.314,
+          "pct_gt20": 13.12,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 26.26,
+          "ssim": 0.9256,
+          "pd": 8.345,
+          "pct_gt10": 37.754,
+          "pct_gt20": 13.459,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.449,
+        "delta_tail": 0.339,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "foliage": {
+        "base": {
+          "psnr": 37.56,
+          "ssim": 0.9765,
+          "pd": 11.132,
+          "pct_gt10": 50.216,
+          "pct_gt20": 21.328,
+          "max_diff": 54.0,
+          "n_rois": 137
+        },
+        "cand": {
+          "psnr": 36.88,
+          "ssim": 0.9725,
+          "pd": 11.681,
+          "pct_gt10": 53.31,
+          "pct_gt20": 21.914,
+          "max_diff": 54.0,
+          "n_rois": 137
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.549,
+        "delta_tail": 0.586,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 52.16,
+          "ssim": 0.9965,
+          "pd": 0.864,
+          "pct_gt10": 2.051,
+          "pct_gt20": 1.149,
+          "max_diff": 32.0,
+          "n_rois": 29
+        },
+        "cand": {
+          "psnr": 52.14,
+          "ssim": 0.9962,
+          "pd": 0.878,
+          "pct_gt10": 2.106,
+          "pct_gt20": 1.152,
+          "max_diff": 32.0,
+          "n_rois": 29
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.014,
+        "delta_tail": 0.003,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 51.8,
+          "ssim": 0.9951,
+          "pd": 1.38,
+          "pct_gt10": 3.463,
+          "pct_gt20": 0.641,
+          "max_diff": 32.0,
+          "n_rois": 62
+        },
+        "cand": {
+          "psnr": 51.8,
+          "ssim": 0.9951,
+          "pd": 1.592,
+          "pct_gt10": 3.764,
+          "pct_gt20": 0.645,
+          "max_diff": 32.0,
+          "n_rois": 62
+        },
+        "ea_base": 0.9929,
+        "ea_cand": 0.9929,
+        "delta_pd": 0.212,
+        "delta_tail": 0.004,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 49.09,
+          "ssim": 0.9956,
+          "pd": 8.295,
+          "pct_gt10": 37.689,
+          "pct_gt20": 14.06,
+          "max_diff": 63.0,
+          "n_rois": 146
+        },
+        "cand": {
+          "psnr": 47.72,
+          "ssim": 0.9946,
+          "pd": 8.864,
+          "pct_gt10": 40.7,
+          "pct_gt20": 14.476,
+          "max_diff": 63.0,
+          "n_rois": 146
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.569,
+        "delta_tail": 0.416,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_16.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 46.88,
+          "ssim": 0.9982,
+          "pd": 11.533,
+          "pct_gt10": 49.709,
+          "pct_gt20": 26.864,
+          "max_diff": 45.0,
+          "n_rois": 190
+        },
+        "cand": {
+          "psnr": 44.87,
+          "ssim": 0.9981,
+          "pd": 11.818,
+          "pct_gt10": 51.331,
+          "pct_gt20": 26.801,
+          "max_diff": 45.0,
+          "n_rois": 190
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.285,
+        "delta_tail": -0.063,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "faces": {
+        "base": {
+          "psnr": 30.23,
+          "ssim": 0.9424,
+          "pd": 4.305,
+          "pct_gt10": 17.729,
+          "pct_gt20": 4.223,
+          "max_diff": 33.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 30.06,
+          "ssim": 0.9382,
+          "pd": 4.524,
+          "pct_gt10": 18.676,
+          "pct_gt20": 4.264,
+          "max_diff": 33.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.219,
+        "delta_tail": 0.041,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 30.85,
+          "ssim": 0.9336,
+          "pd": 3.626,
+          "pct_gt10": 15.214,
+          "pct_gt20": 4.178,
+          "max_diff": 39.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 30.65,
+          "ssim": 0.9285,
+          "pd": 3.811,
+          "pct_gt10": 16.151,
+          "pct_gt20": 4.23,
+          "max_diff": 39.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 0.9996,
+        "delta_pd": 0.185,
+        "delta_tail": 0.052,
+        "delta_max": 0.0,
+        "delta_ea": -0.0004
+      },
+      "foliage": {
+        "base": {
+          "psnr": 35.73,
+          "ssim": 0.9644,
+          "pd": 6.618,
+          "pct_gt10": 28.687,
+          "pct_gt20": 10.262,
+          "max_diff": 47.0,
+          "n_rois": 28
+        },
+        "cand": {
+          "psnr": 34.98,
+          "ssim": 0.9596,
+          "pd": 7.002,
+          "pct_gt10": 30.528,
+          "pct_gt20": 10.516,
+          "max_diff": 47.0,
+          "n_rois": 28
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.384,
+        "delta_tail": 0.254,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 52.34,
+          "ssim": 0.9993,
+          "pd": 0.806,
+          "pct_gt10": 0.498,
+          "pct_gt20": 0.049,
+          "max_diff": 24.0,
+          "n_rois": 32
+        },
+        "cand": {
+          "psnr": 52.34,
+          "ssim": 0.9993,
+          "pd": 0.86,
+          "pct_gt10": 0.547,
+          "pct_gt20": 0.049,
+          "max_diff": 25.0,
+          "n_rois": 32
+        },
+        "ea_base": 0.9997,
+        "ea_cand": 0.9999,
+        "delta_pd": 0.054,
+        "delta_tail": 0.0,
+        "delta_max": 1.0,
+        "delta_ea": 0.0002
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 2.165,
+          "pct_gt10": 0.326,
+          "pct_gt20": 0.028,
+          "max_diff": 25.0,
+          "n_rois": 85
+        },
+        "cand": {
+          "psnr": Infinity,
+          "ssim": 1.0,
+          "pd": 2.165,
+          "pct_gt10": 0.57,
+          "pct_gt20": 0.022,
+          "max_diff": 25.0,
+          "n_rois": 85
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.0,
+        "delta_tail": -0.006,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 45.42,
+          "ssim": 0.994,
+          "pd": 7.425,
+          "pct_gt10": 35.958,
+          "pct_gt20": 11.993,
+          "max_diff": 49.0,
+          "n_rois": 145
+        },
+        "cand": {
+          "psnr": 44.54,
+          "ssim": 0.9935,
+          "pd": 7.844,
+          "pct_gt10": 38.088,
+          "pct_gt20": 12.0,
+          "max_diff": 49.0,
+          "n_rois": 145
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.419,
+        "delta_tail": 0.007,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_17.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 43.55,
+          "ssim": 0.9929,
+          "pd": 10.743,
+          "pct_gt10": 51.227,
+          "pct_gt20": 16.604,
+          "max_diff": 63.0,
+          "n_rois": 113
+        },
+        "cand": {
+          "psnr": 42.13,
+          "ssim": 0.9922,
+          "pd": 11.375,
+          "pct_gt10": 54.942,
+          "pct_gt20": 17.2,
+          "max_diff": 63.0,
+          "n_rois": 113
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.632,
+        "delta_tail": 0.596,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 26.89,
+          "ssim": 0.9154,
+          "pd": 7.816,
+          "pct_gt10": 35.69,
+          "pct_gt20": 10.809,
+          "max_diff": 39.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 26.63,
+          "ssim": 0.9073,
+          "pd": 8.36,
+          "pct_gt10": 38.527,
+          "pct_gt20": 11.174,
+          "max_diff": 39.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.544,
+        "delta_tail": 0.365,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "foliage": {
+        "base": {
+          "psnr": 45.67,
+          "ssim": 0.9916,
+          "pd": 10.753,
+          "pct_gt10": 52.026,
+          "pct_gt20": 15.951,
+          "max_diff": 58.0,
+          "n_rois": 115
+        },
+        "cand": {
+          "psnr": 44.45,
+          "ssim": 0.9901,
+          "pd": 11.342,
+          "pct_gt10": 55.459,
+          "pct_gt20": 16.372,
+          "max_diff": 58.0,
+          "n_rois": 115
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.589,
+        "delta_tail": 0.421,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 56.35,
+          "ssim": 0.9991,
+          "pd": 1.439,
+          "pct_gt10": 1.544,
+          "pct_gt20": 0.405,
+          "max_diff": 28.0,
+          "n_rois": 48
+        },
+        "cand": {
+          "psnr": 56.07,
+          "ssim": 0.9991,
+          "pd": 1.452,
+          "pct_gt10": 1.729,
+          "pct_gt20": 0.413,
+          "max_diff": 28.0,
+          "n_rois": 48
+        },
+        "ea_base": 0.9997,
+        "ea_cand": 0.9997,
+        "delta_pd": 0.013,
+        "delta_tail": 0.008,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 95.05,
+          "ssim": 1.0,
+          "pd": 1.19,
+          "pct_gt10": 1.272,
+          "pct_gt20": 0.087,
+          "max_diff": 28.0,
+          "n_rois": 83
+        },
+        "cand": {
+          "psnr": 95.05,
+          "ssim": 1.0,
+          "pd": 1.19,
+          "pct_gt10": 1.67,
+          "pct_gt20": 0.085,
+          "max_diff": 28.0,
+          "n_rois": 83
+        },
+        "ea_base": 0.9933,
+        "ea_cand": 0.9934,
+        "delta_pd": 0.0,
+        "delta_tail": -0.002,
+        "delta_max": 0.0,
+        "delta_ea": 0.0001
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 46.12,
+          "ssim": 0.9967,
+          "pd": 10.164,
+          "pct_gt10": 48.49,
+          "pct_gt20": 13.849,
+          "max_diff": 41.0,
+          "n_rois": 121
+        },
+        "cand": {
+          "psnr": 45.38,
+          "ssim": 0.9964,
+          "pd": 10.809,
+          "pct_gt10": 52.018,
+          "pct_gt20": 14.543,
+          "max_diff": 41.0,
+          "n_rois": 121
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.645,
+        "delta_tail": 0.694,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_18.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 48.17,
+          "ssim": 0.9947,
+          "pd": 13.482,
+          "pct_gt10": 60.476,
+          "pct_gt20": 28.204,
+          "max_diff": 58.0,
+          "n_rois": 215
+        },
+        "cand": {
+          "psnr": 47.53,
+          "ssim": 0.9945,
+          "pd": 13.824,
+          "pct_gt10": 62.579,
+          "pct_gt20": 28.432,
+          "max_diff": 58.0,
+          "n_rois": 215
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.342,
+        "delta_tail": 0.228,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 27.51,
+          "ssim": 0.924,
+          "pd": 6.331,
+          "pct_gt10": 27.571,
+          "pct_gt20": 10.854,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 27.39,
+          "ssim": 0.917,
+          "pd": 6.575,
+          "pct_gt10": 28.86,
+          "pct_gt20": 10.929,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "ea_base": 0.9999,
+        "ea_cand": 0.9999,
+        "delta_pd": 0.244,
+        "delta_tail": 0.075,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "foliage": {
+        "base": {
+          "psnr": 36.45,
+          "ssim": 0.9791,
+          "pd": 8.952,
+          "pct_gt10": 42.434,
+          "pct_gt20": 15.155,
+          "max_diff": 52.0,
+          "n_rois": 37
+        },
+        "cand": {
+          "psnr": 35.88,
+          "ssim": 0.9743,
+          "pd": 9.271,
+          "pct_gt10": 44.098,
+          "pct_gt20": 15.33,
+          "max_diff": 52.0,
+          "n_rois": 37
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.319,
+        "delta_tail": 0.175,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 58.38,
+          "ssim": 0.9993,
+          "pd": 1.35,
+          "pct_gt10": 0.507,
+          "pct_gt20": 0.0,
+          "max_diff": 19.0,
+          "n_rois": 29
+        },
+        "cand": {
+          "psnr": 58.38,
+          "ssim": 0.9993,
+          "pd": 1.35,
+          "pct_gt10": 0.592,
+          "pct_gt20": 0.0,
+          "max_diff": 20.0,
+          "n_rois": 29
+        },
+        "ea_base": 0.9933,
+        "ea_cand": 0.9935,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 1.0,
+        "delta_ea": 0.0002
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 53.39,
+          "ssim": 0.9993,
+          "pd": 1.099,
+          "pct_gt10": 0.734,
+          "pct_gt20": 0.008,
+          "max_diff": 21.0,
+          "n_rois": 52
+        },
+        "cand": {
+          "psnr": 53.38,
+          "ssim": 0.9993,
+          "pd": 1.099,
+          "pct_gt10": 0.808,
+          "pct_gt20": 0.02,
+          "max_diff": 23.0,
+          "n_rois": 52
+        },
+        "ea_base": 0.9326,
+        "ea_cand": 0.9303,
+        "delta_pd": 0.0,
+        "delta_tail": 0.012,
+        "delta_max": 2.0,
+        "delta_ea": -0.0023
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 51.5,
+          "ssim": 0.9964,
+          "pd": 8.942,
+          "pct_gt10": 39.604,
+          "pct_gt20": 15.965,
+          "max_diff": 40.0,
+          "n_rois": 147
+        },
+        "cand": {
+          "psnr": 51.37,
+          "ssim": 0.996,
+          "pd": 9.272,
+          "pct_gt10": 41.239,
+          "pct_gt20": 16.148,
+          "max_diff": 40.0,
+          "n_rois": 147
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.33,
+        "delta_tail": 0.183,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_19.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 48.64,
+          "ssim": 0.9974,
+          "pd": 9.723,
+          "pct_gt10": 47.347,
+          "pct_gt20": 15.161,
+          "max_diff": 46.0,
+          "n_rois": 166
+        },
+        "cand": {
+          "psnr": 47.74,
+          "ssim": 0.9966,
+          "pd": 10.361,
+          "pct_gt10": 50.702,
+          "pct_gt20": 15.603,
+          "max_diff": 47.0,
+          "n_rois": 166
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.638,
+        "delta_tail": 0.442,
+        "delta_max": 1.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 30.47,
+          "ssim": 0.9324,
+          "pd": 3.743,
+          "pct_gt10": 15.996,
+          "pct_gt20": 5.042,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 30.29,
+          "ssim": 0.9266,
+          "pd": 3.938,
+          "pct_gt10": 16.941,
+          "pct_gt20": 5.11,
+          "max_diff": 35.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.195,
+        "delta_tail": 0.068,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "foliage": {
+        "base": {
+          "psnr": 37.63,
+          "ssim": 0.9769,
+          "pd": 8.381,
+          "pct_gt10": 41.054,
+          "pct_gt20": 12.758,
+          "max_diff": 49.0,
+          "n_rois": 52
+        },
+        "cand": {
+          "psnr": 37.46,
+          "ssim": 0.9751,
+          "pd": 8.957,
+          "pct_gt10": 44.161,
+          "pct_gt20": 12.789,
+          "max_diff": 49.0,
+          "n_rois": 52
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.576,
+        "delta_tail": 0.031,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 52.36,
+          "ssim": 0.9989,
+          "pd": 1.225,
+          "pct_gt10": 0.09,
+          "pct_gt20": 0.024,
+          "max_diff": 27.0,
+          "n_rois": 28
+        },
+        "cand": {
+          "psnr": 52.35,
+          "ssim": 0.9989,
+          "pd": 1.226,
+          "pct_gt10": 0.098,
+          "pct_gt20": 0.024,
+          "max_diff": 27.0,
+          "n_rois": 28
+        },
+        "ea_base": 0.9719,
+        "ea_cand": 0.9719,
+        "delta_pd": 0.001,
+        "delta_tail": 0.0,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 58.71,
+          "ssim": 0.9998,
+          "pd": 1.073,
+          "pct_gt10": 0.14,
+          "pct_gt20": 0.0,
+          "max_diff": 17.0,
+          "n_rois": 90
+        },
+        "cand": {
+          "psnr": 58.71,
+          "ssim": 0.9998,
+          "pd": 1.073,
+          "pct_gt10": 0.153,
+          "pct_gt20": 0.0,
+          "max_diff": 18.0,
+          "n_rois": 90
+        },
+        "ea_base": 0.8983,
+        "ea_cand": 0.8983,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 1.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 53.25,
+          "ssim": 0.9982,
+          "pd": 7.13,
+          "pct_gt10": 33.4,
+          "pct_gt20": 11.599,
+          "max_diff": 34.0,
+          "n_rois": 144
+        },
+        "cand": {
+          "psnr": 53.24,
+          "ssim": 0.9982,
+          "pd": 7.418,
+          "pct_gt10": 35.128,
+          "pct_gt20": 11.784,
+          "max_diff": 34.0,
+          "n_rois": 144
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.288,
+        "delta_tail": 0.185,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_20.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 46.2,
+          "ssim": 0.9947,
+          "pd": 8.712,
+          "pct_gt10": 39.026,
+          "pct_gt20": 16.254,
+          "max_diff": 58.0,
+          "n_rois": 176
+        },
+        "cand": {
+          "psnr": 44.9,
+          "ssim": 0.9944,
+          "pd": 9.136,
+          "pct_gt10": 41.001,
+          "pct_gt20": 16.475,
+          "max_diff": 58.0,
+          "n_rois": 176
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.424,
+        "delta_tail": 0.221,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 27.78,
+          "ssim": 0.9166,
+          "pd": 5.883,
+          "pct_gt10": 25.721,
+          "pct_gt20": 9.979,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 27.6,
+          "ssim": 0.9082,
+          "pd": 6.217,
+          "pct_gt10": 27.381,
+          "pct_gt20": 10.138,
+          "max_diff": 36.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.334,
+        "delta_tail": 0.159,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "foliage": {
+        "base": {
+          "psnr": 47.34,
+          "ssim": 0.9916,
+          "pd": 9.345,
+          "pct_gt10": 41.13,
+          "pct_gt20": 16.158,
+          "max_diff": 57.0,
+          "n_rois": 83
+        },
+        "cand": {
+          "psnr": 45.92,
+          "ssim": 0.9895,
+          "pd": 9.75,
+          "pct_gt10": 43.262,
+          "pct_gt20": 16.333,
+          "max_diff": 57.0,
+          "n_rois": 83
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.405,
+        "delta_tail": 0.175,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 59.14,
+          "ssim": 0.9991,
+          "pd": 0.901,
+          "pct_gt10": 1.263,
+          "pct_gt20": 0.014,
+          "max_diff": 22.0,
+          "n_rois": 41
+        },
+        "cand": {
+          "psnr": 59.14,
+          "ssim": 0.9991,
+          "pd": 0.901,
+          "pct_gt10": 1.764,
+          "pct_gt20": 0.014,
+          "max_diff": 23.0,
+          "n_rois": 41
+        },
+        "ea_base": 0.9934,
+        "ea_cand": 0.9942,
+        "delta_pd": 0.0,
+        "delta_tail": 0.0,
+        "delta_max": 1.0,
+        "delta_ea": 0.0008
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 52.87,
+          "ssim": 0.9998,
+          "pd": 1.282,
+          "pct_gt10": 0.956,
+          "pct_gt20": 0.114,
+          "max_diff": 31.0,
+          "n_rois": 63
+        },
+        "cand": {
+          "psnr": 52.87,
+          "ssim": 0.9998,
+          "pd": 1.282,
+          "pct_gt10": 1.237,
+          "pct_gt20": 0.112,
+          "max_diff": 31.0,
+          "n_rois": 63
+        },
+        "ea_base": 0.8871,
+        "ea_cand": 0.8871,
+        "delta_pd": 0.0,
+        "delta_tail": -0.002,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 48.62,
+          "ssim": 0.9943,
+          "pd": 9.649,
+          "pct_gt10": 44.285,
+          "pct_gt20": 15.476,
+          "max_diff": 50.0,
+          "n_rois": 117
+        },
+        "cand": {
+          "psnr": 47.52,
+          "ssim": 0.9936,
+          "pd": 10.203,
+          "pct_gt10": 47.327,
+          "pct_gt20": 15.863,
+          "max_diff": 52.0,
+          "n_rois": 117
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.554,
+        "delta_tail": 0.387,
+        "delta_max": 2.0,
+        "delta_ea": 0.0
+      }
+    },
+    {
+      "image": "site_21.jpeg",
+      "buildings": {
+        "base": {
+          "psnr": 41.74,
+          "ssim": 0.99,
+          "pd": 10.829,
+          "pct_gt10": 49.28,
+          "pct_gt20": 21.059,
+          "max_diff": 62.0,
+          "n_rois": 183
+        },
+        "cand": {
+          "psnr": 39.8,
+          "ssim": 0.9895,
+          "pd": 11.258,
+          "pct_gt10": 51.459,
+          "pct_gt20": 21.474,
+          "max_diff": 62.0,
+          "n_rois": 183
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.429,
+        "delta_tail": 0.415,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "fine_struct": {
+        "base": {
+          "psnr": 28.53,
+          "ssim": 0.9074,
+          "pd": 4.9,
+          "pct_gt10": 18.794,
+          "pct_gt20": 9.375,
+          "max_diff": 49.0,
+          "n_rois": 1
+        },
+        "cand": {
+          "psnr": 28.43,
+          "ssim": 0.9018,
+          "pd": 5.064,
+          "pct_gt10": 19.574,
+          "pct_gt20": 9.418,
+          "max_diff": 48.0,
+          "n_rois": 1
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.164,
+        "delta_tail": 0.043,
+        "delta_max": -1.0,
+        "delta_ea": 0.0
+      },
+      "foliage": {
+        "base": {
+          "psnr": 39.34,
+          "ssim": 0.9825,
+          "pd": 7.844,
+          "pct_gt10": 39.935,
+          "pct_gt20": 13.161,
+          "max_diff": 61.0,
+          "n_rois": 102
+        },
+        "cand": {
+          "psnr": 38.11,
+          "ssim": 0.9773,
+          "pd": 8.401,
+          "pct_gt10": 43.123,
+          "pct_gt20": 13.228,
+          "max_diff": 61.0,
+          "n_rois": 102
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.557,
+        "delta_tail": 0.067,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      },
+      "road": {
+        "base": {
+          "psnr": 51.36,
+          "ssim": 0.996,
+          "pd": 1.182,
+          "pct_gt10": 3.29,
+          "pct_gt20": 0.153,
+          "max_diff": 25.0,
+          "n_rois": 17
+        },
+        "cand": {
+          "psnr": 51.36,
+          "ssim": 0.9959,
+          "pd": 1.311,
+          "pct_gt10": 3.446,
+          "pct_gt20": 0.163,
+          "max_diff": 27.0,
+          "n_rois": 17
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.129,
+        "delta_tail": 0.01,
+        "delta_max": 2.0,
+        "delta_ea": 0.0
+      },
+      "sky_flat": {
+        "base": {
+          "psnr": 51.93,
+          "ssim": 0.9979,
+          "pd": 1.007,
+          "pct_gt10": 1.229,
+          "pct_gt20": 0.362,
+          "max_diff": 43.0,
+          "n_rois": 50
+        },
+        "cand": {
+          "psnr": 51.93,
+          "ssim": 0.9979,
+          "pd": 1.008,
+          "pct_gt10": 1.874,
+          "pct_gt20": 0.368,
+          "max_diff": 43.0,
+          "n_rois": 50
+        },
+        "ea_base": 0.9283,
+        "ea_cand": 0.9323,
+        "delta_pd": 0.001,
+        "delta_tail": 0.006,
+        "delta_max": 0.0,
+        "delta_ea": 0.004
+      },
+      "vehicles": {
+        "base": {
+          "psnr": 37.91,
+          "ssim": 0.9864,
+          "pd": 7.901,
+          "pct_gt10": 38.338,
+          "pct_gt20": 11.513,
+          "max_diff": 47.0,
+          "n_rois": 128
+        },
+        "cand": {
+          "psnr": 37.51,
+          "ssim": 0.9849,
+          "pd": 8.506,
+          "pct_gt10": 41.65,
+          "pct_gt20": 11.837,
+          "max_diff": 47.0,
+          "n_rois": 128
+        },
+        "ea_base": 1.0,
+        "ea_cand": 1.0,
+        "delta_pd": 0.605,
+        "delta_tail": 0.324,
+        "delta_max": 0.0,
+        "delta_ea": 0.0
+      }
+    }
+  ]
+}

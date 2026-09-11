@@ -1,0 +1,59 @@
+@import "tailwindcss";
+
+@theme {
+  /* Adinn red derived from the supplied logotype (#D12126) */
+  --color-brand: #d12126;
+  --color-brand-dark: #a5171c;
+  --color-brand-deep: #820e13;
+  --color-brand-soft: #fbeceb;
+
+  /* Neutrals — white / light paper, charcoal ink */
+  --color-ink: #17191b;
+  --color-ink-2: #3d4347;
+  --color-muted: #676d72;
+  --color-faint: #9aa0a5;
+  --color-canvas: #f5f4f1;
+  --color-panel: #ffffff;
+  --color-line: #e6e4df;
+  --color-line-strong: #d4d1cb;
+
+  /* Semantic accents (restrained) */
+  --color-ok: #1f7a3d;
+  --color-ok-soft: #e9f5ec;
+  --color-warn: #9c5a12;
+  --color-warn-soft: #fbf1e2;
+
+  --font-sans: "Segoe UI", system-ui, -apple-system, "Helvetica Neue",
+    Arial, sans-serif;
+  --shadow-card: 0 1px 2px rgb(23 25 27 / 0.05), 0 4px 14px rgb(23 25 27 / 0.05);
+  --shadow-pop: 0 4px 12px rgb(23 25 27 / 0.12), 0 12px 32px rgb(23 25 27 / 0.12);
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-brand) 18%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--color-brand) 70%, transparent);
+  outline-offset: 2px;
+}
+
+/* Thin, restrained scrollbars for the desktop app */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-line-strong) transparent;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}

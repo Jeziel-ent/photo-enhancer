@@ -1,0 +1,11 @@
+# The Application/API layer itself is Python-stdlib-only (http.server,
+# queue, threading, zipfile, dataclasses) — no web framework, no multipart
+# library. It imports image_enhancer/src/enhance.py in-process at
+# processing time, so image_enhancer/requirements.txt must also be
+# installed in the same environment for jobs to actually run.
+
+# Desktop shell only (backend/shell.py, backend/shell_smoke.py) — not needed
+# to run the API/tests headless. Pulls in pythonnet on Windows for the
+# edgechromium (WebView2) backend. See backend/README.md for the Windows
+# WebView2 Runtime requirement this does NOT install for you.
+pywebview>=6.0

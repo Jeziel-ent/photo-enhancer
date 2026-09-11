@@ -1,0 +1,282 @@
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\timm\models\layers\__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\torch\functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\native\TensorShape.cpp:4223.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+[ WARN:0@55.952] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+====================================================================================
+ 1.jpeg
+====================================================================================
+ roi              t0        psnr    ssim     pd    %>10    %>20   max
+ face_0           base     31.35  0.9166  3.612  17.102   2.352  27.0
+ face_0           0.25     31.04  0.9084  3.902  18.505   2.395  27.0
+ face_0           0.20     30.78  0.8999  4.189  19.876    2.42  27.0
+ fine_struct      base     28.01  0.8776  6.439   30.91   7.845  35.0
+ fine_struct      0.25     27.84  0.8676  6.764  32.525   7.896  35.0
+ fine_struct      0.20     27.68  0.8566  7.101  34.157   7.935  35.0
+ road_0           base     83.52     1.0    0.0     0.0     0.0   1.0
+ road_0           0.25     83.52     1.0    0.0     0.0     0.0   1.0
+ road_0           0.20     83.52     1.0    0.0     0.0     0.0   1.0
+ road_1           base     52.69  0.9984   0.35     0.0     0.0   2.0
+ road_1           0.25     52.69  0.9984   0.35     0.0     0.0   2.0
+ road_1           0.20     52.69  0.9984   0.35     0.0     0.0   2.0
+ road_2           base     50.61  0.9946  0.502     0.0     0.0   2.0
+ road_2           0.25     50.61  0.9946  0.502     0.0     0.0   2.0
+ road_2           0.20     50.61  0.9946  0.502     0.0     0.0   2.0
+ signs_bldg_0     base     30.89  0.9328   3.49  15.249     4.5  35.0
+ signs_bldg_0     0.25     30.76  0.9279  3.624  15.913   4.495  34.0
+ signs_bldg_0     0.20     30.64  0.9221  3.771  16.585   4.484  34.0
+ sky_flat_0       base      46.8  0.9998  0.848     0.0     0.0   2.0
+ sky_flat_0       0.25      46.8  0.9998  0.848     0.0     0.0   2.0
+ sky_flat_0       0.20      46.8  0.9998  0.848     0.0     0.0   2.0
+ sky_flat_1       base     52.45  0.9993  0.369     0.0     0.0   2.0
+ sky_flat_1       0.25     52.45  0.9993  0.369     0.0     0.0   2.0
+ sky_flat_1       0.20     52.45  0.9993  0.369     0.0     0.0   2.0
+ sky_flat_2       base     51.19  0.9975  0.421     0.0     0.0   2.0
+ sky_flat_2       0.25     51.19  0.9975  0.421     0.0     0.0   2.0
+ sky_flat_2       0.20     51.19  0.9975  0.421     0.0     0.0   2.0
+ FULLFRAME  base   pct>10=  9.341 pct>20=  2.219 max= 43.0
+ FULLFRAME  0.25   pct>10=  9.873 pct>20=  2.235 max= 43.0
+ FULLFRAME  0.20   pct>10= 10.409 pct>20=  2.247 max= 43.0
+[ WARN:0@99.741] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+====================================================================================
+ 2.jpeg
+====================================================================================
+ roi              t0        psnr    ssim     pd    %>10    %>20   max
+ fine_struct      base     26.21  0.9007  8.481  39.014  15.241  36.0
+ fine_struct      0.25     26.02  0.8922  8.946  41.467  15.468  36.0
+ fine_struct      0.20     25.84  0.8826  9.427   43.97  15.677  36.0
+ road_0           base     46.21  0.9853  0.878     0.0     0.0   6.0
+ road_0           0.25     46.21  0.9853  0.878     0.0     0.0   6.0
+ road_0           0.20     46.21  0.9853  0.878     0.0     0.0   6.0
+ road_1           base      46.9  0.9845  0.699     0.0     0.0   5.0
+ road_1           0.25      46.9  0.9845  0.699     0.0     0.0   5.0
+ road_1           0.20     46.89  0.9844  0.699     0.0     0.0   5.0
+ road_2           base     50.95  0.9969  0.522     0.0     0.0   2.0
+ road_2           0.25     50.95  0.9969  0.522     0.0     0.0   2.0
+ road_2           0.20     50.84  0.9968  0.525     0.0     0.0   6.0
+ signs_bldg_0     base     28.96  0.9456  4.663  19.289   8.036  41.0
+ signs_bldg_0     0.25     28.76  0.9398  4.945   20.64   8.161  41.0
+ signs_bldg_0     0.20     28.57  0.9331  5.249  22.114   8.277  41.0
+ sky_flat_0       base     50.97   0.999   0.52     0.0     0.0   1.0
+ sky_flat_0       0.25     50.97   0.999   0.52     0.0     0.0   1.0
+ sky_flat_0       0.20     50.97   0.999   0.52     0.0     0.0   1.0
+ sky_flat_1       base     44.21  0.9982  1.396     0.0     0.0   3.0
+ sky_flat_1       0.25     44.21  0.9982  1.396     0.0     0.0   3.0
+ sky_flat_1       0.20     44.21  0.9982  1.396     0.0     0.0   3.0
+ sky_flat_2       base     39.51   0.996  2.291     0.0     0.0   4.0
+ sky_flat_2       0.25     39.51   0.996  2.291     0.0     0.0   4.0
+ sky_flat_2       0.20     39.51   0.996  2.291     0.0     0.0   4.0
+ FULLFRAME  base   pct>10= 11.249 pct>20=  3.894 max= 60.0
+ FULLFRAME  0.25   pct>10=  12.25 pct>20=  4.021 max= 60.0
+ FULLFRAME  0.20   pct>10= 13.276 pct>20=  4.129 max= 60.0
+[ WARN:0@149.089] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+====================================================================================
+ 3.jpeg
+====================================================================================
+ roi              t0        psnr    ssim     pd    %>10    %>20   max
+ fine_struct      base     25.93  0.8881  8.904  39.993  17.276  52.0
+ fine_struct      0.25     25.74  0.8796  9.387  42.561   17.62  52.0
+ fine_struct      0.20     25.56  0.8703  9.875  45.146  17.901  52.0
+ road_0           base     49.92  0.9944  0.511     0.0     0.0   3.0
+ road_0           0.25     49.86  0.9943  0.513     0.0     0.0   6.0
+ road_0           0.20     49.74  0.9943  0.517     0.0     0.0   8.0
+ road_1           base      44.5  0.9417  0.821     0.0     0.0   7.0
+ road_1           0.25      44.5  0.9417  0.821     0.0     0.0   7.0
+ road_1           0.20      44.5  0.9417  0.821     0.0     0.0   7.0
+ road_2           base     51.66  0.9973  0.434     0.0     0.0   3.0
+ road_2           0.25     51.66  0.9973  0.434     0.0     0.0   3.0
+ road_2           0.20     51.66  0.9973  0.435     0.0     0.0   3.0
+ signs_bldg_0     base     29.59  0.9352  3.893  13.899   6.789  59.0
+ signs_bldg_0     0.25     29.39    0.93  4.097  14.918   6.961  59.0
+ signs_bldg_0     0.20     29.19   0.924  4.318  15.981   7.124  59.0
+ sky_flat_0       base     46.16  0.9973   0.87     0.0     0.0   5.0
+ sky_flat_0       0.25     46.16  0.9973   0.87     0.0     0.0   5.0
+ sky_flat_0       0.20     46.16  0.9973   0.87     0.0     0.0   5.0
+ sky_flat_1       base      49.5  0.9981   0.58     0.0     0.0   2.0
+ sky_flat_1       0.25      49.5  0.9981   0.58     0.0     0.0   2.0
+ sky_flat_1       0.20      49.5  0.9981   0.58     0.0     0.0   2.0
+ sky_flat_2       base     50.87  0.9977  0.521     0.0     0.0   2.0
+ sky_flat_2       0.25     50.87  0.9977  0.521     0.0     0.0   2.0
+ sky_flat_2       0.20     50.87  0.9977  0.521     0.0     0.0   2.0
+ FULLFRAME  base   pct>10=  8.885 pct>20=  3.283 max= 59.0
+ FULLFRAME  0.25   pct>10=  9.652 pct>20=  3.384 max= 59.0
+ FULLFRAME  0.20   pct>10= 10.435 pct>20=  3.474 max= 59.0
+[ WARN:0@193.164] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+====================================================================================
+ 4.jpeg
+====================================================================================
+ roi              t0        psnr    ssim     pd    %>10    %>20   max
+ fine_struct      base     26.74  0.9133  7.166  29.252  14.031  57.0
+ fine_struct      0.25     26.55  0.9068  7.536  31.107  14.376  57.0
+ fine_struct      0.20     26.38  0.8999  7.914  33.012  14.694  57.0
+ road_0           base     47.83  0.9965   0.82     0.0     0.0   3.0
+ road_0           0.25     47.83  0.9965   0.82     0.0     0.0   3.0
+ road_0           0.20     47.83  0.9965   0.82     0.0     0.0   3.0
+ road_1           base     51.14  0.9987    0.5     0.0     0.0   1.0
+ road_1           0.25     51.14  0.9987    0.5     0.0     0.0   1.0
+ road_1           0.20     51.14  0.9987    0.5     0.0     0.0   1.0
+ road_2           base     51.58  0.9988  0.452     0.0     0.0   1.0
+ road_2           0.25     51.58  0.9988  0.452     0.0     0.0   1.0
+ road_2           0.20     51.58  0.9988  0.452     0.0     0.0   1.0
+ signs_bldg_0     base     30.11  0.9542  3.475  13.412   6.303  36.0
+ signs_bldg_0     0.25     29.91  0.9509  3.643  14.266   6.491  36.0
+ signs_bldg_0     0.20     29.74  0.9474  3.807  15.096    6.66  37.0
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\skimage\metrics\simple_metrics.py:168: RuntimeWarning: divide by zero encountered in scalar divide
+  return 10 * np.log10((data_range**2) / err)
+ sky_flat_0       base       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_0       0.25       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_0       0.20       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_1       base       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_1       0.25       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_1       0.20       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_2       base       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_2       0.25       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_2       0.20       inf     1.0    0.0     0.0     0.0   0.0
+ FULLFRAME  base   pct>10=  6.132 pct>20=  2.789 max= 57.0
+ FULLFRAME  0.25   pct>10=  6.546 pct>20=  2.854 max= 57.0
+ FULLFRAME  0.20   pct>10=  6.977 pct>20=  2.913 max= 57.0
+[ WARN:0@243.026] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+====================================================================================
+ 5.jpeg
+====================================================================================
+ roi              t0        psnr    ssim     pd    %>10    %>20   max
+ fine_struct      base     26.95  0.9533  6.693  26.004  13.619  43.0
+ fine_struct      0.25     26.82  0.9499  6.975  27.448  13.777  43.0
+ fine_struct      0.20     26.68   0.946  7.276  28.944  13.924  43.0
+ road_0           base     51.35  0.9958  0.476     0.0     0.0   2.0
+ road_0           0.25     51.35  0.9958  0.476     0.0     0.0   2.0
+ road_0           0.20     51.35  0.9958  0.476     0.0     0.0   2.0
+ road_1           base     51.79   0.996   0.33     0.0     0.0   3.0
+ road_1           0.25     51.79   0.996   0.33     0.0     0.0   3.0
+ road_1           0.20     51.79   0.996   0.33     0.0     0.0   3.0
+ road_2           base     50.86  0.9953  0.493     0.0     0.0   2.0
+ road_2           0.25     50.86  0.9953  0.493     0.0     0.0   2.0
+ road_2           0.20     50.86  0.9953  0.493     0.0     0.0   2.0
+ signs_bldg_0     base     29.72  0.9717  3.707  13.114   7.156  36.0
+ signs_bldg_0     0.25     29.58  0.9692  3.873  13.854   7.216  36.0
+ signs_bldg_0     0.20     29.44  0.9662  4.065  14.666   7.287  36.0
+ sky_flat_0       base     49.22  0.9986   0.53     0.0     0.0   3.0
+ sky_flat_0       0.25     49.22  0.9986   0.53     0.0     0.0   3.0
+ sky_flat_0       0.20     49.22  0.9986   0.53     0.0     0.0   3.0
+ sky_flat_1       base     44.47  0.9984  1.329     0.0     0.0   2.0
+ sky_flat_1       0.25     44.47  0.9984  1.329     0.0     0.0   2.0
+ sky_flat_1       0.20     44.47  0.9984  1.329     0.0     0.0   2.0
+ sky_flat_2       base     52.47  0.9989  0.362     0.0     0.0   2.0
+ sky_flat_2       0.25     52.47  0.9989  0.362     0.0     0.0   2.0
+ sky_flat_2       0.20     52.47  0.9989  0.362     0.0     0.0   2.0
+ FULLFRAME  base   pct>10=  6.607 pct>20=  3.329 max= 44.0
+ FULLFRAME  0.25   pct>10=  7.073 pct>20=  3.397 max= 44.0
+ FULLFRAME  0.20   pct>10=  7.571 pct>20=  3.461 max= 44.0
+[ WARN:0@292.759] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+====================================================================================
+ 6.jpeg
+====================================================================================
+ roi              t0        psnr    ssim     pd    %>10    %>20   max
+ fine_struct      base      27.7  0.9067  6.728  30.627   8.734  36.0
+ fine_struct      0.25     27.48  0.8967  7.167  32.761   8.922  36.0
+ fine_struct      0.20     27.26  0.8854  7.623  34.917   9.089  36.0
+ road_0           base     53.01  0.9985  0.325     0.0     0.0   1.0
+ road_0           0.25     53.01  0.9985  0.325     0.0     0.0   1.0
+ road_0           0.20     53.01  0.9985  0.325     0.0     0.0   1.0
+ road_1           base     53.06  0.9972  0.257     0.0     0.0   3.0
+ road_1           0.25     53.06  0.9972  0.257     0.0     0.0   3.0
+ road_1           0.20     53.06  0.9972  0.257     0.0     0.0   3.0
+ road_2           base     52.26  0.9987  0.386     0.0     0.0   1.0
+ road_2           0.25     52.26  0.9987  0.386     0.0     0.0   1.0
+ road_2           0.20     52.26  0.9987  0.386     0.0     0.0   1.0
+ signs_bldg_0     base     27.67   0.921  6.291  28.069  10.135  36.0
+ signs_bldg_0     0.25     27.51  0.9135  6.602  29.621  10.239  36.0
+ signs_bldg_0     0.20     27.35  0.9046  6.945  31.206  10.343  36.0
+ sky_flat_0       base     53.14  0.9998  0.315     0.0     0.0   1.0
+ sky_flat_0       0.25     53.14  0.9998  0.315     0.0     0.0   1.0
+ sky_flat_0       0.20     53.14  0.9998  0.315     0.0     0.0   1.0
+ sky_flat_1       base      53.5  0.9994  0.289     0.0     0.0   2.0
+ sky_flat_1       0.25      53.5  0.9994  0.289     0.0     0.0   2.0
+ sky_flat_1       0.20      53.5  0.9994  0.289     0.0     0.0   2.0
+ sky_flat_2       base     52.32  0.9994  0.381     0.0     0.0   1.0
+ sky_flat_2       0.25     52.32  0.9994  0.381     0.0     0.0   1.0
+ sky_flat_2       0.20     52.32  0.9994  0.381     0.0     0.0   1.0
+ FULLFRAME  base   pct>10= 10.045 pct>20=  3.178 max= 62.0
+ FULLFRAME  0.25   pct>10= 10.738 pct>20=   3.24 max= 62.0
+ FULLFRAME  0.20   pct>10= 11.451 pct>20=  3.295 max= 62.0
+[ WARN:0@324.243] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+====================================================================================
+ mumbai-01.jpeg
+====================================================================================
+ roi              t0        psnr    ssim     pd    %>10    %>20   max
+ fine_struct      base     28.21  0.9005  5.601  25.176   8.504  36.0
+ fine_struct      0.25     28.06  0.8934  5.858  26.416   8.593  36.0
+ fine_struct      0.20     27.92  0.8855  6.119  27.623    8.67  36.0
+ road_0           base     61.95  0.9998  0.042     0.0     0.0   1.0
+ road_0           0.25     61.95  0.9998  0.042     0.0     0.0   1.0
+ road_0           0.20     61.95  0.9998  0.042     0.0     0.0   1.0
+ road_1           base     52.02  0.9996  0.408     0.0     0.0   1.0
+ road_1           0.25     52.02  0.9996  0.408     0.0     0.0   1.0
+ road_1           0.20     52.02  0.9996  0.408     0.0     0.0   1.0
+ road_2           base     51.77  0.9997  0.432     0.0     0.0   1.0
+ road_2           0.25     51.77  0.9997  0.432     0.0     0.0   1.0
+ road_2           0.20     51.77  0.9997  0.432     0.0     0.0   1.0
+ sky_flat_0       base       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_0       0.25       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_0       0.20       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_1       base       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_1       0.25       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_1       0.20       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_2       base       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_2       0.25       inf     1.0    0.0     0.0     0.0   0.0
+ sky_flat_2       0.20       inf     1.0    0.0     0.0     0.0   0.0
+ FULLFRAME  base   pct>10=  8.215 pct>20=  2.326 max= 36.0
+ FULLFRAME  0.25   pct>10=  8.754 pct>20=  2.349 max= 36.0
+ FULLFRAME  0.20   pct>10=  9.302 pct>20=  2.368 max= 36.0
+
+
+=== Flat-region leak check: max |diff| in sky/road tiles (threshold >5 = leak) ===
+ 1.jpeg         road_0       t0=0.20:  1.0 t0=0.25:  1.0 t0=0.30:  1.0
+ 1.jpeg         road_1       t0=0.20:  2.0 t0=0.25:  2.0 t0=0.30:  2.0
+ 1.jpeg         road_2       t0=0.20:  2.0 t0=0.25:  2.0 t0=0.30:  2.0
+ 1.jpeg         sky_flat_0   t0=0.20:  2.0 t0=0.25:  2.0 t0=0.30:  2.0
+ 1.jpeg         sky_flat_1   t0=0.20:  2.0 t0=0.25:  2.0 t0=0.30:  2.0
+ 1.jpeg         sky_flat_2   t0=0.20:  2.0 t0=0.25:  2.0 t0=0.30:  2.0
+ 2.jpeg         road_0       t0=0.20:  6.0 t0=0.25:  6.0 t0=0.30:  6.0
+ 2.jpeg         road_1       t0=0.20:  5.0 t0=0.25:  5.0 t0=0.30:  5.0
+ 2.jpeg         road_2       t0=0.20:  6.0 t0=0.25:  2.0 t0=0.30:  2.0
+ 2.jpeg         sky_flat_0   t0=0.20:  1.0 t0=0.25:  1.0 t0=0.30:  1.0
+ 2.jpeg         sky_flat_1   t0=0.20:  3.0 t0=0.25:  3.0 t0=0.30:  3.0
+ 2.jpeg         sky_flat_2   t0=0.20:  4.0 t0=0.25:  4.0 t0=0.30:  4.0
+ 3.jpeg         road_0       t0=0.20:  8.0 t0=0.25:  6.0 t0=0.30:  3.0
+ 3.jpeg         road_1       t0=0.20:  7.0 t0=0.25:  7.0 t0=0.30:  7.0
+ 3.jpeg         road_2       t0=0.20:  3.0 t0=0.25:  3.0 t0=0.30:  3.0
+ 3.jpeg         sky_flat_0   t0=0.20:  5.0 t0=0.25:  5.0 t0=0.30:  5.0
+ 3.jpeg         sky_flat_1   t0=0.20:  2.0 t0=0.25:  2.0 t0=0.30:  2.0
+ 3.jpeg         sky_flat_2   t0=0.20:  2.0 t0=0.25:  2.0 t0=0.30:  2.0
+ 4.jpeg         road_0       t0=0.20:  3.0 t0=0.25:  3.0 t0=0.30:  3.0
+ 4.jpeg         road_1       t0=0.20:  1.0 t0=0.25:  1.0 t0=0.30:  1.0
+ 4.jpeg         road_2       t0=0.20:  1.0 t0=0.25:  1.0 t0=0.30:  1.0
+ 4.jpeg         sky_flat_0   t0=0.20:  0.0 t0=0.25:  0.0 t0=0.30:  0.0
+ 4.jpeg         sky_flat_1   t0=0.20:  0.0 t0=0.25:  0.0 t0=0.30:  0.0
+ 4.jpeg         sky_flat_2   t0=0.20:  0.0 t0=0.25:  0.0 t0=0.30:  0.0
+ 5.jpeg         road_0       t0=0.20:  2.0 t0=0.25:  2.0 t0=0.30:  2.0
+ 5.jpeg         road_1       t0=0.20:  3.0 t0=0.25:  3.0 t0=0.30:  3.0
+ 5.jpeg         road_2       t0=0.20:  2.0 t0=0.25:  2.0 t0=0.30:  2.0
+ 5.jpeg         sky_flat_0   t0=0.20:  3.0 t0=0.25:  3.0 t0=0.30:  3.0
+ 5.jpeg         sky_flat_1   t0=0.20:  2.0 t0=0.25:  2.0 t0=0.30:  2.0
+ 5.jpeg         sky_flat_2   t0=0.20:  2.0 t0=0.25:  2.0 t0=0.30:  2.0
+ 6.jpeg         road_0       t0=0.20:  1.0 t0=0.25:  1.0 t0=0.30:  1.0
+ 6.jpeg         road_1       t0=0.20:  3.0 t0=0.25:  3.0 t0=0.30:  3.0
+ 6.jpeg         road_2       t0=0.20:  1.0 t0=0.25:  1.0 t0=0.30:  1.0
+ 6.jpeg         sky_flat_0   t0=0.20:  1.0 t0=0.25:  1.0 t0=0.30:  1.0
+ 6.jpeg         sky_flat_1   t0=0.20:  2.0 t0=0.25:  2.0 t0=0.30:  2.0
+ 6.jpeg         sky_flat_2   t0=0.20:  1.0 t0=0.25:  1.0 t0=0.30:  1.0
+ mumbai-01.jpeg road_0       t0=0.20:  1.0 t0=0.25:  1.0 t0=0.30:  1.0
+ mumbai-01.jpeg road_1       t0=0.20:  1.0 t0=0.25:  1.0 t0=0.30:  1.0
+ mumbai-01.jpeg road_2       t0=0.20:  1.0 t0=0.25:  1.0 t0=0.30:  1.0
+ mumbai-01.jpeg sky_flat_0   t0=0.20:  0.0 t0=0.25:  0.0 t0=0.30:  0.0
+ mumbai-01.jpeg sky_flat_1   t0=0.20:  0.0 t0=0.25:  0.0 t0=0.30:  0.0
+ mumbai-01.jpeg sky_flat_2   t0=0.20:  0.0 t0=0.25:  0.0 t0=0.30:  0.0

@@ -1,0 +1,13 @@
+device: cuda
+images: ['5.jpeg']
+
+== 5.jpeg ==
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\timm\models\layers\__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\torch\functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\native\TensorShape.cpp:4223.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+variant                   psnr    ssim   hist  e_align    sharp  noise   gain   pdiff    pct%   rt_s
+baseline                32.978  0.9841 0.9372      1.0    292.2  1.318   6.06  2.0088  12.133   1.39
+self_env_k3             28.407  0.9702 0.9329      1.0    755.9  1.318  15.68  2.9381  12.127   1.45
+self_env_k5_cap10       34.575  0.9879  0.938      1.0    224.0  1.318   4.65  1.7126  11.671   1.43
+hybrid_50               29.361  0.9734 0.9342      1.0    596.1  1.318  12.37   2.714  12.141   1.47

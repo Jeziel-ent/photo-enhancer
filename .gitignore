@@ -1,0 +1,44 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# AI model weights
+*.pth
+*.pt
+*.onnx
+*.safetensors
+models/
+
+# Generated enhancement outputs
+image_enhancer/enhanced/
+image_enhancer/reports/
+
+# Backend generated output
+# .workspace/ holds per-job input/output files and result zips for the API
+backend/.workspace/
+
+# Node / frontend
+node_modules/
+frontend/dist/
+frontend/node_modules/
+frontend/*.log
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Python tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/

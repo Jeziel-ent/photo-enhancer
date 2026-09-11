@@ -1,0 +1,173 @@
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\timm\models\layers\__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\torch\functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\native\TensorShape.cpp:4223.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+  1.jpeg: psnr=32.9956 ssim=0.9523 rt=41.89s
+  2.jpeg: psnr=31.453 ssim=0.9581 rt=39.7s
+  3.jpeg: psnr=32.2978 ssim=0.9603 rt=45.9s
+  4.jpeg: psnr=33.4014 ssim=0.9759 rt=40.9s
+  5.jpeg: psnr=32.7921 ssim=0.9828 rt=46.34s
+  6.jpeg: psnr=32.1158 ssim=0.9604 rt=45.99s
+  mumbai-01.jpeg: psnr=33.2043 ssim=0.9519 rt=27.76s
+
+Saved candidate report -> D:\Ai-development\ppt-automation\image_enhancer\reports\regression_baseline\candidate_t0_025.json
+
+
+1.jpeg:
+  similarity_vs_faithful.psnr            baseline=33.177     candidate=32.9956    delta=-0.1814    [OK]
+  similarity_vs_faithful.ssim            baseline=0.9558     candidate=0.9523     delta=-0.0035    [OK]
+  similarity_vs_faithful.edge_align      baseline=0.9999     candidate=0.9995     delta=-0.0004    [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.9338     candidate=0.9338     delta=0.0        [OK]
+  no_reference.sharpness                 baseline=118.9195   candidate=122.616    delta=3.6965     [OK]
+  no_reference.noise                     baseline=1.2707     candidate=1.2707     delta=0.0        [OK]
+  pct_pixels_changed                     baseline=17.155     candidate=18.404     delta=1.249      [OK]
+  runtime_s                              baseline=40.42      candidate=41.89      delta=1.47       [OK]
+
+2.jpeg:
+  similarity_vs_faithful.psnr            baseline=31.7277    candidate=31.453     delta=-0.2747    [OK]
+  similarity_vs_faithful.ssim            baseline=0.9621     candidate=0.9581     delta=-0.004     [OK]
+  similarity_vs_faithful.edge_align      baseline=1.0        candidate=1.0        delta=0.0        [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.9332     candidate=0.933      delta=-0.0002    [OK]
+  no_reference.sharpness                 baseline=269.8013   candidate=281.7378   delta=11.9365    [OK]
+  no_reference.noise                     baseline=2.4995     candidate=2.499      delta=-0.0005    [OK]
+  pct_pixels_changed                     baseline=19.1417    candidate=20.9076    delta=1.7659     [OK]
+  runtime_s                              baseline=38.86      candidate=39.7       delta=0.84       [OK]
+
+3.jpeg:
+  similarity_vs_faithful.psnr            baseline=32.5576    candidate=32.2978    delta=-0.2598    [OK]
+  similarity_vs_faithful.ssim            baseline=0.9639     candidate=0.9603     delta=-0.0036    [OK]
+  similarity_vs_faithful.edge_align      baseline=0.9991     candidate=0.997      delta=-0.0021    [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.9342     candidate=0.9342     delta=0.0        [OK]
+  no_reference.sharpness                 baseline=246.2511   candidate=255.9209   delta=9.6698     [OK]
+  no_reference.noise                     baseline=2.9846     candidate=2.9762     delta=-0.0084    [OK]
+  pct_pixels_changed                     baseline=18.038     candidate=19.496     delta=1.458      [OK]
+  runtime_s                              baseline=44.22      candidate=45.9       delta=1.68       [OK]
+
+4.jpeg:
+  similarity_vs_faithful.psnr            baseline=33.595     candidate=33.4014    delta=-0.1936    [OK]
+  similarity_vs_faithful.ssim            baseline=0.9778     candidate=0.9759     delta=-0.0019    [OK]
+  similarity_vs_faithful.edge_align      baseline=0.9996     candidate=0.998      delta=-0.0016    [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.912      candidate=0.9119     delta=-0.0001    [OK]
+  no_reference.sharpness                 baseline=201.8269   candidate=207.0333   delta=5.2064     [OK]
+  no_reference.noise                     baseline=0.7476     candidate=0.7476     delta=0.0        [OK]
+  pct_pixels_changed                     baseline=11.8904    candidate=12.7415    delta=0.8511     [OK]
+  runtime_s                              baseline=38.9       candidate=40.9       delta=2.0        [OK]
+
+5.jpeg:
+  similarity_vs_faithful.psnr            baseline=32.9783    candidate=32.7921    delta=-0.1862    [OK]
+  similarity_vs_faithful.ssim            baseline=0.9841     candidate=0.9828     delta=-0.0013    [OK]
+  similarity_vs_faithful.edge_align      baseline=1.0        candidate=0.9998     delta=-0.0002    [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.9372     candidate=0.937      delta=-0.0002    [OK]
+  no_reference.sharpness                 baseline=292.1925   candidate=297.8736   delta=5.6811     [OK]
+  no_reference.noise                     baseline=1.3177     candidate=1.3177     delta=0.0        [OK]
+  pct_pixels_changed                     baseline=12.1334    candidate=13.0955    delta=0.9621     [OK]
+  runtime_s                              baseline=44.36      candidate=46.34      delta=1.98       [OK]
+
+6.jpeg:
+  similarity_vs_faithful.psnr            baseline=32.3302    candidate=32.1158    delta=-0.2144    [OK]
+  similarity_vs_faithful.ssim            baseline=0.964      candidate=0.9604     delta=-0.0036    [OK]
+  similarity_vs_faithful.edge_align      baseline=1.0        candidate=0.9997     delta=-0.0003    [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.9164     candidate=0.9165     delta=0.0001     [OK]
+  no_reference.sharpness                 baseline=178.6772   candidate=184.9334   delta=6.2562     [OK]
+  no_reference.noise                     baseline=2.5937     candidate=2.5937     delta=0.0        [OK]
+  pct_pixels_changed                     baseline=18.5027    candidate=20.0248    delta=1.5221     [OK]
+  runtime_s                              baseline=44.2       candidate=45.99      delta=1.79       [OK]
+
+mumbai-01.jpeg:
+  similarity_vs_faithful.psnr            baseline=33.4123    candidate=33.2043    delta=-0.208     [OK]
+  similarity_vs_faithful.ssim            baseline=0.9562     candidate=0.9519     delta=-0.0043    [OK]
+  similarity_vs_faithful.edge_align      baseline=0.9945     candidate=0.9865     delta=-0.008     [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.9532     candidate=0.9531     delta=-0.0001    [OK]
+  no_reference.sharpness                 baseline=139.5945   candidate=144.1934   delta=4.5989     [OK]
+  no_reference.noise                     baseline=2.3994     candidate=2.3768     delta=-0.0226    [OK]
+  pct_pixels_changed                     baseline=14.3833    candidate=15.8337    delta=1.4504     [OK]
+  runtime_s                              baseline=26.87      candidate=27.76      delta=0.89       [OK]
+
+OVERALL: PASS
+
+======================================================================
+
+  1.jpeg: psnr=32.8176 ssim=0.9483 rt=40.87s
+  2.jpeg: psnr=31.1932 ssim=0.9536 rt=40.42s
+  3.jpeg: psnr=32.0486 ssim=0.9563 rt=46.28s
+  4.jpeg: psnr=33.2129 ssim=0.9737 rt=40.07s
+  5.jpeg: psnr=32.605 ssim=0.9811 rt=45.65s
+  6.jpeg: psnr=31.9051 ssim=0.9562 rt=46.27s
+  mumbai-01.jpeg: psnr=32.9986 ssim=0.9471 rt=27.97s
+
+Saved candidate report -> D:\Ai-development\ppt-automation\image_enhancer\reports\regression_baseline\candidate_t0_02.json
+
+
+1.jpeg:
+  similarity_vs_faithful.psnr            baseline=33.177     candidate=32.8176    delta=-0.3594    [OK]
+  similarity_vs_faithful.ssim            baseline=0.9558     candidate=0.9483     delta=-0.0075    [OK]
+  similarity_vs_faithful.edge_align      baseline=0.9999     candidate=0.9984     delta=-0.0015    [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.9338     candidate=0.9339     delta=0.0001     [OK]
+  no_reference.sharpness                 baseline=118.9195   candidate=126.039    delta=7.1195     [OK]
+  no_reference.noise                     baseline=1.2707     candidate=1.2707     delta=0.0        [OK]
+  pct_pixels_changed                     baseline=17.155     candidate=19.8079    delta=2.6529     [OK]
+  runtime_s                              baseline=40.42      candidate=40.87      delta=0.45       [OK]
+
+2.jpeg:
+  similarity_vs_faithful.psnr            baseline=31.7277    candidate=31.1932    delta=-0.5345    [OK]
+  similarity_vs_faithful.ssim            baseline=0.9621     candidate=0.9536     delta=-0.0085    [OK]
+  similarity_vs_faithful.edge_align      baseline=1.0        candidate=0.9996     delta=-0.0004    [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.9332     candidate=0.933      delta=-0.0002    [OK]
+  no_reference.sharpness                 baseline=269.8013   candidate=293.073    delta=23.2717    [OK]
+  no_reference.noise                     baseline=2.4995     candidate=2.499      delta=-0.0005    [OK]
+  pct_pixels_changed                     baseline=19.1417    candidate=22.8961    delta=3.7544     [OK]
+  runtime_s                              baseline=38.86      candidate=40.42      delta=1.56       [OK]
+
+3.jpeg:
+  similarity_vs_faithful.psnr            baseline=32.5576    candidate=32.0486    delta=-0.509     [OK]
+  similarity_vs_faithful.ssim            baseline=0.9639     candidate=0.9563     delta=-0.0076    [OK]
+  similarity_vs_faithful.edge_align      baseline=0.9991     candidate=0.9925     delta=-0.0066    [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.9342     candidate=0.9344     delta=0.0002     [OK]
+  no_reference.sharpness                 baseline=246.2511   candidate=265.1712   delta=18.9201    [OK]
+  no_reference.noise                     baseline=2.9846     candidate=2.9674     delta=-0.0172    [OK]
+  pct_pixels_changed                     baseline=18.038     candidate=21.1331    delta=3.0951     [OK]
+  runtime_s                              baseline=44.22      candidate=46.28      delta=2.06       [OK]
+
+4.jpeg:
+  similarity_vs_faithful.psnr            baseline=33.595     candidate=33.2129    delta=-0.3821    [OK]
+  similarity_vs_faithful.ssim            baseline=0.9778     candidate=0.9737     delta=-0.0041    [OK]
+  similarity_vs_faithful.edge_align      baseline=0.9996     candidate=0.9941     delta=-0.0055    [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.912      candidate=0.9118     delta=-0.0002    [OK]
+  no_reference.sharpness                 baseline=201.8269   candidate=212.2504   delta=10.4235    [OK]
+  no_reference.noise                     baseline=0.7476     candidate=0.7476     delta=0.0        [OK]
+  pct_pixels_changed                     baseline=11.8904    candidate=13.6965    delta=1.8061     [OK]
+  runtime_s                              baseline=38.9       candidate=40.07      delta=1.17       [OK]
+
+5.jpeg:
+  similarity_vs_faithful.psnr            baseline=32.9783    candidate=32.605     delta=-0.3733    [OK]
+  similarity_vs_faithful.ssim            baseline=0.9841     candidate=0.9811     delta=-0.003     [OK]
+  similarity_vs_faithful.edge_align      baseline=1.0        candidate=0.999      delta=-0.001     [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.9372     candidate=0.9368     delta=-0.0004    [OK]
+  no_reference.sharpness                 baseline=292.1925   candidate=303.6733   delta=11.4808    [OK]
+  no_reference.noise                     baseline=1.3177     candidate=1.3177     delta=0.0        [OK]
+  pct_pixels_changed                     baseline=12.1334    candidate=14.2135    delta=2.0801     [OK]
+  runtime_s                              baseline=44.36      candidate=45.65      delta=1.29       [OK]
+
+6.jpeg:
+  similarity_vs_faithful.psnr            baseline=32.3302    candidate=31.9051    delta=-0.4251    [OK]
+  similarity_vs_faithful.ssim            baseline=0.964      candidate=0.9562     delta=-0.0078    [OK]
+  similarity_vs_faithful.edge_align      baseline=1.0        candidate=0.9988     delta=-0.0012    [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.9164     candidate=0.9168     delta=0.0004     [OK]
+  no_reference.sharpness                 baseline=178.6772   candidate=190.7261   delta=12.0489    [OK]
+  no_reference.noise                     baseline=2.5937     candidate=2.5887     delta=-0.005     [OK]
+  pct_pixels_changed                     baseline=18.5027    candidate=21.7788    delta=3.2761     [OK]
+  runtime_s                              baseline=44.2       candidate=46.27      delta=2.07       [OK]
+
+mumbai-01.jpeg:
+  similarity_vs_faithful.psnr            baseline=33.4123    candidate=32.9986    delta=-0.4137    [OK]
+  similarity_vs_faithful.ssim            baseline=0.9562     candidate=0.9471     delta=-0.0091    [OK]
+  similarity_vs_faithful.edge_align      baseline=0.9945     candidate=0.9757     delta=-0.0188    [OK]
+  similarity_vs_faithful.hist_sim        baseline=0.9532     candidate=0.9532     delta=0.0        [OK]
+  no_reference.sharpness                 baseline=139.5945   candidate=148.6404   delta=9.0459     [OK]
+  no_reference.noise                     baseline=2.3994     candidate=2.3541     delta=-0.0453    [OK]
+  pct_pixels_changed                     baseline=14.3833    candidate=17.5072    delta=3.1239     [OK]
+  runtime_s                              baseline=26.87      candidate=27.97      delta=1.1        [OK]
+
+OVERALL: PASS
+
+

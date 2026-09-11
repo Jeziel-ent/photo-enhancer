@@ -1,0 +1,48 @@
+device: cuda
+images: ['1.jpeg', '2.jpeg', '3.jpeg', '4.jpeg', '5.jpeg', '6.jpeg', 'mumbai-01.jpeg']
+
+== 1.jpeg ==
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\timm\models\layers\__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\torch\functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\native\TensorShape.cpp:4223.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+t0_030_baseline  t0=0.30 PSNR= 33.177 SSIM=0.9558 hist=0.9338 ealign=0.9999 sharp=  118.9 noise=1.271 conf=0.253 edens=6.30 gain=28.557 pd=2.315 pct%=17.16 rt=1.38s cov>0.05=16.0% full=3.0%
+    (baseline t0=cov above; runtime vs reported rt_s)
+t0_025           t0=0.25 PSNR= 32.996 SSIM=0.9523 hist=0.9338 ealign=0.9995 sharp=  122.6 noise=1.271 conf=0.253 edens=6.47 gain=29.445 pd=2.425 pct%=18.40 rt=1.40s cov>0.05=18.1% full=3.0%
+t0_020           t0=0.20 PSNR= 32.818 SSIM=0.9483 hist=0.9339 ealign=0.9984 sharp=  126.0 noise=1.271 conf=0.253 edens=6.65 gain=30.267 pd=2.544 pct%=19.81 rt=1.40s cov>0.05=20.7% full=3.0%
+
+== 2.jpeg ==
+t0_030_baseline  t0=0.30 PSNR= 31.728 SSIM=0.9621 hist=0.9332 ealign=1.0000 sharp=  269.8 noise=2.499 conf=0.240 edens=13.27 gain=14.058 pd=2.795 pct%=19.14 rt=1.38s cov>0.05=17.2% full=3.0%
+    (baseline t0=cov above; runtime vs reported rt_s)
+t0_025           t0=0.25 PSNR= 31.453 SSIM=0.9581 hist=0.9330 ealign=1.0000 sharp=  281.7 noise=2.499 conf=0.240 edens=13.63 gain= 14.68 pd=2.989 pct%=20.91 rt=1.38s cov>0.05=19.6% full=3.0%
+t0_020           t0=0.20 PSNR= 31.193 SSIM=0.9536 hist=0.9330 ealign=0.9996 sharp=  293.1 noise=2.499 conf=0.240 edens=14.09 gain= 15.27 pd=3.194 pct%=22.90 rt=1.38s cov>0.05=22.4% full=3.0%
+
+== 3.jpeg ==
+t0_030_baseline  t0=0.30 PSNR= 32.558 SSIM=0.9639 hist=0.9342 ealign=0.9991 sharp=  246.3 noise=2.985 conf=0.196 edens=12.00 gain=11.946 pd=2.431 pct%=18.04 rt=1.40s cov>0.05=15.0% full=3.0%
+    (baseline t0=cov above; runtime vs reported rt_s)
+t0_025           t0=0.25 PSNR= 32.298 SSIM=0.9603 hist=0.9342 ealign=0.9970 sharp=  255.9 noise=2.976 conf=0.196 edens=12.36 gain=12.415 pd=2.585 pct%=19.50 rt=1.39s cov>0.05=17.2% full=3.0%
+t0_020           t0=0.20 PSNR= 32.049 SSIM=0.9563 hist=0.9344 ealign=0.9925 sharp=  265.2 noise=2.967 conf=0.196 edens=12.77 gain=12.863 pd=2.750 pct%=21.13 rt=1.38s cov>0.05=20.1% full=3.0%
+
+== 4.jpeg ==
+t0_030_baseline  t0=0.30 PSNR= 33.595 SSIM=0.9778 hist=0.9120 ealign=0.9996 sharp=  201.8 noise=0.748 conf=0.279 edens=7.72 gain= 9.741 pd=1.812 pct%=11.89 rt=1.36s cov>0.05=10.6% full=3.0%
+    (baseline t0=cov above; runtime vs reported rt_s)
+t0_025           t0=0.25 PSNR= 33.401 SSIM=0.9759 hist=0.9119 ealign=0.9980 sharp=  207.0 noise=0.748 conf=0.279 edens=7.83 gain= 9.992 pd=1.900 pct%=12.74 rt=1.38s cov>0.05=11.9% full=3.0%
+t0_020           t0=0.20 PSNR= 33.213 SSIM=0.9737 hist=0.9118 ealign=0.9941 sharp=  212.3 noise=0.748 conf=0.279 edens=8.00 gain=10.244 pd=1.994 pct%=13.70 rt=1.37s cov>0.05=13.5% full=3.0%
+
+== 5.jpeg ==
+t0_030_baseline  t0=0.30 PSNR= 32.978 SSIM=0.9841 hist=0.9372 ealign=1.0000 sharp=  292.2 noise=1.318 conf=0.229 edens=10.76 gain= 6.062 pd=2.009 pct%=12.13 rt=1.39s cov>0.05=11.3% full=3.0%
+    (baseline t0=cov above; runtime vs reported rt_s)
+t0_025           t0=0.25 PSNR= 32.792 SSIM=0.9828 hist=0.9370 ealign=0.9998 sharp=  297.9 noise=1.318 conf=0.229 edens=10.82 gain=  6.18 pd=2.107 pct%=13.10 rt=1.40s cov>0.05=12.7% full=3.0%
+t0_020           t0=0.20 PSNR= 32.605 SSIM=0.9811 hist=0.9368 ealign=0.9990 sharp=  303.7 noise=1.318 conf=0.229 edens=10.82 gain= 6.301 pd=2.216 pct%=14.21 rt=1.36s cov>0.05=14.4% full=3.0%
+
+== 6.jpeg ==
+t0_030_baseline  t0=0.30 PSNR=  32.33 SSIM=0.9640 hist=0.9164 ealign=1.0000 sharp=  178.7 noise=2.594 conf=0.245 edens=9.39 gain= 16.48 pd=2.548 pct%=18.50 rt=1.35s cov>0.05=16.8% full=3.0%
+    (baseline t0=cov above; runtime vs reported rt_s)
+t0_025           t0=0.25 PSNR= 32.116 SSIM=0.9604 hist=0.9165 ealign=0.9997 sharp=  184.9 noise=2.594 conf=0.245 edens=9.50 gain=17.057 pd=2.692 pct%=20.02 rt=1.36s cov>0.05=19.1% full=3.0%
+t0_020           t0=0.20 PSNR= 31.905 SSIM=0.9562 hist=0.9168 ealign=0.9988 sharp=  190.7 noise=2.589 conf=0.245 edens=9.60 gain=17.592 pd=2.850 pct%=21.78 rt=1.36s cov>0.05=21.9% full=3.0%
+
+== mumbai-01.jpeg ==
+t0_030_baseline  t0=0.30 PSNR= 33.412 SSIM=0.9562 hist=0.9532 ealign=0.9945 sharp=  139.6 noise=2.399 conf=0.291 edens=7.34 gain=20.878 pd=2.019 pct%=14.38 rt=1.37s cov>0.05=16.4% full=3.0%
+    (baseline t0=cov above; runtime vs reported rt_s)
+t0_025           t0=0.25 PSNR= 33.204 SSIM=0.9519 hist=0.9531 ealign=0.9865 sharp=  144.2 noise=2.377 conf=0.291 edens=7.63 gain=21.566 pd=2.145 pct%=15.83 rt=1.38s cov>0.05=19.3% full=3.0%
+t0_020           t0=0.20 PSNR= 32.999 SSIM=0.9471 hist=0.9532 ealign=0.9757 sharp=  148.6 noise=2.354 conf=0.291 edens=7.93 gain=22.231 pd=2.284 pct%=17.51 rt=1.38s cov>0.05=22.9% full=3.0%

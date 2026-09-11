@@ -1,0 +1,137 @@
+  skipping site_01.jpeg (duplicate content)
+Validation set: 27 distinct images
+  D:\Ai-development\ppt-automation\image_enhancer\originals\1.jpeg
+  D:\Ai-development\ppt-automation\image_enhancer\originals\2.jpeg
+  D:\Ai-development\ppt-automation\image_enhancer\originals\3.jpeg
+  D:\Ai-development\ppt-automation\image_enhancer\originals\4.jpeg
+  D:\Ai-development\ppt-automation\image_enhancer\originals\5.jpeg
+  D:\Ai-development\ppt-automation\image_enhancer\originals\6.jpeg
+  D:\Ai-development\ppt-automation\backend\.deckstore\testclient-autumn-launch\uploads\mumbai-01.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_02.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_03.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_04.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_05.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_06.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_07.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_08.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_09.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_10.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_11.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_12.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_13.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_14.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_15.png
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_16.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_17.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_18.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_19.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_20.jpeg
+  D:\Ai-development\ppt-automation\archive\ppt_automation\phase2_presentation\test_data\assets\site_21.jpeg
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\timm\models\layers\__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\torch\functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\native\TensorShape.cpp:4223.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+  1.jpeg                       psnr=33.1770 ssim=0.9558 rt= 48.2s vram=2373.8
+  2.jpeg                       psnr=31.7277 ssim=0.9621 rt= 40.1s vram=2439.9
+  3.jpeg                       psnr=32.5576 ssim=0.9639 rt= 46.1s vram=2439.9
+  4.jpeg                       psnr=33.5950 ssim=0.9778 rt= 40.5s vram=2439.9
+  5.jpeg                       psnr=32.9783 ssim=0.9841 rt= 46.1s vram=2439.9
+  6.jpeg                       psnr=32.3302 ssim=0.9640 rt= 45.4s vram=2439.9
+  mumbai-01.jpeg               psnr=33.4123 ssim=0.9562 rt= 27.7s vram=2439.9
+  site_02.jpeg                 psnr=33.2557 ssim=0.9674 rt= 27.6s vram=2439.9
+  site_03.jpeg                 psnr=32.3792 ssim=0.9530 rt= 27.8s vram=2439.9
+  site_04.jpeg                 psnr=31.7971 ssim=0.9522 rt= 27.8s vram=2439.9
+  site_05.jpeg                 psnr=33.7132 ssim=0.9577 rt= 27.5s vram=2439.9
+  site_06.jpeg                 psnr=32.4157 ssim=0.9650 rt= 27.6s vram=2439.9
+  site_07.jpeg                 psnr=32.8227 ssim=0.9617 rt= 27.4s vram=2439.9
+  site_08.jpeg                 psnr=33.5040 ssim=0.9719 rt= 27.1s vram=2439.9
+  site_09.jpeg                 psnr=33.0280 ssim=0.9480 rt= 27.0s vram=2439.9
+  site_10.jpeg                 psnr=31.9148 ssim=0.9662 rt= 26.9s vram=2439.9
+  site_11.jpeg                 psnr=33.4373 ssim=0.9697 rt= 27.0s vram=2439.9
+  site_12.jpeg                 psnr=32.3552 ssim=0.9473 rt= 21.2s vram=2439.9
+  site_13.jpeg                 psnr=33.0725 ssim=0.9598 rt= 27.5s vram=2439.9
+  site_14.jpeg                 psnr=31.7730 ssim=0.9605 rt= 27.7s vram=2439.9
+  site_15.png                  psnr=30.6318 ssim=0.9518 rt= 27.3s vram=2439.9
+  site_16.jpeg                 psnr=32.6334 ssim=0.9553 rt= 27.4s vram=2439.9
+  site_17.jpeg                 psnr=31.1794 ssim=0.9582 rt= 27.0s vram=2439.9
+  site_18.jpeg                 psnr=32.9071 ssim=0.9601 rt= 27.0s vram=2439.9
+  site_19.jpeg                 psnr=33.4360 ssim=0.9617 rt= 21.1s vram=2439.9
+  site_20.jpeg                 psnr=32.3258 ssim=0.9600 rt= 27.0s vram=2439.9
+  site_21.jpeg                 psnr=31.1632 ssim=0.9424 rt= 25.8s vram=2439.9
+  1.jpeg                       psnr=32.9956 ssim=0.9523 rt= 40.1s vram=2439.9
+  2.jpeg                       psnr=31.4530 ssim=0.9581 rt= 45.6s vram=2439.9
+  3.jpeg                       psnr=32.2978 ssim=0.9603 rt= 44.7s vram=2439.9
+  4.jpeg                       psnr=33.4014 ssim=0.9759 rt= 39.3s vram=2439.9
+  5.jpeg                       psnr=32.7921 ssim=0.9828 rt= 44.9s vram=2439.9
+  6.jpeg                       psnr=32.1158 ssim=0.9604 rt= 45.0s vram=2439.9
+  mumbai-01.jpeg               psnr=33.2043 ssim=0.9519 rt= 27.5s vram=2439.9
+  site_02.jpeg                 psnr=32.9999 ssim=0.9635 rt= 27.6s vram=2439.9
+  site_03.jpeg                 psnr=32.1315 ssim=0.9483 rt= 27.4s vram=2439.9
+  site_04.jpeg                 psnr=31.4955 ssim=0.9462 rt= 27.3s vram=2439.9
+  site_05.jpeg                 psnr=33.4990 ssim=0.9537 rt= 27.3s vram=2439.9
+  site_06.jpeg                 psnr=32.1486 ssim=0.9611 rt= 27.2s vram=2439.9
+  site_07.jpeg                 psnr=32.5929 ssim=0.9580 rt= 27.4s vram=2439.9
+  site_08.jpeg                 psnr=33.2614 ssim=0.9685 rt= 27.4s vram=2439.9
+  site_09.jpeg                 psnr=32.8020 ssim=0.9432 rt= 26.9s vram=2439.9
+  site_10.jpeg                 psnr=31.6522 ssim=0.9623 rt= 27.0s vram=2439.9
+  site_11.jpeg                 psnr=33.2329 ssim=0.9668 rt= 27.1s vram=2439.9
+  site_12.jpeg                 psnr=32.1113 ssim=0.9423 rt= 21.2s vram=2439.9
+  site_13.jpeg                 psnr=32.8555 ssim=0.9561 rt= 27.0s vram=2439.9
+  site_14.jpeg                 psnr=31.4678 ssim=0.9552 rt= 27.1s vram=2439.9
+  site_15.png                  psnr=30.3150 ssim=0.9461 rt= 27.1s vram=2439.9
+  site_16.jpeg                 psnr=32.3836 ssim=0.9508 rt= 27.1s vram=2439.9
+  site_17.jpeg                 psnr=30.8867 ssim=0.9536 rt= 27.6s vram=2439.9
+  site_18.jpeg                 psnr=32.6657 ssim=0.9561 rt= 27.3s vram=2439.9
+  site_19.jpeg                 psnr=33.2461 ssim=0.9586 rt= 21.5s vram=2439.9
+  site_20.jpeg                 psnr=32.0560 ssim=0.9552 rt= 27.0s vram=2439.9
+  site_21.jpeg                 psnr=30.8554 ssim=0.9358 rt= 25.2s vram=2439.9
+  determinism: 1.jpeg (t0=0.25) ...
+  determinism: mumbai-01.jpeg (t0=0.25) ...
+  determinism: site_02.jpeg (t0=0.25) ...
+  determinism: site_21.jpeg (t0=0.25) ...
+
+Saved reference -> D:\Ai-development\ppt-automation\image_enhancer\reports\regression_baseline\validate_t0_030.json
+Saved candidate -> D:\Ai-development\ppt-automation\image_enhancer\reports\regression_baseline\validate_t0_025.json
+
+======================================================================
+ AGGREGATE (mean over 27 images)
+======================================================================
+ metric                           base       cand      delta
+ mean_pixel_diff                2.4933     2.6571     0.1637
+ nr_contrast                    0.2651     0.2652     0.0001
+ nr_edge_density               11.2538    11.4799     0.2260
+ nr_noise                       3.2729     3.2501    -0.0228
+ nr_sharpness                 210.2154   218.1919     7.9765
+ pct_pixels_changed            18.8020    20.5165     1.7145
+ peak_vram_mb                2437.4519  2439.9000     2.4481
+ runtime_s                     30.6248    30.2822    -0.3426
+ sim_edge_align                 0.9966     0.9933    -0.0033
+ sim_hist_sim                   0.9328     0.9327    -0.0001
+ sim_nrmse                      0.0392     0.0404     0.0011
+ sim_psnr                      32.5749    32.3303    -0.2446
+ sim_ssim                       0.9605     0.9564    -0.0041
+
+ total_runtime_s  base=826.9  cand=817.6
+
+======================================================================
+ DIRECT HARNESS COMPARISON (base=candidate? no: candidate vs locked production reference)
+======================================================================
+
+======================================================================
+ WORST-CASE PER METRIC (candidate vs reference)
+======================================================================
+ sim_psnr      : site_15.png
+ psnr           min delta=-0.3168  @ site_15.png
+ ssim           min delta=-0.0066  @ site_21.jpeg
+ edge_align     min delta=-0.0118  @ site_11.jpeg
+ hist_sim       min delta=-0.0005  @ site_15.png
+
+======================================================================
+ DETERMINISM
+======================================================================
+ 1.jpeg                       rerun_identical=True max_abs_diff=0.0
+ mumbai-01.jpeg               rerun_identical=True max_abs_diff=0.0
+ site_02.jpeg                 rerun_identical=True max_abs_diff=0.0
+ site_21.jpeg                 rerun_identical=True max_abs_diff=0.0
+
+Saved aggregate -> D:\Ai-development\ppt-automation\image_enhancer\reports\regression_baseline\validate_aggregate.json

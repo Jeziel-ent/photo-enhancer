@@ -1,0 +1,118 @@
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\timm\models\layers\__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\torch\functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\native\TensorShape.cpp:4223.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+[ WARN:0@64.568] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+=======================================================
+  1.jpeg
+=======================================================
+  roi                               baseline                      k3                   cap10
+  face_0            P= 31.4 S=0.9166 pd=3.61     d=0.8            d=2.41
+  fine_struct       P= 28.0 S=0.8776 pd=6.44   d=-0.79            d=2.33
+  hi_tex_0          P= 83.5 S=1.0000 pd=0.00     d=0.0            d=0.0
+  hi_tex_1          P= 52.7 S=0.9984 pd=0.35     d=0.0            d=0.0
+  road_0            P= 83.5 S=1.0000 pd=0.00     d=0.0            d=0.0
+  road_1            P= 52.7 S=0.9984 pd=0.35     d=0.0            d=0.0
+  road_2            P= 50.6 S=0.9946 pd=0.50     d=0.0            d=0.0
+  signs_bldg_0      P= 30.9 S=0.9328 pd=3.49   d=-0.93            d=2.17
+  sky_flat_0        P= 46.8 S=0.9998 pd=0.85     d=0.0            d=0.0
+  sky_flat_1        P= 52.5 S=0.9993 pd=0.37     d=0.0            d=0.0
+  sky_flat_2        P= 51.2 S=0.9975 pd=0.42     d=0.0            d=0.0
+[ WARN:0@108.092] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+=======================================================
+  2.jpeg
+=======================================================
+  roi                               baseline                      k3                   cap10
+  fine_struct       P= 26.2 S=0.9007 pd=8.48   d=-2.78            d=2.01
+  hi_tex_0          P= 46.2 S=0.9853 pd=0.88     d=0.0            d=0.0
+  hi_tex_1          P= 46.9 S=0.9845 pd=0.70     d=0.0            d=0.0
+  road_0            P= 46.2 S=0.9853 pd=0.88     d=0.0            d=0.0
+  road_1            P= 46.9 S=0.9845 pd=0.70     d=0.0            d=0.0
+  road_2            P= 51.0 S=0.9969 pd=0.52     d=0.0            d=0.0
+  signs_bldg_0      P= 29.0 S=0.9456 pd=4.66   d=-2.69            d=2.0
+  sky_flat_0        P= 51.0 S=0.9990 pd=0.52     d=0.0            d=0.0
+  sky_flat_1        P= 44.2 S=0.9982 pd=1.40     d=0.0            d=0.0
+  sky_flat_2        P= 39.5 S=0.9960 pd=2.29     d=0.0            d=0.0
+[ WARN:0@157.377] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+=======================================================
+  3.jpeg
+=======================================================
+  roi                               baseline                      k3                   cap10
+  fine_struct       P= 25.9 S=0.8881 pd=8.90    d=-2.0            d=2.09
+  hi_tex_0          P= 49.9 S=0.9944 pd=0.51     d=0.0            d=0.0
+  hi_tex_1          P= 44.5 S=0.9417 pd=0.82     d=0.0            d=0.0
+  road_0            P= 49.9 S=0.9944 pd=0.51     d=0.0            d=0.0
+  road_1            P= 44.5 S=0.9417 pd=0.82     d=0.0            d=0.0
+  road_2            P= 51.7 S=0.9973 pd=0.43     d=0.0            d=0.0
+  signs_bldg_0      P= 29.6 S=0.9352 pd=3.89   d=-3.09            d=1.66
+  sky_flat_0        P= 46.2 S=0.9973 pd=0.87     d=0.0            d=0.0
+  sky_flat_1        P= 49.5 S=0.9981 pd=0.58     d=0.0            d=0.0
+  sky_flat_2        P= 50.9 S=0.9977 pd=0.52     d=0.0            d=0.0
+[ WARN:0@200.280] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+=======================================================
+  4.jpeg
+=======================================================
+  roi                               baseline                      k3                   cap10
+  fine_struct       P= 26.7 S=0.9133 pd=7.17   d=-2.61            d=1.89
+  hi_tex_0          P= 47.8 S=0.9965 pd=0.82     d=0.0            d=0.0
+  hi_tex_1          P= 51.1 S=0.9987 pd=0.50     d=0.0            d=0.0
+  road_0            P= 47.8 S=0.9965 pd=0.82     d=0.0            d=0.0
+  road_1            P= 51.1 S=0.9987 pd=0.50     d=0.0            d=0.0
+  road_2            P= 51.6 S=0.9988 pd=0.45     d=0.0            d=0.0
+  signs_bldg_0      P= 30.1 S=0.9542 pd=3.48   d=-2.58            d=1.9
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\skimage\metrics\simple_metrics.py:168: RuntimeWarning: divide by zero encountered in scalar divide
+  return 10 * np.log10((data_range**2) / err)
+  sky_flat_0        P=  inf S=1.0000 pd=0.00     d=nan            d=nan
+  sky_flat_1        P=  inf S=1.0000 pd=0.00     d=nan            d=nan
+  sky_flat_2        P=  inf S=1.0000 pd=0.00     d=nan            d=nan
+[ WARN:0@250.630] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+=======================================================
+  5.jpeg
+=======================================================
+  roi                               baseline                      k3                   cap10
+  fine_struct       P= 26.9 S=0.9533 pd=6.69   d=-5.07            d=1.57
+  hi_tex_0          P= 51.4 S=0.9958 pd=0.48     d=0.0            d=0.0
+  hi_tex_1          P= 51.8 S=0.9960 pd=0.33     d=0.0            d=0.0
+  road_0            P= 51.4 S=0.9958 pd=0.48     d=0.0            d=0.0
+  road_1            P= 51.8 S=0.9960 pd=0.33     d=0.0            d=0.0
+  road_2            P= 50.9 S=0.9953 pd=0.49     d=0.0            d=0.0
+  signs_bldg_0      P= 29.7 S=0.9717 pd=3.71   d=-5.48            d=1.46
+  sky_flat_0        P= 49.2 S=0.9986 pd=0.53     d=0.0            d=0.0
+  sky_flat_1        P= 44.5 S=0.9984 pd=1.33     d=0.0            d=0.0
+  sky_flat_2        P= 52.5 S=0.9989 pd=0.36     d=0.0            d=0.0
+[ WARN:0@300.257] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+=======================================================
+  6.jpeg
+=======================================================
+  roi                               baseline                      k3                   cap10
+  fine_struct       P= 27.7 S=0.9067 pd=6.73   d=-2.42            d=2.05
+  hi_tex_0          P= 53.0 S=0.9985 pd=0.33     d=0.0            d=0.0
+  hi_tex_1          P= 53.1 S=0.9972 pd=0.26     d=0.0            d=0.0
+  road_0            P= 53.0 S=0.9985 pd=0.33     d=0.0            d=0.0
+  road_1            P= 53.1 S=0.9972 pd=0.26     d=0.0            d=0.0
+  road_2            P= 52.3 S=0.9987 pd=0.39     d=0.0            d=0.0
+  signs_bldg_0      P= 27.7 S=0.9210 pd=6.29   d=-3.07            d=2.0
+  sky_flat_0        P= 53.1 S=0.9998 pd=0.32     d=0.0            d=0.0
+  sky_flat_1        P= 53.5 S=0.9994 pd=0.29     d=0.0            d=0.0
+  sky_flat_2        P= 52.3 S=0.9994 pd=0.38     d=0.0            d=0.0
+[ WARN:0@331.759] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+
+=======================================================
+  mumbai-01.jpeg
+=======================================================
+  roi                               baseline                      k3                   cap10
+  fine_struct       P= 28.2 S=0.9005 pd=5.60   d=-0.24            d=2.36
+  hi_tex_0          P= 62.0 S=0.9998 pd=0.04     d=0.0            d=0.0
+  hi_tex_1          P= 52.0 S=0.9996 pd=0.41     d=0.0            d=0.0
+  road_0            P= 62.0 S=0.9998 pd=0.04     d=0.0            d=0.0
+  road_1            P= 52.0 S=0.9996 pd=0.41     d=0.0            d=0.0
+  road_2            P= 51.8 S=0.9997 pd=0.43     d=0.0            d=0.0
+  sky_flat_0        P=  inf S=1.0000 pd=0.00     d=nan            d=nan
+  sky_flat_1        P=  inf S=1.0000 pd=0.00     d=nan            d=nan
+  sky_flat_2        P=  inf S=1.0000 pd=0.00     d=nan            d=nan

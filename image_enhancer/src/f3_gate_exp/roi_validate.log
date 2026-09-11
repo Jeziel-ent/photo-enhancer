@@ -1,0 +1,76 @@
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\timm\models\layers\__init__.py:49: FutureWarning: Importing from timm.models.layers is deprecated, please import via timm.layers
+  warnings.warn(f"Importing from {__name__} is deprecated, please import via timm.layers", FutureWarning)
+  skipping site_01.jpeg (duplicate content)
+[ WARN:0@74.124] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\torch\functional.py:504: UserWarning: torch.meshgrid: in an upcoming release, it will be required to pass the indexing argument. (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\aten\src\ATen\native\TensorShape.cpp:4223.)
+  return _VF.meshgrid(tensors, **kwargs)  # type: ignore[attr-defined]
+[1.jpeg                    ] done 180178s
+[ WARN:0@211.554] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[2.jpeg                    ] done 180309s
+[ WARN:0@326.046] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[3.jpeg                    ] done 180435s
+[ WARN:0@462.965] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+D:\Ai-development\ppt-automation\image_enhancer\.venv\lib\site-packages\skimage\metrics\simple_metrics.py:168: RuntimeWarning: divide by zero encountered in scalar divide
+  return 10 * np.log10((data_range**2) / err)
+[4.jpeg                    ] done 180561s
+[ WARN:0@589.502] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[5.jpeg                    ] done 180698s
+[ WARN:0@718.594] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[6.jpeg                    ] done 180827s
+[ WARN:0@841.396] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[mumbai-01.jpeg            ] done 180914s
+[ WARN:0@928.877] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_02.jpeg              ] done 181001s
+[ WARN:0@1032.919] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_03.jpeg              ] done 181106s
+[ WARN:0@1151.998] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_04.jpeg              ] done 181225s
+[ WARN:0@1250.824] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_05.jpeg              ] done 181324s
+[ WARN:0@1354.274] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_06.jpeg              ] done 181427s
+[ WARN:0@1451.170] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_07.jpeg              ] done 181524s
+[ WARN:0@1566.079] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_08.jpeg              ] done 181639s
+[ WARN:0@1668.996] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_09.jpeg              ] done 181742s
+[ WARN:0@1772.975] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_10.jpeg              ] done 181846s
+[ WARN:0@1871.608] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_11.jpeg              ] done 181944s
+[ WARN:0@1969.456] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_12.jpeg              ] done 182030s
+[ WARN:0@2052.098] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_13.jpeg              ] done 182125s
+[ WARN:0@2164.507] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_14.jpeg              ] done 182237s
+[ WARN:0@2267.812] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_15.png               ] done 182341s
+[ WARN:0@2374.249] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_16.jpeg              ] done 182447s
+[ WARN:0@2475.858] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_17.jpeg              ] done 182548s
+[ WARN:0@2573.678] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_18.jpeg              ] done 182646s
+[ WARN:0@2685.150] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_19.jpeg              ] done 182746s
+[ WARN:0@2774.631] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_20.jpeg              ] done 182847s
+[ WARN:0@2881.970] global net_impl_backend.cpp:345 cv::dnn::dnn5_v20260605::Net::Impl::setPreferableTarget Targets are not supported by the new graph engine for now
+[site_21.jpeg              ] done 182951s
+
+====================================================================================
+ ROI CATEGORY SUMMARY (median over images)
+====================================================================================
+ category      base.max  cand.max   dMax dTail(b20)     dEA   worst(max d) image
+ buildings         49.0      49.0    0.0     +0.442 +0.0000   site_19.jpeg
+ faces             33.0      33.0    0.0     +0.043 +0.0000   1.jpeg
+ fine_struct       36.0      36.0    0.0     +0.084 -0.0040   site_11.jpeg
+ foliage           47.0      46.0   -1.0     -0.012 +0.0000   site_11.jpeg
+ road              25.0      25.0    0.0     +0.000 -0.0001   site_08.jpeg
+ signs_text        36.0      36.0    0.0     -0.005 +0.0000   1.jpeg
+ sky_flat          28.0      28.0    0.0     +0.000 +0.0000   4.jpeg
+ vehicles          42.0      42.0    0.0     +0.387 +0.0000   site_20.jpeg
+
+Saved -> D:\Ai-development\ppt-automation\image_enhancer\src\f3_gate_exp\validate_roi.json
