@@ -3,6 +3,8 @@ import { cn } from "../../lib/cn";
 
 export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   padding?: "none" | "sm" | "md" | "lg";
+  /** "glass" adds the translucent, blurred surface used by the enhancement flow. */
+  variant?: "solid" | "glass";
 }
 
 const PADDING = {
@@ -12,14 +14,15 @@ const PADDING = {
   lg: "p-7",
 };
 
-export function Card({ padding = "md", className, children, ...props }: CardProps) {
+const VARIANTS = {
+  solid: "bg-panel border border-line shadow-card",
+  glass: "border border-white/60 bg-white/70 shadow-glass backdrop-blur-xl",
+};
+
+export function Card({ padding = "md", variant = "solid", className, children, ...props }: CardProps) {
   return (
     <div
-      className={cn(
-        "rounded-lg bg-panel border border-line shadow-card",
-        PADDING[padding],
-        className,
-      )}
+      className={cn("rounded-xl", VARIANTS[variant], PADDING[padding], className)}
       {...props}
     >
       {children}

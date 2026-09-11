@@ -179,3 +179,110 @@ export function IconLayers(props: IconProps) {
     </IconBase>
   );
 }
+
+export function IconShieldCheck(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M12 3.5 5 6v5c0 4.6 3 8.4 7 9.5 4-1.1 7-4.9 7-9.5V6l-7-2.5Z" />
+      <path d="m9 12 2 2 4-4.2" />
+    </IconBase>
+  );
+}
+
+export function IconSparkles(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M12 3v3.2M12 17.8V21M3 12h3.2M17.8 12H21" />
+      <path d="m6.5 6.5 1.6 1.6M15.9 15.9l1.6 1.6M6.5 17.5l1.6-1.6M15.9 8.1l1.6-1.6" />
+    </IconBase>
+  );
+}
+
+export function IconHome(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M4 11.5 12 4l8 7.5" />
+      <path d="M6 10v9a1 1 0 0 0 1 1h4v-5h2v5h4a1 1 0 0 0 1-1v-9" />
+    </IconBase>
+  );
+}
+
+export function IconClock(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <circle cx="12" cy="12" r="8.5" />
+      <path d="M12 7.5V12l3 2" />
+    </IconBase>
+  );
+}
+
+export function IconSettings(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <circle cx="12" cy="12" r="2.8" />
+      <path d="M12 3.5v2.2M12 18.3v2.2M5.4 5.4l1.55 1.55M17.05 17.05l1.55 1.55M3.5 12h2.2M18.3 12h2.2M5.4 18.6l1.55-1.55M17.05 6.95l1.55-1.55" />
+    </IconBase>
+  );
+}
+
+export function IconHelpCircle(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M9.3 9.3a2.7 2.7 0 1 1 3.8 2.5c-.9.5-1.1 1.1-1.1 1.9" />
+      <path d="M12 17.2v.1" />
+    </IconBase>
+  );
+}
+
+export function IconFolder(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M4 6.5a1 1 0 0 1 1-1h4.2l1.6 1.8H19a1 1 0 0 1 1 1V17a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6.5Z" />
+    </IconBase>
+  );
+}
+
+export function IconFocus(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M4 9V6a2 2 0 0 1 2-2h3" />
+      <path d="M15 4h3a2 2 0 0 1 2 2v3" />
+      <path d="M20 15v3a2 2 0 0 1-2 2h-3" />
+      <path d="M9 20H6a2 2 0 0 1-2-2v-3" />
+      <circle cx="12" cy="12" r="2.3" />
+    </IconBase>
+  );
+}
+
+export function IconSliders(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M4 7h3M11 7h9" />
+      <circle cx="8" cy="7" r="2" />
+      <path d="M4 12.5h8M17 12.5h3" />
+      <circle cx="15" cy="12.5" r="2" />
+      <path d="M4 18h3M11 18h9" />
+      <circle cx="8" cy="18" r="2" />
+    </IconBase>
+  );
+}
+
+export function IconExpand(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="M9 4H4v5" />
+      <path d="M4 4l6 6" />
+      <path d="M15 20h5v-5" />
+      <path d="M20 20l-6-6" />
+    </IconBase>
+  );
+}
+
+export function IconChevronLeft(props: IconProps) {
+  return (
+    <IconBase {...props}>
+      <path d="m15 6-6 6 6 6" />
+    </IconBase>
+  );
+}

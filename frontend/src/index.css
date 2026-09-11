@@ -27,6 +27,7 @@
     Arial, sans-serif;
   --shadow-card: 0 1px 2px rgb(23 25 27 / 0.05), 0 4px 14px rgb(23 25 27 / 0.05);
   --shadow-pop: 0 4px 12px rgb(23 25 27 / 0.12), 0 12px 32px rgb(23 25 27 / 0.12);
+  --shadow-glass: 0 1px 2px rgb(23 25 27 / 0.04), 0 16px 40px -8px rgb(209 33 38 / 0.14);
 }
 
 body {
@@ -56,4 +57,83 @@ input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
+}
+
+/* ---------------------------------------------------------- motion system
+ * Small, restrained keyframes reused by the splash screen and the
+ * upload/processing/result panels — plain CSS, no animation library.
+ */
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+@keyframes rise-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes line-draw {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.72); }
+  65% { opacity: 1; transform: scale(1.06); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes soft-pulse {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 0.9; }
+}
+@keyframes bg-reveal {
+  from { opacity: 0; clip-path: circle(0% at 50% 40%); }
+  to { opacity: 1; clip-path: circle(140% at 50% 40%); }
+}
+@keyframes logo-reveal {
+  0% { opacity: 0; transform: scale(0.88); filter: blur(8px); }
+  100% { opacity: 1; transform: scale(1); filter: blur(0px); }
+}
+@keyframes light-sweep {
+  0% { transform: translateX(-120%) skewX(-14deg); opacity: 0; }
+  25% { opacity: 0.4; }
+  75% { opacity: 0.4; }
+  100% { transform: translateX(120%) skewX(-14deg); opacity: 0; }
+}
+
+.animate-fade-in { animation: fade-in 0.45s ease both; }
+.animate-fade-out { animation: fade-out 0.32s ease forwards; }
+.animate-rise-in { animation: rise-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-scale-in { animation: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-line-draw { animation: line-draw 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: center; }
+.animate-spin-slow { animation: spin 1.4s linear infinite; }
+.animate-pop-in { animation: pop-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-soft-pulse { animation: soft-pulse 2.4s ease-in-out infinite; }
+.animate-bg-reveal { animation: bg-reveal 0.65s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-logo-reveal { animation: logo-reveal 0.85s cubic-bezier(0.16, 1, 0.3, 1) both; }
+.animate-light-sweep { animation: light-sweep 0.95s ease-in-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-fade-out,
+  .animate-rise-in,
+  .animate-scale-in,
+  .animate-line-draw,
+  .animate-spin-slow,
+  .animate-pop-in,
+  .animate-soft-pulse,
+  .animate-bg-reveal,
+  .animate-logo-reveal,
+  .animate-light-sweep {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
 }

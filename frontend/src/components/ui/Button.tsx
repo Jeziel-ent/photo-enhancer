@@ -8,6 +8,8 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant;
   size?: Size;
   icon?: ReactNode;
+  /** "full" gives the pill shape used by the primary upload/enhance CTAs. */
+  rounded?: "md" | "full";
 }
 
 const VARIANTS: Record<Variant, string> = {
@@ -30,6 +32,7 @@ const SIZES: Record<Size, string> = {
 export function Button({
   variant = "primary",
   size = "md",
+  rounded = "md",
   icon,
   className,
   children,
@@ -40,7 +43,8 @@ export function Button({
     <button
       type={type}
       className={cn(
-        "inline-flex items-center justify-center rounded-md font-medium",
+        "inline-flex items-center justify-center font-medium",
+        rounded === "full" ? "rounded-full" : "rounded-md",
         "transition-colors duration-150 select-none",
         "disabled:opacity-50 disabled:pointer-events-none",
         "focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand/70",

@@ -4,7 +4,7 @@ import { IconAlertTriangle } from "../ui/Icon";
 export function FileErrorList({ errors, heading }: { errors: JobFileError[]; heading: string }) {
   if (errors.length === 0) return null;
   return (
-    <div className="space-y-1.5 rounded-md border border-warn/20 bg-warn-soft px-3 py-2.5">
+    <div className="space-y-1.5 rounded-lg border border-warn/20 bg-warn-soft px-3 py-2.5">
       <p className="text-[12.5px] font-medium text-warn">{heading}</p>
       <ul className="space-y-1">
         {errors.map((err) => (

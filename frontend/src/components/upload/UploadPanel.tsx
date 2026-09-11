@@ -1,20 +1,23 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, DragEvent } from "react";
 import { cn } from "../../lib/cn";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
-import { IconAlertTriangle, IconImage, IconUpload, IconX } from "../ui/Icon";
 import {
-  MAX_FILES_PER_JOB,
-  formatBytes,
-  validateBatch,
-  validateFile,
-} from "../../lib/uploadValidation";
+  IconAlertTriangle,
+  IconArrowRight,
+  IconFolder,
+  IconPlus,
+  IconUpload,
+  IconX,
+} from "../ui/Icon";
+import { validateBatch, validateFile } from "../../lib/uploadValidation";
 
 interface SelectedFile {
   id: string;
   file: File;
   error: string | null;
+  previewUrl: string;
 }
 
 function makeId(file: File): string {
@@ -32,6 +35,19 @@ export function UploadPanel({
   const [dragActive, setDragActive] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // Keep a live ref of the current selection so the unmount cleanup below
+  // can revoke every outstanding object URL, not just the ones from the
+  // render that installed the effect.
+  const selectedRef = useRef<SelectedFile[]>([]);
+  useEffect(() => {
+    selectedRef.current = selected;
+  }, [selected]);
+  useEffect(() => {
+    return () => {
+      selectedRef.current.forEach((s) => URL.revokeObjectURL(s.previewUrl));
+    };
+  }, []);
+
   const addFiles = (incoming: FileList | File[]) => {
     const existingKeys = new Set(
       selected.map((s) => `${s.file.name}:${s.file.size}:${s.file.lastModified}`),
@@ -41,7 +57,12 @@ export function UploadPanel({
       const key = `${file.name}:${file.size}:${file.lastModified}`;
       if (existingKeys.has(key)) continue; // skip exact duplicates (same file picked twice)
       existingKeys.add(key);
-      next.push({ id: makeId(file), file, error: validateFile(file) });
+      next.push({
+        id: makeId(file),
+        file,
+        error: validateFile(file),
+        previewUrl: URL.createObjectURL(file),
+      });
     }
     if (next.length > 0) {
       setSelected((prev) => [...prev, ...next]);
@@ -49,14 +70,24 @@ export function UploadPanel({
   };
 
   const removeFile = (id: string) => {
-    setSelected((prev) => prev.filter((s) => s.id !== id));
+    setSelected((prev) => {
+      const target = prev.find((s) => s.id === id);
+      if (target) URL.revokeObjectURL(target.previewUrl);
+      return prev.filter((s) => s.id !== id);
+    });
   };
 
   const clearInvalid = () => {
-    setSelected((prev) => prev.filter((s) => s.error === null));
+    setSelected((prev) => {
+      prev.filter((s) => s.error !== null).forEach((s) => URL.revokeObjectURL(s.previewUrl));
+      return prev.filter((s) => s.error === null);
+    });
   };
 
-  const clearAll = () => setSelected([]);
+  const clearAll = () => {
+    selected.forEach((s) => URL.revokeObjectURL(s.previewUrl));
+    setSelected([]);
+  };
 
   const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files.length > 0) {
@@ -73,6 +104,8 @@ export function UploadPanel({
     }
   };
 
+  const openPicker = () => inputRef.current?.click();
+
   const invalidCount = selected.filter((s) => s.error !== null).length;
   const validFiles = useMemo(() => selected.filter((s) => s.error === null), [selected]);
   const batchErrors = useMemo(
@@ -82,13 +115,17 @@ export function UploadPanel({
   const canStart = !submitting && validFiles.length > 0 && batchErrors.length === 0;
 
   return (
-    <Card padding="lg" className="space-y-5">
+    <Card variant="glass" padding="lg" className="animate-rise-in space-y-6">
       <div
         role="button"
         tabIndex={0}
-        onClick={() => inputRef.current?.click()}
+        aria-label="Choose photos to enhance, or drag and drop them here"
+        onClick={openPicker}
         onKeyDown={(event) => {
-          if (event.key === "Enter" || event.key === " ") inputRef.current?.click();
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            openPicker();
+          }
         }}
         onDragOver={(event) => {
           event.preventDefault();
@@ -97,21 +134,31 @@ export function UploadPanel({
         onDragLeave={() => setDragActive(false)}
         onDrop={handleDrop}
         className={cn(
-          "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed px-6 py-12 text-center transition-colors",
+          "flex cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-16 text-center transition-all duration-200",
           dragActive
-            ? "border-brand bg-brand-soft/60"
-            : "border-line-strong bg-canvas/60 hover:border-brand/45 hover:bg-canvas",
+            ? "border-brand bg-brand-soft/50 shadow-[0_0_0_4px_rgba(209,33,38,0.08)]"
+            : "border-brand/35 bg-white/50 hover:border-brand/55 hover:bg-white/70",
         )}
       >
-        <div className="mb-1 flex h-11 w-11 items-center justify-center rounded-full bg-panel text-muted border border-line shadow-card">
-          <IconUpload className="h-5 w-5" />
+        <div className="mb-1 flex h-20 w-20 items-center justify-center rounded-full bg-brand-soft">
+          <IconUpload className="h-8 w-8 text-brand" />
         </div>
-        <h3 className="text-sm font-semibold text-ink">
-          Drag and drop photos here, or click to browse
-        </h3>
-        <p className="max-w-sm text-[13px] leading-relaxed text-muted">
-          JPG or PNG, up to {formatBytes(40 * 1024 * 1024)} per file, {MAX_FILES_PER_JOB} files max.
-        </p>
+        <h3 className="text-xl font-bold tracking-tight text-ink">Drop images here</h3>
+        <p className="text-[14px] text-muted">or browse</p>
+        <p className="text-[12px] text-faint">JPG · PNG</p>
+        <Button
+          variant="primary"
+          size="lg"
+          rounded="full"
+          className="mt-2"
+          icon={<IconFolder className="h-4 w-4" />}
+          onClick={(event) => {
+            event.stopPropagation();
+            openPicker();
+          }}
+        >
+          Browse Images
+        </Button>
         <input
           ref={inputRef}
           type="file"
@@ -124,59 +171,79 @@ export function UploadPanel({
 
       {selected.length > 0 ? (
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-[13px] font-medium text-ink-2">
-              {selected.length} file{selected.length === 1 ? "" : "s"} selected
-              {invalidCount > 0 ? (
-                <span className="text-brand"> · {invalidCount} invalid</span>
-              ) : null}
-            </p>
-            <div className="flex items-center gap-2">
-              {invalidCount > 0 ? (
+          {invalidCount > 0 ? (
+            <div className="flex items-center justify-between">
+              <p className="text-[12.5px] text-brand">
+                {invalidCount} file{invalidCount === 1 ? "" : "s"} can't be used
+              </p>
+              <div className="flex items-center gap-1">
                 <Button variant="ghost" size="sm" onClick={clearInvalid}>
                   Clear invalid
                 </Button>
-              ) : null}
+                <Button variant="ghost" size="sm" onClick={clearAll}>
+                  Clear all
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex justify-end">
               <Button variant="ghost" size="sm" onClick={clearAll}>
                 Clear all
               </Button>
             </div>
-          </div>
+          )}
 
-          <ul className="max-h-64 space-y-1.5 overflow-y-auto pr-1">
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
             {selected.map((item) => (
-              <li
-                key={item.id}
-                className={cn(
-                  "flex items-center gap-3 rounded-md border px-3 py-2",
-                  item.error ? "border-brand/25 bg-brand-soft/40" : "border-line bg-white",
-                )}
-              >
-                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-canvas text-muted">
-                  <IconImage className="h-4 w-4" />
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-[13px] font-medium text-ink">{item.file.name}</p>
-                  {item.error ? (
-                    <p className="flex items-center gap-1 text-[11.5px] text-brand">
-                      <IconAlertTriangle className="h-3 w-3 shrink-0" />
-                      {item.error}
-                    </p>
-                  ) : (
-                    <p className="text-[11.5px] text-faint">{formatBytes(item.file.size)}</p>
+              <div key={item.id} className="relative">
+                <div
+                  className={cn(
+                    "aspect-square w-full overflow-hidden rounded-xl border bg-canvas",
+                    item.error ? "border-brand ring-2 ring-brand/25" : "border-line",
                   )}
+                >
+                  <img
+                    src={item.previewUrl}
+                    alt=""
+                    className="h-full w-full object-cover"
+                    draggable={false}
+                  />
                 </div>
+                {item.error ? (
+                  <>
+                    <span
+                      className="absolute bottom-1.5 left-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-brand text-white"
+                      title={item.error}
+                      aria-hidden="true"
+                    >
+                      <IconAlertTriangle className="h-3 w-3" />
+                    </span>
+                    <p className="sr-only">
+                      {item.file.name}: {item.error}
+                    </p>
+                  </>
+                ) : null}
                 <button
                   type="button"
                   aria-label={`Remove ${item.file.name}`}
                   onClick={() => removeFile(item.id)}
-                  className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-muted transition-colors hover:bg-ink/[0.06] hover:text-ink"
+                  className="absolute -top-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full border border-line bg-white text-ink-2 shadow-card transition-colors hover:bg-brand hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand/70"
                 >
-                  <IconX className="h-4 w-4" />
+                  <IconX className="h-3.5 w-3.5" />
                 </button>
-              </li>
+              </div>
             ))}
-          </ul>
+
+            <button
+              type="button"
+              onClick={openPicker}
+              aria-label="Add more photos"
+              className="flex aspect-square w-full flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-line-strong text-muted transition-colors hover:border-brand/40 hover:text-brand"
+            >
+              <IconPlus className="h-5 w-5" />
+              <span className="text-[11px] font-medium">Add More</span>
+            </button>
+          </div>
 
           {batchErrors.length > 0 ? (
             <div className="space-y-1 rounded-md border border-brand/25 bg-brand-soft/40 px-3 py-2">
@@ -191,18 +258,22 @@ export function UploadPanel({
         </div>
       ) : null}
 
-      <div className="flex items-center justify-between border-t border-line pt-4">
-        <p className="text-[12.5px] text-muted">
+      <div className="flex items-center justify-between border-t border-line/70 pt-5">
+        <p className="text-[13px] text-muted">
           {validFiles.length > 0
-            ? `${validFiles.length} file${validFiles.length === 1 ? "" : "s"} ready to enhance`
+            ? `${validFiles.length} image${validFiles.length === 1 ? "" : "s"} selected`
             : "Select at least one photo to continue"}
         </p>
         <Button
           variant="primary"
+          size="lg"
+          rounded="full"
           disabled={!canStart}
+          icon={<IconArrowRight className="h-4 w-4" />}
+          className="flex-row-reverse"
           onClick={() => onStart(validFiles.map((s) => s.file))}
         >
-          {submitting ? "Starting…" : "Enhance photos"}
+          {submitting ? "Starting…" : "Enhance Images"}
         </Button>
       </div>
     </Card>

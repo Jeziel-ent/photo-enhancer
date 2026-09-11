@@ -19,26 +19,26 @@ export function JobFailedPanel({
   onReset: () => void;
 }) {
   return (
-    <Card padding="lg" className="space-y-5">
-      <div className="flex items-center gap-2.5">
-        <div className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-soft text-brand border border-brand/15">
-          <IconAlertTriangle className="h-5 w-5" />
+    <Card variant="glass" padding="lg" className="animate-rise-in space-y-6">
+      <div className="flex flex-col items-center gap-3 py-2 text-center">
+        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-brand-soft text-brand border border-brand/15">
+          <IconAlertTriangle className="h-6 w-6" />
         </div>
-        <div>
-          <h3 className="text-sm font-semibold text-ink">Enhancement failed</h3>
+        <div className="space-y-1">
+          <h3 className="text-[15px] font-semibold tracking-tight text-ink">
+            Enhancement failed
+          </h3>
           <p className="text-[12.5px] text-muted">
             None of the {status.total_count} file{status.total_count === 1 ? "" : "s"} could be
             enhanced.
           </p>
         </div>
-        <Badge tone="warn" className="ml-auto">
-          Failed
-        </Badge>
+        <Badge tone="warn">Failed</Badge>
       </div>
 
       <FileErrorList errors={status.errors} heading="Details" />
 
-      <div className="flex items-center justify-end border-t border-line pt-4">
+      <div className="flex items-center justify-end border-t border-line/70 pt-5">
         <Button variant="secondary" onClick={onReset} icon={<IconRefresh className="h-4 w-4" />}>
           Try again
         </Button>

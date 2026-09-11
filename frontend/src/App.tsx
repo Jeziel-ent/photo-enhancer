@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Routes, Route } from "react-router-dom";
 import { AppShell } from "./components/layout/AppShell";
-import { PageHeader } from "./components/layout/PageHeader";
+import { SplashScreen } from "./components/splash/SplashScreen";
+import { BeforeAfterPreview } from "./components/home/BeforeAfterPreview";
 import { JobFailedPanel } from "./components/upload/JobFailedPanel";
 import { JobProgressPanel } from "./components/upload/JobProgressPanel";
 import { JobResultPanel } from "./components/upload/JobResultPanel";
@@ -109,42 +110,51 @@ function HomePage() {
     setDownloadError(null);
   };
 
-  return (
-    <>
-      <PageHeader
-        eyebrow="Adinn"
-        title="4K Image Enhancer"
-        subtitle="Upload one or more photos to restore, denoise, and upscale them to 4K."
-      />
-      <div className="mt-8 max-w-2xl space-y-4">
-        {createError ? <ErrorBanner message={createError} /> : null}
-
-        {!job ? (
+  if (!job) {
+    return (
+      <div className="flex flex-col gap-6 xl:flex-row xl:items-start">
+        <div className="min-w-0 flex-1 space-y-4">
+          {createError ? <ErrorBanner message={createError} /> : null}
           <UploadPanel onStart={handleStart} submitting={creating} />
-        ) : job.status === "completed" ? (
-          <JobResultPanel
-            status={job}
-            onDownload={handleDownload}
-            downloading={downloading}
-            downloadError={downloadError}
-            onReset={handleReset}
-          />
-        ) : job.status === "failed" ? (
-          <JobFailedPanel status={job} onReset={handleReset} />
-        ) : (
-          <JobProgressPanel status={job} />
-        )}
+        </div>
+        <div className="w-full shrink-0 xl:w-[300px]">
+          <BeforeAfterPreview />
+        </div>
       </div>
-    </>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-2xl space-y-4">
+      {createError ? <ErrorBanner message={createError} /> : null}
+      {job.status === "completed" ? (
+        <JobResultPanel
+          status={job}
+          onDownload={handleDownload}
+          downloading={downloading}
+          downloadError={downloadError}
+          onReset={handleReset}
+        />
+      ) : job.status === "failed" ? (
+        <JobFailedPanel status={job} onReset={handleReset} />
+      ) : (
+        <JobProgressPanel status={job} />
+      )}
+    </div>
   );
 }
 
 export default function App() {
+  const [showSplash, setShowSplash] = useState(true);
+
   return (
-    <Routes>
-      <Route element={<AppShell />}>
-        <Route path="/" element={<HomePage />} />
-      </Route>
-    </Routes>
+    <>
+      {showSplash ? <SplashScreen onDone={() => setShowSplash(false)} /> : null}
+      <Routes>
+        <Route element={<AppShell />}>
+          <Route path="/" element={<HomePage />} />
+        </Route>
+      </Routes>
+    </>
   );
 }
