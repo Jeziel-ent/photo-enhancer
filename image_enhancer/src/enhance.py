@@ -26,6 +26,8 @@ import numpy as np
 import cv2
 import torch
 
+import tonal_correction
+
 OUT_W, OUT_H = 3840, 2160
 
 _REALESRGAN_CACHE = {}
@@ -810,10 +812,21 @@ def final_enhance(img, target=(OUT_W, OUT_H), return_stages=False):
          others)
       -> 3840x2160 BGR uint8.
 
+    Adaptive tonal correction (tonal_correction.py) runs first, on the
+    whole-frame path only: a bounded, deterministic, luminance-only global
+    tone remap that activates ONLY when the source's own histogram shows a
+    genuine exposure/contrast problem (underexposure, overexposure, low
+    contrast, crushed shadows, or clipped highlights), and is a total no-op
+    otherwise. Verified billboard-box crops are deliberately reconstructed
+    from the UNCORRECTED original below (native_crop uses `img`, not the
+    tonally-corrected copy) -- Candidate A's job is the most faithful
+    possible reproduction of that specific board's real content, so it must
+    not be affected by a whole-frame exposure fix.
+
     No OCR/redraw, no GAN/diffusion, no face work, no invented content.
     With return_stages=True also returns a dict with intermediates
-    (faithful/d1_weak/f3/f3_ms/f3_plus/boxes4/psf_sigmas/defocus_boxes/
-    peak_vram_mb).
+    (tonal_correction/faithful/d1_weak/f3/f3_ms/f3_plus/boxes4/psf_sigmas/
+    defocus_boxes/peak_vram_mb).
     """
     if img is None or not isinstance(img, np.ndarray) or img.ndim != 3 \
             or img.shape[2] != 3:
@@ -823,10 +836,13 @@ def final_enhance(img, target=(OUT_W, OUT_H), return_stages=False):
         raise ValueError("final_enhance expects an image of at least 16x16")
 
     stages = {}
-    faithful = simple_upscale(img, target)
+    img_toned, tonal_meta = tonal_correction.adaptive_tonal_correction(img, return_meta=True)
+    stages["tonal_correction"] = tonal_meta
+
+    faithful = simple_upscale(img_toned, target)
     stages["faithful"] = faithful
 
-    d1, peak_vram_mb, device = _final_d1_weak(img)
+    d1, peak_vram_mb, device = _final_d1_weak(img_toned)
     stages["d1_weak"] = d1
     stages["peak_vram_mb"] = peak_vram_mb
     stages["device"] = device
