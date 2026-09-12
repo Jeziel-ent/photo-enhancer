@@ -29,6 +29,12 @@ frontend/dist/
 frontend/node_modules/
 frontend/*.log
 
+# Packaging build artifacts (PyInstaller dist/build + the compiled installer)
+/dist/
+/build/
+packaging/output/
+packaging/*.log
+
 # Temporary files
 *.tmp
 *.temp
