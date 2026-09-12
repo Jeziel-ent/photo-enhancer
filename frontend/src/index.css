@@ -108,6 +108,21 @@ input[type="number"]::-webkit-inner-spin-button {
   75% { opacity: 0.4; }
   100% { transform: translateX(120%) skewX(-14deg); opacity: 0; }
 }
+@keyframes float-y {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-9px); }
+}
+@keyframes orbit-spin {
+  to { transform: rotate(360deg); }
+}
+@keyframes ribbon-drift {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(2%, -3%) rotate(3deg); }
+}
+@keyframes loading-sweep {
+  0% { transform: translateX(-110%); }
+  100% { transform: translateX(210%); }
+}
 
 .animate-fade-in { animation: fade-in 0.45s ease both; }
 .animate-fade-out { animation: fade-out 0.32s ease forwards; }
@@ -120,6 +135,11 @@ input[type="number"]::-webkit-inner-spin-button {
 .animate-bg-reveal { animation: bg-reveal 0.65s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .animate-logo-reveal { animation: logo-reveal 0.85s cubic-bezier(0.16, 1, 0.3, 1) both; }
 .animate-light-sweep { animation: light-sweep 0.95s ease-in-out both; }
+.animate-float { animation: float-y 3.2s ease-in-out infinite; }
+.animate-orbit-spin { animation: orbit-spin 7s linear infinite; }
+.animate-orbit-spin-slow { animation: orbit-spin 11s linear infinite reverse; }
+.animate-ribbon-drift { animation: ribbon-drift 16s ease-in-out infinite; }
+.animate-loading-sweep { animation: loading-sweep 1.6s cubic-bezier(0.4, 0, 0.2, 1) infinite; }
 
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in,
@@ -132,7 +152,12 @@ input[type="number"]::-webkit-inner-spin-button {
   .animate-soft-pulse,
   .animate-bg-reveal,
   .animate-logo-reveal,
-  .animate-light-sweep {
+  .animate-light-sweep,
+  .animate-float,
+  .animate-orbit-spin,
+  .animate-orbit-spin-slow,
+  .animate-ribbon-drift,
+  .animate-loading-sweep {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
   }

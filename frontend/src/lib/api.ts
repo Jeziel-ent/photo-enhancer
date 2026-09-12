@@ -26,6 +26,8 @@ export interface JobStatusResponse {
   status: JobStatus;
   progress: number;
   current_file: string | null;
+  current_stage: string | null;
+  current_stage_label: string | null;
   completed_count: number;
   total_count: number;
   errors: JobFileError[];

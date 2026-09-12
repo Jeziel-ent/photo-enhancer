@@ -1,18 +1,23 @@
 import type { JobStatusResponse } from "../../lib/api";
+import { isDesktopShell } from "../../lib/desktop";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
 import { IconAlertTriangle, IconCheck, IconDownload, IconRefresh, IconSparkles } from "../ui/Icon";
+import { CompareSlider } from "./CompareSlider";
 import { FileErrorList } from "./FileErrorList";
 
 export function JobResultPanel({
   status,
+  comparison,
   onDownload,
   downloading,
   downloadError,
   onReset,
 }: {
   status: JobStatusResponse;
+  /** The real original/enhanced pair, when this was a single-file job. */
+  comparison: { beforeUrl: string; afterUrl: string } | null;
   onDownload: () => void;
   downloading: boolean;
   downloadError: string | null;
@@ -20,6 +25,7 @@ export function JobResultPanel({
 }) {
   const isBatch = status.total_count > 1;
   const succeededCount = status.total_count - status.errors.length;
+  const nativeSave = isDesktopShell();
 
   return (
     <Card variant="glass" padding="lg" className="animate-rise-in space-y-6">
@@ -43,12 +49,16 @@ export function JobResultPanel({
             {succeededCount} photo{succeededCount === 1 ? "" : "s"} enhanced to 4K
           </h3>
           <p className="text-[12.5px] text-muted">
-            {isBatch ? "Ready to download as a ZIP archive." : "Ready to download as a PNG file."}
+            {isBatch ? "Ready to save as a ZIP archive." : "Ready to save as a PNG file."}
           </p>
         </div>
 
         <Badge tone="ok">Completed</Badge>
       </div>
+
+      {comparison ? (
+        <CompareSlider beforeSrc={comparison.beforeUrl} afterSrc={comparison.afterUrl} />
+      ) : null}
 
       <FileErrorList
         errors={status.errors}
@@ -73,7 +83,13 @@ export function JobResultPanel({
           disabled={downloading}
           icon={<IconDownload className="h-4 w-4" />}
         >
-          {downloading ? "Preparing download…" : isBatch ? "Download ZIP" : "Download PNG"}
+          {downloading
+            ? "Saving…"
+            : nativeSave
+              ? "Save As…"
+              : isBatch
+                ? "Download ZIP"
+                : "Download PNG"}
         </Button>
       </div>
     </Card>
