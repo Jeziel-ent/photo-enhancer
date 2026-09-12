@@ -9,6 +9,7 @@ about how a file actually gets enhanced beyond the callable it's given
 
 from __future__ import annotations
 
+import inspect
 import queue
 import threading
 import time
@@ -25,6 +26,30 @@ STATUS_FAILED = "failed"
 
 ProcessFn = Callable[[Path, Path], None]
 
+# Ordered stage -> "how far through one file" fraction, used to blend the
+# current file's in-progress stage into the job's overall progress number
+# instead of jumping straight from 0% to 100% per file. Mirrors
+# engine_adapter.STAGES; kept as plain strings here so jobs.py has no import
+# dependency on engine internals beyond the stage name constants it already
+# imports for wiring up the callback.
+STAGE_LABELS = {
+    engine_adapter.STAGE_PREPARING: "Preparing",
+    engine_adapter.STAGE_ANALYZING: "Analyzing",
+    engine_adapter.STAGE_RESTORING: "Restoring",
+    engine_adapter.STAGE_ENHANCING_DETAILS: "Enhancing details",
+    engine_adapter.STAGE_UPSCALING: "Upscaling to 4K",
+    engine_adapter.STAGE_FINALIZING: "Finalizing",
+}
+
+_STAGE_FRACTION = {
+    engine_adapter.STAGE_PREPARING: 0.02,
+    engine_adapter.STAGE_ANALYZING: 0.10,
+    engine_adapter.STAGE_RESTORING: 0.35,
+    engine_adapter.STAGE_ENHANCING_DETAILS: 0.65,
+    engine_adapter.STAGE_UPSCALING: 0.85,
+    engine_adapter.STAGE_FINALIZING: 0.97,
+}
+
 
 @dataclass
 class FileResult:
@@ -40,6 +65,7 @@ class Job:
     files: list[FileResult]
     status: str = STATUS_QUEUED
     current_file: Optional[str] = None
+    current_stage: Optional[str] = None
     completed_count: int = 0
     created_at: float = field(default_factory=time.time)
     fatal_error: Optional[str] = None
@@ -51,10 +77,15 @@ class Job:
     def total_count(self) -> int:
         return len(self.files)
 
+    def _current_file_fraction(self) -> float:
+        if self.status != STATUS_PROCESSING or self.current_stage is None:
+            return 0.0
+        return _STAGE_FRACTION.get(self.current_stage, 0.0)
+
     def _progress(self) -> float:
         if self.total_count == 0:
             return 1.0
-        return self.completed_count / self.total_count
+        return (self.completed_count + self._current_file_fraction()) / self.total_count
 
     def _errors(self) -> list[dict]:
         return [
@@ -72,6 +103,8 @@ class Job:
                 "status": self.status,
                 "progress": round(self._progress(), 4),
                 "current_file": self.current_file,
+                "current_stage": self.current_stage,
+                "current_stage_label": STAGE_LABELS.get(self.current_stage),
                 "completed_count": self.completed_count,
                 "total_count": self.total_count,
                 "errors": self._errors(),
@@ -89,6 +122,13 @@ class JobManager:
 
     def __init__(self, process_fn: ProcessFn = engine_adapter.enhance_image):
         self._process_fn = process_fn
+        try:
+            params = inspect.signature(process_fn).parameters
+            self._supports_on_stage = "on_stage" in params or any(
+                p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values()
+            )
+        except (TypeError, ValueError):
+            self._supports_on_stage = False
         self._jobs: dict[str, Job] = {}
         self._jobs_lock = threading.Lock()
         self._queue: "queue.Queue[str]" = queue.Queue()
@@ -135,9 +175,18 @@ class JobManager:
         for file_result in job.files:
             with job.lock:
                 job.current_file = file_result.original_filename
+                job.current_stage = engine_adapter.STAGE_PREPARING
+
+            def _on_stage(stage: str, _job=job) -> None:
+                with _job.lock:
+                    _job.current_stage = stage
+
             output_path = out_dir / f"{file_result.input_path.stem}.png"
             try:
-                self._process_fn(file_result.input_path, output_path)
+                if self._supports_on_stage:
+                    self._process_fn(file_result.input_path, output_path, on_stage=_on_stage)
+                else:
+                    self._process_fn(file_result.input_path, output_path)
             except Exception as exc:  # noqa: BLE001 — one bad file must not sink the job
                 with job.lock:
                     file_result.error = str(exc)
@@ -145,6 +194,7 @@ class JobManager:
                 file_result.output_path = output_path
             with job.lock:
                 job.completed_count += 1
+                job.current_stage = None
 
         with job.lock:
             job.current_file = None

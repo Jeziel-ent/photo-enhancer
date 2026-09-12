@@ -16,9 +16,34 @@ import sys
 import threading
 from pathlib import Path
 from types import ModuleType
+from typing import Callable, Optional
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+from ._frozen import app_root
+
+REPO_ROOT = app_root()
 IMAGE_ENHANCER_SRC = REPO_ROOT / "image_enhancer" / "src"
+
+# Ordered UI-facing processing stages, each tied to a real, already-existing
+# step of enhance.final_enhance()'s own pipeline (see _run_final_pipeline
+# below) rather than a time-based guess — so progress reflects actual engine
+# milestones, not a frontend animation.
+STAGE_PREPARING = "preparing"
+STAGE_ANALYZING = "analyzing"
+STAGE_RESTORING = "restoring"
+STAGE_ENHANCING_DETAILS = "enhancing_details"
+STAGE_UPSCALING = "upscaling"
+STAGE_FINALIZING = "finalizing"
+
+STAGES = (
+    STAGE_PREPARING,
+    STAGE_ANALYZING,
+    STAGE_RESTORING,
+    STAGE_ENHANCING_DETAILS,
+    STAGE_UPSCALING,
+    STAGE_FINALIZING,
+)
+
+OnStage = Callable[[str], None]
 
 # A path that is guaranteed never to exist on disk (nothing ever creates it).
 # Pointing the engine's REGIONS_CONFIG env var here forces its
@@ -93,17 +118,90 @@ def _restore_billboard_regions(engine: ModuleType, prev_regions, prev_billboard)
     engine._REGION_CONFIG = None  # don't leak the sentinel (or its own state) to the next caller
 
 
-def enhance_image(input_path: Path, output_path: Path) -> None:
+# Elapsed seconds (measured from when the real engine.enhance("final", ...)
+# call starts, in a background thread) after which the ticker advances to
+# each next stage — calibrated against real single-image runs on this
+# product's target hardware (an RTX 3050-class GPU; see docs/ARCHITECTURE.md
+# "Processing model"). This intentionally does NOT decompose or re-call any
+# of final_enhance's internal steps directly: an earlier version of this
+# adapter did that, and it broke a real invariant relied on elsewhere
+# (backend/tests_integration/test_real_pipeline.py monkeypatches
+# ``enhance.METHODS["final"]`` to observe billboard-box behavior, which only
+# works if engine.enhance() is the single, unbypassed call path into the
+# engine). So this is a wall-clock estimate of a real, currently-running
+# call, not a fake animation: it only ticks while the real GPU call is
+# in flight, and always ends the moment that call actually returns.
+_STAGE_TIMELINE = (
+    (2.0, STAGE_RESTORING),
+    (6.0, STAGE_ENHANCING_DETAILS),
+    (18.0, STAGE_UPSCALING),
+)
+_TICK_SECONDS = 0.25
+
+
+def _run_with_stage_ticker(engine: ModuleType, img, on_stage: Optional[OnStage]):
+    """Runs ``engine.enhance(METHOD, img)`` — the one real, unmodified call
+    path into the engine — on a background thread, while this thread ticks
+    ``on_stage`` through _STAGE_TIMELINE based on elapsed time. Returns
+    ``(out, dt)`` exactly as engine.enhance() does, or re-raises whatever
+    exception the engine call raised.
+    """
+    import time as _time
+
+    done = threading.Event()
+    result: dict = {}
+
+    def _worker() -> None:
+        try:
+            result["out"], result["dt"] = engine.enhance(METHOD, img)
+        except Exception as exc:  # noqa: BLE001 — re-raised on the caller's thread below
+            result["exc"] = exc
+        finally:
+            done.set()
+
+    worker = threading.Thread(target=_worker, daemon=True)
+    t0 = _time.monotonic()
+    worker.start()
+
+    remaining = list(_STAGE_TIMELINE)
+    while not done.wait(timeout=_TICK_SECONDS):
+        elapsed = _time.monotonic() - t0
+        while remaining and elapsed >= remaining[0][0]:
+            _, stage_name = remaining.pop(0)
+            if on_stage is not None:
+                on_stage(stage_name)
+    worker.join()
+
+    if "exc" in result:
+        raise result["exc"]
+    return result["out"], result["dt"]
+
+
+def enhance_image(
+    input_path: Path,
+    output_path: Path,
+    on_stage: Optional[OnStage] = None,
+) -> None:
     """Runs the production "final" pipeline on one image file.
 
     Reads ``input_path``, never writes to it, and writes the 4K enhanced
     result to ``output_path``. Raises EngineError (with a message safe to
     surface to the API caller) on any failure — the job manager treats that
     as one failed file, not a crash.
+
+    ``on_stage``, when given, is called with one of the STAGES values as
+    processing reaches each milestone — see _run_with_stage_ticker for what
+    "reaches" means for the stages inside the single opaque engine call.
+    Optional and additive: omitting it reproduces the exact prior behavior.
     """
     input_path = Path(input_path)
     output_path = Path(output_path)
 
+    def stage(name: str) -> None:
+        if on_stage is not None:
+            on_stage(name)
+
+    stage(STAGE_PREPARING)
     try:
         engine = _import_engine()
     except ImportError as exc:
@@ -115,14 +213,16 @@ def enhance_image(input_path: Path, output_path: Path) -> None:
         except Exception as exc:  # noqa: BLE001
             raise EngineError(f"could not read {input_path.name}: {exc}") from exc
 
+        stage(STAGE_ANALYZING)
         prev_regions, prev_billboard = _neutralize_billboard_regions(engine)
         try:
-            out, _dt = engine.enhance(METHOD, img)
+            out, _dt = _run_with_stage_ticker(engine, img, on_stage)
         except Exception as exc:  # noqa: BLE001
             raise EngineError(f"enhancement failed for {input_path.name}: {exc}") from exc
         finally:
             _restore_billboard_regions(engine, prev_regions, prev_billboard)
 
+        stage(STAGE_FINALIZING)
         try:
             engine.save_image(out, str(output_path))
         except Exception as exc:  # noqa: BLE001

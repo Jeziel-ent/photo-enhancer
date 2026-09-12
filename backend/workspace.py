@@ -9,11 +9,26 @@ state, the same way ``backend/.deckstore/`` was for the retired PPT product.
 
 from __future__ import annotations
 
+import os
 import shutil
 import uuid
 from pathlib import Path
 
-WORKSPACE_ROOT = Path(__file__).resolve().parent / ".workspace"
+
+def _default_workspace_root() -> Path:
+    """Dev/source-tree default: a sibling of this file, exactly as before.
+
+    An installed build sets ADINN_INSTALLED=1 (see the Inno Setup script)
+    because its own directory (typically under Program Files) is not
+    writable by a standard user — job input/output files and recent_history
+    have to live somewhere the current user can actually write to instead.
+    """
+    if os.environ.get("ADINN_INSTALLED") == "1" and "LOCALAPPDATA" in os.environ:
+        return Path(os.environ["LOCALAPPDATA"]) / "Adinn4KImageEnhancer" / "workspace"
+    return Path(__file__).resolve().parent / ".workspace"
+
+
+WORKSPACE_ROOT = _default_workspace_root()
 
 
 def new_job_id() -> str:

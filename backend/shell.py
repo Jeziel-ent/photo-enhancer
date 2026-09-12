@@ -25,18 +25,140 @@ https://developer.microsoft.com/microsoft-edge/webview2/ (the
 
 from __future__ import annotations
 
+import os
+import shutil
+import subprocess
 import sys
 import threading
 import time
 import urllib.error
 import urllib.request
+import uuid
+from datetime import datetime
 from pathlib import Path
 from typing import Optional
 
-REPO_ROOT = Path(__file__).resolve().parents[1]
+from . import jobs, recent_history  # noqa: E402
+from ._frozen import app_root  # noqa: E402
+from .server import make_server  # noqa: E402
+
+REPO_ROOT = app_root()
 FRONTEND_DIST = REPO_ROOT / "frontend" / "dist"
 
-from .server import make_server  # noqa: E402
+
+class DesktopBridge:
+    """Exposed to the loaded page as ``window.pywebview.api`` (see
+    ``webview.create_window(..., js_api=...)`` in main()).
+
+    The one thing a browser tab genuinely cannot do that this desktop shell
+    can: let the user pick where a finished result is saved via the OS's own
+    native Save As dialog. Reads job state directly from the in-process
+    JobManager (this shell and the API server share one Python process —
+    see docs/ARCHITECTURE.md) rather than round-tripping through HTTP.
+    """
+
+    def __init__(self, job_manager: jobs.JobManager):
+        self._job_manager = job_manager
+
+    def save_result(self, job_id: str) -> dict:
+        job = self._job_manager.get_job(job_id)
+        if job is None:
+            return {"ok": False, "error": "job not found"}
+
+        status = job.to_status_dict()
+        if status["status"] != jobs.STATUS_COMPLETED:
+            return {"ok": False, "error": f"job is not completed (status: {status['status']})"}
+        if job.result_path is None or not Path(job.result_path).is_file():
+            return {"ok": False, "error": "job completed but no result file was found"}
+
+        result_path = Path(job.result_path)
+        suggested_name = job.result_filename or result_path.name
+        is_zip = result_path.suffix == ".zip"
+        file_types = (
+            ("ZIP archive (*.zip)",) if is_zip else ("PNG image (*.png)",)
+        )
+
+        import webview  # already verified importable by main() before this bridge exists
+
+        window = webview.windows[0]
+        destination = window.create_file_dialog(
+            webview.SAVE_DIALOG,
+            save_filename=suggested_name,
+            file_types=file_types,
+        )
+        if not destination:
+            return {"ok": False, "cancelled": True}
+        dest_path = destination if isinstance(destination, str) else destination[0]
+
+        try:
+            shutil.copyfile(result_path, dest_path)
+        except OSError as exc:
+            return {"ok": False, "error": f"could not save file: {exc}"}
+        return {"ok": True, "path": str(dest_path)}
+
+    # ------------------------------------------------------- Recent history
+    # The frontend's "Recent" tab needs to survive an app restart, but this
+    # shell binds to a fresh ephemeral port every launch (start_backend's
+    # port=0), so the page's own origin — and any localStorage tied to it —
+    # changes every time. These three methods let the frontend persist and
+    # read back a lightweight record of what was ACTUALLY saved (never an
+    # assumed Downloads/Desktop/Documents path) via recent_history.py's JSON
+    # file instead.
+
+    def record_saved_result(self, entry: dict) -> dict:
+        """Called right after a successful save_result() with the real
+        destination path the user picked, plus whatever lightweight display
+        metadata the frontend already has on hand (a small thumbnail data
+        URL for a single image, or a file count for a ZIP) — never the
+        full-size image bytes."""
+        path = entry.get("path")
+        if not path:
+            return {"ok": False, "error": "missing path"}
+        p = Path(path)
+        record = {
+            "id": uuid.uuid4().hex,
+            "filename": p.name,
+            "path": str(p),
+            "directory": str(p.parent),
+            "saved_at": datetime.now().isoformat(timespec="seconds"),
+            "kind": entry.get("kind") or ("zip" if p.suffix.lower() == ".zip" else "image"),
+            "file_count": entry.get("file_count"),
+            "thumbnail_data_url": entry.get("thumbnail_data_url"),
+        }
+        return {"ok": True, "entries": recent_history.add(record)}
+
+    def get_recent_history(self) -> dict:
+        return {"ok": True, "entries": recent_history.load()}
+
+    def open_in_explorer(self, path: str) -> dict:
+        """Opens Windows File Explorer at ``path``'s directory, selecting
+        the file itself when it still exists. The smallest bridge addition
+        needed for the Recent tab's directory link — a browser tab has no
+        way to do this at all, so there is no non-desktop fallback."""
+        p = Path(path)
+        directory = p if p.is_dir() else p.parent
+        if not directory.is_dir():
+            return {"ok": False, "error": "that folder no longer exists"}
+        try:
+            if p.is_file():
+                subprocess.run(["explorer", f"/select,{p}"])
+            else:
+                os.startfile(str(directory))  # noqa: S606 - local desktop app
+        except OSError as exc:
+            return {"ok": False, "error": str(exc)}
+        return {"ok": True}
+
+    def open_saved_file(self, path: str) -> dict:
+        """Opens a previously saved result with its default viewer, for the
+        Recent tab's thumbnail/filename click."""
+        p = Path(path)
+        if not p.is_file():
+            return {"ok": False, "error": "that file no longer exists"}
+        try:
+            os.startfile(str(p))  # noqa: S606 - local desktop app
+        except OSError as exc:
+            return {"ok": False, "error": str(exc)}
+        return {"ok": True}
 
 
 class ShellError(RuntimeError):
@@ -113,12 +235,14 @@ def main() -> int:
 
     print(f"[adinn-shell] backend ready at {base_url}")
 
+    bridge = DesktopBridge(httpd.job_manager)  # type: ignore[attr-defined]
     window = webview.create_window(
         "Adinn 4K Image Enhancer",
         url=base_url,
         width=1200,
         height=800,
         min_size=(900, 600),
+        js_api=bridge,
     )
 
     stopped = threading.Event()
