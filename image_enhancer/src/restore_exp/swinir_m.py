@@ -66,7 +66,7 @@ def tiled_forward(model, img_lq, tile=400, overlap=32):
     w_idx = list(range(0, w - tile, stride)) + [w - tile]
     E = torch.zeros(b, c, h * SCALE, w * SCALE, device=img_lq.device)
     Wt = torch.zeros_like(E)
-    with torch.no_grad():
+    with torch.inference_mode():
         for hi in h_idx:
             for wi in w_idx:
                 patch = img_lq[..., hi:hi + tile, wi:wi + tile]
@@ -78,7 +78,7 @@ def tiled_forward(model, img_lq, tile=400, overlap=32):
     return E.div_(Wt)
 
 
-@torch.no_grad()
+@torch.inference_mode()
 def sr_bgr(bgr, device, tile=400, overlap=32):
     """4x super-resolve a BGR uint8 image, returns uint8 BGR."""
     t, (h0, w0) = prep_input(bgr)

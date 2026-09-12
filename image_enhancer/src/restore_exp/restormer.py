@@ -71,7 +71,7 @@ def load(kind, device):
     return model
 
 
-@torch.no_grad()
+@torch.inference_mode()
 def enhance_bgr(model, bgr):
     """Same-size restoration (denoise/deblur) of a BGR uint8 image."""
     ph = (8 - bgr.shape[0] % 8) % 8
@@ -88,7 +88,7 @@ def enhance_bgr(model, bgr):
     return (bgr_out * 255.0).round().astype(np.uint8)
 
 
-@torch.no_grad()
+@torch.inference_mode()
 def enhance_bgr_timed(model, bgr):
     t0 = time.perf_counter()
     out = enhance_bgr(model, bgr)

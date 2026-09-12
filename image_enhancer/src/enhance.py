@@ -564,7 +564,13 @@ def _final_d1_weak(orig):
     peak = 0.0
     if torch.cuda.is_available():
         peak = float(torch.cuda.max_memory_allocated() / 1048576.0)
-        torch.cuda.empty_cache()
+        # No torch.cuda.empty_cache() here: this app processes one job at a
+        # time on a single GPU with nothing else contending for VRAM (see
+        # docs/ARCHITECTURE.md's processing model), so releasing the
+        # allocator's cached blocks back to the driver after every single
+        # image bought nothing but ~0.1-0.2s of pure overhead per image,
+        # immediately re-requested for the very next tile/image anyway.
+        # peak-memory reporting above is unaffected either way.
     return out, peak, str(device)
 
 
