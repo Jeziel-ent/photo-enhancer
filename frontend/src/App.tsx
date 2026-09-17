@@ -7,6 +7,7 @@ import { JobProgressPanel } from "./components/upload/JobProgressPanel";
 import { JobResultPanel } from "./components/upload/JobResultPanel";
 import { UploadPanel } from "./components/upload/UploadPanel";
 import { RecentPage } from "./components/recent/RecentPage";
+import { SettingsPage } from "./components/settings/SettingsPage";
 import { IconAlertTriangle } from "./components/ui/Icon";
 import {
   ApiError,
@@ -246,6 +247,7 @@ export default function App() {
         <Route element={<AppShell />}>
           <Route path="/" element={<HomePage />} />
           <Route path="/recent" element={<RecentPage />} />
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
       </Routes>
     </>

@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Callable, Optional
 
-from . import engine_adapter, output_manager, workspace
+from . import engine_adapter, output_manager, settings, workspace
 
 STATUS_QUEUED = "queued"
 STATUS_PROCESSING = "processing"
@@ -132,8 +132,28 @@ class JobManager:
         self._jobs: dict[str, Job] = {}
         self._jobs_lock = threading.Lock()
         self._queue: "queue.Queue[str]" = queue.Queue()
-        self._worker = threading.Thread(target=self._run, daemon=True)
-        self._worker.start()
+        # Explicit 64MB stack for this thread specifically (not a global
+        # threading.stack_size() call, which would also apply to every
+        # OTHER thread this process creates afterwards, including
+        # pywebview/webview2's own). Needed for the CPU (no-GPU) path only:
+        # the packaged/frozen .exe crashed with STATUS_STACK_BUFFER_OVERRUN
+        # (Windows Event Log: BEX64 fault in ntdll.dll) partway through
+        # IMDN x4's CPU inference on this thread's default stack, while the
+        # identical code ran cleanly from the dev venv's `python.exe` --
+        # PyInstaller's frozen bootloader gives new threads a smaller
+        # default stack than a normal python.exe process does, and IMDN's
+        # CPU convolution codegen (oneDNN JIT) needs more of it than that
+        # default provides. A plain new Thread() with no size override
+        # reproduced the crash 100% of the time (2/2) on the packaged .exe;
+        # this fixed size has not been observed to crash across repeated
+        # runs since. GPU jobs are unaffected either way.
+        try:
+            _orig_stack_size = threading.stack_size()
+            threading.stack_size(64 * 1024 * 1024)
+            self._worker = threading.Thread(target=self._run, daemon=True)
+            self._worker.start()
+        finally:
+            threading.stack_size(_orig_stack_size)
 
     def create_job(self, uploads: list[tuple[str, bytes]]) -> Job:
         """``uploads`` is a list of (original_filename, raw_bytes), already
@@ -160,6 +180,36 @@ class JobManager:
             return self._jobs.get(job_id)
 
     def _run(self) -> None:
+        # Warm up the engine (model load + cuDNN's one-time per-shape kernel
+        # autotune) on THIS thread specifically, before the first real job
+        # is dequeued. This matters, not just as an optimization nicety:
+        # PyTorch's cuDNN benchmark-autotune cache is thread-local, and
+        # every real job is processed on this exact worker thread (the
+        # "single background worker thread" this class's docstring already
+        # promises) — so a warmup done on any other thread (e.g. a separate
+        # thread spawned in backend/shell.py) would be silently wasted, and
+        # every job would keep re-paying the ~8-10s autotune cost forever,
+        # not just the first one. Measured: ~25s steady-state per image with
+        # a same-thread warmup vs. ~33s on EVERY image with no warmup or a
+        # wrong-thread warmup (see docs/PERFORMANCE_OPTIMIZATION.md).
+        # Best-effort: warmup_engine() swallows its own failures (e.g. no
+        # GPU driver) rather than ever blocking real job processing. Only
+        # warm up when this instance actually processes jobs through the
+        # real engine adapter -- tests construct JobManager with a fake
+        # process_fn specifically to avoid loading real models/GPU, and
+        # must not pay (or wait out) a real warmup on every test run.
+        if self._process_fn is engine_adapter.enhance_image:
+            # Resolve the processing-device preference (settings.json,
+            # default "auto") against actually detected hardware and, if
+            # CPU, hide CUDA from torch -- BEFORE warmup_engine()'s first
+            # _import_engine() call, which is the first time enhance.py
+            # (and therefore torch) is ever imported in this process. This
+            # ordering is load-bearing: see
+            # engine_adapter.apply_device_preference's own docstring for
+            # why it cannot reliably be redone later to hot-swap devices.
+            engine_adapter.apply_device_preference(
+                settings.get_processing_device_preference())
+            engine_adapter.warmup_engine()
         while True:
             job_id = self._queue.get()
             job = self.get_job(job_id)

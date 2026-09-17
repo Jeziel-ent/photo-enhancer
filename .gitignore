@@ -15,6 +15,16 @@ env/
 *.safetensors
 models/
 
+# Session research results are kept locally, not committed -- except the
+# two small benchmark JSONs cited by docs/PERFORMANCE_OPTIMIZATION.md.
+image_enhancer/research_results/*
+!image_enhancer/research_results/gpu_swinir_optimized/
+!image_enhancer/research_results/cpu_imdn_optimized/
+image_enhancer/research_results/gpu_swinir_optimized/*
+!image_enhancer/research_results/gpu_swinir_optimized/benchmark_gpu.json
+image_enhancer/research_results/cpu_imdn_optimized/*
+!image_enhancer/research_results/cpu_imdn_optimized/benchmark_cpu.json
+
 # Generated enhancement outputs
 image_enhancer/enhanced/
 image_enhancer/reports/

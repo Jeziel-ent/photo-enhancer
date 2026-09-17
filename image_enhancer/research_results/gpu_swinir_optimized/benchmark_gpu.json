@@ -1,0 +1,74 @@
+[
+  {
+    "image": "1.jpeg",
+    "seconds": 35.52,
+    "device": "cuda",
+    "peak_vram_mb": 3898.7,
+    "shape": [
+      2160,
+      3840,
+      3
+    ],
+    "nan_or_inf": false
+  },
+  {
+    "image": "2.jpeg",
+    "seconds": 25.02,
+    "device": "cuda",
+    "peak_vram_mb": 1358.9,
+    "shape": [
+      2160,
+      3840,
+      3
+    ],
+    "nan_or_inf": false
+  },
+  {
+    "image": "3.jpeg",
+    "seconds": 25.08,
+    "device": "cuda",
+    "peak_vram_mb": 1358.9,
+    "shape": [
+      2160,
+      3840,
+      3
+    ],
+    "nan_or_inf": false
+  },
+  {
+    "image": "4.jpeg",
+    "seconds": 24.98,
+    "device": "cuda",
+    "peak_vram_mb": 1358.9,
+    "shape": [
+      2160,
+      3840,
+      3
+    ],
+    "nan_or_inf": false
+  },
+  {
+    "image": "5.jpeg",
+    "seconds": 25.05,
+    "device": "cuda",
+    "peak_vram_mb": 1358.9,
+    "shape": [
+      2160,
+      3840,
+      3
+    ],
+    "nan_or_inf": false
+  },
+  {
+    "image": "6.jpeg",
+    "seconds": 25.12,
+    "device": "cuda",
+    "peak_vram_mb": 1358.9,
+    "shape": [
+      2160,
+      3840,
+      3
+    ],
+    "nan_or_inf": false
+  }
+]

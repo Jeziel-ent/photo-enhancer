@@ -1,0 +1,68 @@
+[
+  {
+    "image": "1.jpeg",
+    "seconds": 6.3,
+    "device": "cpu",
+    "shape": [
+      2160,
+      3840,
+      3
+    ],
+    "nan_or_inf": false
+  },
+  {
+    "image": "2.jpeg",
+    "seconds": 6.16,
+    "device": "cpu",
+    "shape": [
+      2160,
+      3840,
+      3
+    ],
+    "nan_or_inf": false
+  },
+  {
+    "image": "3.jpeg",
+    "seconds": 6.17,
+    "device": "cpu",
+    "shape": [
+      2160,
+      3840,
+      3
+    ],
+    "nan_or_inf": false
+  },
+  {
+    "image": "4.jpeg",
+    "seconds": 6.22,
+    "device": "cpu",
+    "shape": [
+      2160,
+      3840,
+      3
+    ],
+    "nan_or_inf": false
+  },
+  {
+    "image": "5.jpeg",
+    "seconds": 6.21,
+    "device": "cpu",
+    "shape": [
+      2160,
+      3840,
+      3
+    ],
+    "nan_or_inf": false
+  },
+  {
+    "image": "6.jpeg",
+    "seconds": 6.11,
+    "device": "cpu",
+    "shape": [
+      2160,
+      3840,
+      3
+    ],
+    "nan_or_inf": false
+  }
+]

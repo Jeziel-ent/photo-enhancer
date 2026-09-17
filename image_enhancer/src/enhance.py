@@ -28,6 +28,17 @@ import torch
 
 import tonal_correction
 
+# Safe, purely-numerical CUDA execution settings: cuDNN autotuning and TF32
+# matmul/conv both only ever apply on NVIDIA GPUs (no-op on CPU) and only
+# change which equally-valid kernel/precision path cuDNN picks, not the
+# model's weights or architecture. Set once at import time so every model
+# load in this process benefits, matching the single-long-lived-process
+# model in docs/ARCHITECTURE.md.
+if torch.cuda.is_available():
+    torch.backends.cudnn.benchmark = True
+    torch.backends.cuda.matmul.allow_tf32 = True
+    torch.backends.cudnn.allow_tf32 = True
+
 OUT_W, OUT_H = 3840, 2160
 
 _REALESRGAN_CACHE = {}
@@ -500,7 +511,14 @@ def repair_v2_enhance(img, target=(OUT_W, OUT_H)):
 _FINAL_D1_K = 0.30
 _FINAL_DN_TILE = 512
 _FINAL_DN_OVERLAP = 48
-_FINAL_SR_TILE = 256
+# 224/16 measured fastest end-to-end of the practical tile sizes tested
+# (docs/ENGINE_AUDIT.md background + this session's own office-GPU
+# benchmarking) while remaining visually equivalent to tile 400 — SwinIR-M's
+# window attention makes smaller-but-not-tiny tiles cheaper in aggregate
+# than either very large tiles (more wasted overlap recompute per tile) or
+# very small ones (more per-tile Python/kernel-launch overhead).
+_FINAL_SR_TILE = 224
+_FINAL_SR_OVERLAP = 16
 _FINAL_F3_W = 6.0
 _FINAL_F3_CLIP = 18.0
 _FINAL_F3_T0 = 0.25
@@ -541,25 +559,89 @@ def _final_edge_gate(l, t0):
     return np.clip((en - t0) / (1.0 - t0), 0.0, 1.0)
 
 
-def _final_d1_weak(orig):
-    """D1-weak (proven): K=0.30 Restormer-denoise blend + SwinIR-M x4 -> 4K.
+def _amp_ctx(device):
+    """bfloat16 autocast on CUDA only (measured numerically safe for both
+    Restormer and SwinIR-M on this project's checkpoints: mean |delta| <0.4
+    /255, max <6/255, no NaN/Inf, vs. fp32 -- see benchmarking notes). A
+    no-op context on CPU: bf16 has no throughput benefit there on hardware
+    without AVX-512 BF16, and this keeps the CPU path's numerics identical
+    to the previously-shipped fp32 path."""
+    if device.type == "cuda":
+        return torch.autocast(device_type="cuda", dtype=torch.bfloat16)
+    import contextlib
+    return contextlib.nullcontext()
 
-    Tiled so peak VRAM stays near ~2.4 GB (RTX 3050 8GB-safe). Returns
-    (d1_4k, peak_vram_mb, device_str)."""
+
+# CPU (no-GPU) backbone: SwinIR-M's window-attention transformer measures
+# ~200s+ for the SR stage alone on a 20-thread desktop CPU for one photo --
+# an ~8x overshoot of the 25-27s budget that no safe precision/tiling/ONNX
+# tuning closes (see benchmarking notes: OpenVINO CPU gets only to ~1.9x,
+# ONNX INT8 dynamic quantization degrades accuracy too much for too little
+# speedup). IMDN x4 (official Zheng222/IMDN checkpoint, pure CNN, no
+# attention) measures ~4.4s for the same SR stage on the same CPU -- a ~45x
+# speedup -- because it has no window-attention transformer blocks at all.
+# Restormer's denoise stage is *also* CPU-infeasible (~65-73s alone,
+# regardless of tiling), so the CPU path replaces it with classical
+# non-local-means denoising (deterministic, non-generative, ~0.4s) at the
+# same K=0.30 blend weight as the GPU path's Restormer blend -- this keeps
+# the pipeline's architecture (denoise-blend -> SR -> F3/G7-MS/A+) identical
+# across devices, only swapping each device's two heaviest ops for a
+# device-appropriate equivalent. Net effect: CPU output is real, faithful,
+# and safe (no NaN/Inf, no hallucination -- both ops are classical/CNN
+# regression, never generative) but measurably softer than the GPU path's
+# SwinIR-M+Restormer result, in exchange for meeting the CPU runtime budget
+# at all (which the GPU-only backbone cannot on CPU, by roughly 8x).
+_FINAL_CPU_DN_H = 5
+_FINAL_CPU_DN_HCOLOR = 5
+_FINAL_CPU_SR_TILE = 256
+_FINAL_CPU_SR_OVERLAP = 16
+
+
+def _final_d1_weak(orig):
+    """D1-weak (proven): K=0.30 denoise blend + 4x SR -> 4K.
+
+    GPU: Restormer real-denoise + SwinIR-M x4 (tiled so peak VRAM stays near
+    ~1.5 GB with bf16 autocast, RTX 3050 8GB-safe). CPU: classical
+    fastNlMeansDenoisingColored + IMDN x4 (see comment above -- SwinIR-M and
+    Restormer are both CPU-infeasible within this product's runtime budget).
+    Returns (d1_4k, peak_vram_mb, device_str)."""
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    if device.type == "cpu":
+        # OpenVINO, not PyTorch's own CPU backend -- see imdn_x4_ov.py's
+        # module docstring and docs/PERFORMANCE_OPTIMIZATION.md's CPU
+        # stability section: PyTorch/oneDNN's CPU backend crashed
+        # intermittently (real memory corruption, not a Python exception)
+        # inside the packaged/frozen EXE specifically, reproducing
+        # regardless of threading/mkldnn/thread-count mitigations tried.
+        # OpenVINO is a separate runtime with its own thread pool and no
+        # shared state with PyTorch's, and is numerically equivalent
+        # (verified: max abs diff 0.00055/1.0 vs. the PyTorch reference).
+        from restore_exp import imdn_x4_ov
+        dn_img = cv2.fastNlMeansDenoisingColored(
+            orig, None, _FINAL_CPU_DN_H, _FINAL_CPU_DN_HCOLOR, 7, 21)
+        k = _FINAL_D1_K
+        blend = np.clip(orig.astype(np.float32) * (1.0 - k)
+                         + dn_img.astype(np.float32) * k, 0, 255).astype(np.uint8)
+        sr = imdn_x4_ov.sr_bgr(blend, overlap=_FINAL_CPU_SR_OVERLAP)
+        out = cv2.resize(sr, (OUT_W, OUT_H), interpolation=cv2.INTER_LANCZOS4)
+        return out, 0.0, str(device)
+
     from pro_exp import pipeline2
     from restore_exp import restormer, swinir_m
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    if torch.cuda.is_available():
-        torch.cuda.reset_peak_memory_stats()
+    torch.cuda.reset_peak_memory_stats()
     dn_model = restormer.load("real_denoise", device)
-    dn_img = pipeline2.tiled_restore(dn_model, orig,
-                                     tile=_FINAL_DN_TILE,
-                                     overlap=_FINAL_DN_OVERLAP)
+    with _amp_ctx(device):
+        dn_img = pipeline2.tiled_restore(dn_model, orig,
+                                         tile=_FINAL_DN_TILE,
+                                         overlap=_FINAL_DN_OVERLAP)
     k = _FINAL_D1_K
     blend = (orig.astype(np.float32) * (1.0 - k)
              + dn_img.astype(np.float32) * k)
     blend = np.clip(blend, 0, 255).astype(np.uint8)
-    sr = swinir_m.sr_bgr(blend, device, tile=_FINAL_SR_TILE)
+    with _amp_ctx(device):
+        sr = swinir_m.sr_bgr(blend, device, tile=_FINAL_SR_TILE,
+                              overlap=_FINAL_SR_OVERLAP)
     out = cv2.resize(sr, (OUT_W, OUT_H), interpolation=cv2.INTER_LANCZOS4)
     peak = 0.0
     if torch.cuda.is_available():
@@ -903,6 +985,42 @@ def final_enhance(img, target=(OUT_W, OUT_H), return_stages=False):
     if return_stages:
         return out, stages
     return out
+
+
+def warmup():
+    """Pre-loads final_enhance's models and pre-triggers cuDNN's per-shape
+    kernel autotune (torch.backends.cudnn.benchmark=True, set at import time
+    above) at the exact tile shapes production actually uses, so that cost
+    lands here -- at application startup, run once, off the user's critical
+    path -- instead of on whichever user image happens to be processed
+    first.
+
+    Measured cause of the ~35s-vs-~25s first-image-in-a-process gap (see
+    docs/PERFORMANCE_OPTIMIZATION.md): ~7.5s is cuDNN's own algorithm search,
+    triggered lazily on the first real forward call at each new input shape;
+    the remaining ~2.5s is other one-time CUDA/driver warmup (context/handle
+    creation, allocator growth) that no autotune setting controls and that
+    this function also absorbs simply by being the first real GPU call.
+    Calling this after models are loaded but before any user upload is
+    accepted moves the entire ~10s gap here. Safe to call multiple times
+    (idempotent: models are cache-loaded, and repeat identical-shape forward
+    passes are cheap once cuDNN's search has already run once per shape).
+    Never touches disk, billboard regions, or any user data.
+    """
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    if device.type == "cpu":
+        from restore_exp import imdn_x4_ov
+        dummy = np.zeros((_FINAL_CPU_SR_TILE, _FINAL_CPU_SR_TILE, 3), dtype=np.uint8)
+        imdn_x4_ov.sr_bgr(dummy, overlap=0)
+        return
+    from restore_exp import restormer, swinir_m
+    dn_model = restormer.load("real_denoise", device)
+    with _amp_ctx(device):
+        restormer.enhance_bgr(dn_model, np.zeros(
+            (_FINAL_DN_TILE, _FINAL_DN_TILE, 3), dtype=np.uint8))
+        sr_dummy = np.zeros((_FINAL_SR_TILE, _FINAL_SR_TILE, 3), dtype=np.uint8)
+        swinir_m.sr_bgr(sr_dummy, device, tile=_FINAL_SR_TILE, overlap=0)
+    torch.cuda.synchronize()
 
 
 # ------------------------------------------------------------------- dispatch

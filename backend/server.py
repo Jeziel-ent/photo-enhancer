@@ -12,6 +12,10 @@ Endpoints (all JSON except the result-download route):
     GET  /api/jobs/<job_id>/result  the enhanced image (1 input), or a ZIP
                                     of every successfully enhanced image
                                     (>1 input)
+    GET  /api/settings              current processing-device preference +
+                                    what's actually detected/active
+    PUT  /api/settings              persist a new processing-device
+                                    preference ("auto"/"gpu"/"cpu")
     GET  /health                   liveness probe
 
 Optionally also serves a built static frontend (e.g. frontend/dist) from
@@ -40,6 +44,8 @@ from pathlib import Path
 from typing import Optional
 from urllib.parse import urlparse
 
+from . import engine_adapter, settings
+from .device import VALID_PREFERENCES
 from .jobs import STATUS_COMPLETED, JobManager
 from .multipart import MultipartError, parse_multipart_files
 
@@ -85,7 +91,7 @@ class ApiHandler(BaseHTTPRequestHandler):
     # ------------------------------------------------------------------ utils
     def _cors(self) -> None:
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, PUT, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Accept")
 
     def _send_json(self, status: int, obj: dict) -> None:
@@ -161,6 +167,10 @@ class ApiHandler(BaseHTTPRequestHandler):
             self._send_json(200, {"ok": True})
             return
 
+        if path == "/api/settings":
+            self._handle_get_settings()
+            return
+
         m = re.fullmatch(r"/api/jobs/([^/]+)/result", path)
         if m:
             self._handle_get_result(m.group(1))
@@ -175,6 +185,28 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
 
         self._send_error_json(404, "not found")
+
+    def _handle_get_settings(self) -> None:
+        preference = settings.get_processing_device_preference()
+        state = engine_adapter.get_device_state()
+        self._send_json(200, {
+            "ok": True,
+            "processing_device": preference,
+            # What's actually running in this process right now -- may
+            # briefly be None just after launch, before the JobManager
+            # worker thread's one-time device resolution has run (see
+            # jobs.py's JobManager._run) -- and may legitimately differ
+            # from `processing_device` if the user changed the setting
+            # after this process already resolved a device (see
+            # `restart_required` on PUT below).
+            "effective_device": state["effective_device"],
+            "detected_gpu": state["detected_gpu"],
+            "warning": state["warning"],
+            "restart_required": (
+                state["effective_device"] is not None
+                and state["preference"] != preference
+            ),
+        })
 
     def _handle_get_status(self, job_id: str) -> None:
         job = self._job_manager().get_job(job_id)
@@ -252,6 +284,44 @@ class ApiHandler(BaseHTTPRequestHandler):
             _validate_upload(f.filename, f.content_type, f.data)
 
         return self._job_manager().create_job([(f.filename, f.data) for f in uploaded])
+
+    def do_PUT(self) -> None:
+        if urlparse(self.path).path != "/api/settings":
+            self._send_error_json(404, "not found")
+            return
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length) if length > 0 else b"{}"
+            payload = json.loads(body or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            self._send_error_json(400, "invalid JSON body")
+            return
+        requested = payload.get("processing_device")
+        if requested not in VALID_PREFERENCES:
+            self._send_error_json(
+                400, f"processing_device must be one of {list(VALID_PREFERENCES)}")
+            return
+
+        stored = settings.set_processing_device_preference(requested)
+        state = engine_adapter.get_device_state()
+        self._send_json(200, {
+            "ok": True,
+            "processing_device": stored,
+            "effective_device": state["effective_device"],
+            "detected_gpu": state["detected_gpu"],
+            "warning": state["warning"],
+            # This process already resolved a device (or hasn't yet); either
+            # way, changing the on-disk preference now does NOT retroactively
+            # change what's running -- see
+            # engine_adapter.apply_device_preference's own docstring for why
+            # (CUDA visibility is fixed for a process's lifetime once torch
+            # has looked at it). True whenever a device has already been
+            # resolved in this process and the new choice differs from it.
+            "restart_required": (
+                state["effective_device"] is not None
+                and state["preference"] != stored
+            ),
+        })
 
     def log_message(self, fmt: str, *args) -> None:  # noqa: A002
         sys.stderr.write("[adinn-backend] %s - %s\n" % (self.address_string(), fmt % args))

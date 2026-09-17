@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { NavLink } from "react-router-dom";
 import { cn } from "../../lib/cn";
-import { IconClock, IconHome } from "../ui/Icon";
+import { IconClock, IconHome, IconSettings } from "../ui/Icon";
 
 function SidebarLink({
   to,
@@ -32,7 +32,7 @@ function SidebarLink({
   );
 }
 
-/** Left nav rail: Home and Recent are the app's only two screens. */
+/** Left nav rail: Home, Recent, and Settings. */
 export function Sidebar() {
   return (
     <aside className="relative flex w-52 shrink-0 flex-col overflow-hidden border-r border-line bg-white/80 px-3 pb-0 pt-5">
@@ -42,6 +42,9 @@ export function Sidebar() {
         </SidebarLink>
         <SidebarLink to="/recent" label="Recent">
           <IconClock className="h-4.5 w-4.5" />
+        </SidebarLink>
+        <SidebarLink to="/settings" label="Settings">
+          <IconSettings className="h-4.5 w-4.5" />
         </SidebarLink>
       </nav>
 

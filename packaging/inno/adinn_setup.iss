@@ -59,7 +59,18 @@ DisableWelcomePage=no
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [CustomMessages]
-english.TaglineText=Enhance  %2022  Denoise  %2022  Upscale
+; "%2022" here was a mistaken attempt to encode the bullet character (U+2022,
+; used correctly in the app's own splash screen -- see
+; frontend/src/components/splash/SplashScreen.tsx) into this message. This
+; .iss file is plain ASCII with no encoding/BOM declared, and Inno Setup's
+; CustomMessages substitution only understands %1/%2/... numbered
+; parameters -- "%2022" is neither valid Unicode escape syntax nor a
+; parameter reference, so it was rendered completely literally. Rather than
+; convert this file's encoding (fragile across locales/codepages -- exactly
+; the class of bug this was) or add another placeholder mechanism, this uses
+; a plain ASCII separator, matching this same file's existing "[OK]"/"[!]"
+; markers on the System Requirements page for the same reliability reason.
+english.TaglineText=Enhance - Denoise - Upscale
 english.ComponentAppDesc=The application itself (UI, local processing engine, runtime files).
 english.ComponentModelsDesc=Local AI models used for 4K enhancement (denoise, super-resolution, detail recovery). Required -- the app cannot enhance images without these.
 english.TaskDesktopDesc=Create a &desktop shortcut
@@ -122,6 +133,26 @@ begin
   if Result = '' then Result := Default;
 end;
 
+{ Inno Setup's Pascal Script Format() does NOT support the %f (float)
+  specifier -- unlike Delphi's Format, it only implements %d/%u/%x/%e/%g/%s
+  (confirmed against jrsoftware.org's own Format()/support-function
+  reference, which lists no %f example and no FormatFloat function at
+  all). Passing %.1f raised a runtime "Format '...' invalid or
+  incompatible with argument" error on the System Requirements page for
+  every value (RAM, free disk space) that used it. This formats a value to
+  exactly one decimal place using only integer arithmetic + IntToStr, then
+  callers build their message with Format's %s, which IS supported. }
+function FormatOneDecimal(const Value: Extended): String;
+var
+  TenthsTotal, WholePart, TenthsPart: Int64;
+begin
+  TenthsTotal := Round(Value * 10);
+  WholePart := TenthsTotal div 10;
+  TenthsPart := TenthsTotal mod 10;
+  if TenthsPart < 0 then TenthsPart := -TenthsPart; { Value is never negative here, but be exact }
+  Result := IntToStr(WholePart) + '.' + IntToStr(TenthsPart);
+end;
+
 { Runs a PowerShell one-liner and returns its trimmed stdout, or '' on any
   failure -- used only for optional, best-effort GPU detection; never blocks
   or fails the install if it can't determine an answer. }
@@ -167,9 +198,9 @@ begin
   except
   end;
   if TotalMB >= 8192 then
-    Result := Format('[OK] RAM: %.1f GB (recommended)', [TotalMB / 1024])
+    Result := Format('[OK] RAM: %s GB (recommended)', [FormatOneDecimal(TotalMB / 1024)])
   else if TotalMB > 0 then
-    Result := Format('[!] RAM: %.1f GB (8 GB+ recommended; the app may run slowly)', [TotalMB / 1024])
+    Result := Format('[!] RAM: %s GB (8 GB+ recommended; the app may run slowly)', [FormatOneDecimal(TotalMB / 1024)])
   else
     Result := '[!] RAM: could not be determined';
 end;
@@ -193,7 +224,7 @@ begin
     informational, shown before the user has even picked a drive. }
   Drive := ExtractFileDrive(ExpandConstant('{autopf}')) + '\';
   if GetSpaceOnDisk64(Drive, FreeBytes, TotalBytes) then
-    Result := Format('[OK] Free space on %s %.1f GB available (~6 GB required)', [Drive, FreeBytes / 1024 / 1024 / 1024])
+    Result := Format('[OK] Free space on %s %s GB available (~6 GB required)', [Drive, FormatOneDecimal(FreeBytes / 1024 / 1024 / 1024)])
   else
     Result := 'Disk space required: ~6 GB free on the installation drive';
 end;

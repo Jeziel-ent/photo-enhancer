@@ -235,6 +235,12 @@ def main() -> int:
 
     print(f"[adinn-shell] backend ready at {base_url}")
 
+    # Model/cuDNN warmup already started as soon as the backend's JobManager
+    # was constructed inside start_backend() — see JobManager._run's own
+    # comment for why it must happen on JobManager's own persistent worker
+    # thread specifically (not a separate thread here) for the win to carry
+    # over to real jobs.
+
     bridge = DesktopBridge(httpd.job_manager)  # type: ignore[attr-defined]
     window = webview.create_window(
         "Adinn 4K Image Enhancer",

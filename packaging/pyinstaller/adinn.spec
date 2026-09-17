@@ -37,7 +37,17 @@ REPO_ROOT = Path(SPECPATH).resolve().parents[1]
 # packaging/README.md "Size optimization" section for the full trace).
 # engine_adapter.py hardcodes METHOD="final" and always neutralizes
 # billboard regions, so enhance.final_enhance()'s whole-frame path -- 100%
-# of what this product ever executes -- only ever touches two checkpoints.
+# of what this product ever executes -- only ever touches checkpoints
+# selected by torch.cuda.is_available() in _final_d1_weak: real_denoising.pth
+# + the SwinIR-M "PSNR" checkpoint on GPU, or IMDN_x4.pth (classical
+# fastNlMeansDenoisingColored needs no weight file) on CPU -- see
+# _final_d1_weak's own docstring/comments in enhance.py for why CPU uses a
+# different, lighter SR backbone (SwinIR-M measures ~200s+ for one image on
+# CPU, an ~8x overshoot of this product's 25-27s budget that no safe
+# precision/tiling/ONNX tuning closes; IMDN x4 is a plain CNN with no
+# window-attention transformer and measures ~5s for the same stage). Both
+# checkpoint sets must ship together since the packaged app must run on
+# whatever hardware the end user's machine actually has.
 _MODELS_DIR = REPO_ROOT / "image_enhancer" / "models"
 _MODELS_EXCLUDED = {
     # Only referenced by get_realesrgan()/realesrgan_enhance()/tiled_enhance()
@@ -120,7 +130,16 @@ hiddenimports = [
 # payload). cv2 (opencv-python) ships many native DLLs of its own that
 # plain hiddenimports don't reliably pull in, so it gets the same
 # full-collection treatment. timm uses a registry-ish layout too.
-for pkg in ("pythonnet", "cv2", "timm"):
+#
+# openvino (the CPU/no-GPU execution backend for IMDN x4 -- see
+# restore_exp/imdn_x4_ov.py's module docstring for why PyTorch's own CPU
+# backend was replaced with it) ships its inference-engine core as native
+# DLLs plus a device-plugin registry (plugins.xml + one DLL per backend,
+# e.g. openvino_intel_cpu_plugin.dll) that a plain hiddenimports entry
+# would miss entirely -- there is no pyinstaller-hooks-contrib hook for it
+# (checked), so it needs the same full-collection treatment as the others
+# here, verified by actually running the frozen CPU path, not assumed.
+for pkg in ("pythonnet", "cv2", "timm", "openvino"):
     pkg_datas, pkg_binaries, pkg_hiddenimports = collect_all(pkg)
     datas += pkg_datas
     binaries += pkg_binaries

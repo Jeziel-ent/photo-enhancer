@@ -12,12 +12,15 @@ Nothing in ``image_enhancer/`` is modified by this module.
 
 from __future__ import annotations
 
+import os
+import subprocess
 import sys
 import threading
 from pathlib import Path
 from types import ModuleType
 from typing import Callable, Optional
 
+from . import device as device_detect
 from ._frozen import app_root
 
 REPO_ROOT = app_root()
@@ -61,6 +64,58 @@ _NO_REGIONS_SENTINEL = REPO_ROOT / "backend" / ".workspace" / "__no_billboard_re
 _ENGINE_LOCK = threading.Lock()
 
 METHOD = "final"
+
+# The resolved device state (see apply_device_preference below), readable
+# by server.py's /api/settings endpoint to report what's ACTUALLY active in
+# this running process -- never guessed from the persisted preference
+# alone, since preference != effective device whenever GPU was requested
+# but not detected (see device.py's resolve_effective_device).
+_DEVICE_STATE: dict = {
+    "preference": device_detect.DEFAULT_PREFERENCE,
+    "detected_gpu": None,
+    "effective_device": None,  # None until apply_device_preference() runs
+    "warning": None,
+}
+_DEVICE_STATE_LOCK = threading.Lock()
+
+
+def get_device_state() -> dict:
+    """A copy of the current resolved device state, safe to call from any
+    thread (e.g. the HTTP server's request-handling threads) at any time,
+    including before apply_device_preference() has ever run (effective_device
+    is None in that case -- the API layer should report that as "not yet
+    determined" rather than guessing)."""
+    with _DEVICE_STATE_LOCK:
+        return dict(_DEVICE_STATE)
+
+
+def apply_device_preference(preference: str) -> dict:
+    """Resolves ``preference`` against actually detected hardware and, if
+    the effective device is CPU, sets CUDA_VISIBLE_DEVICES so torch never
+    sees a GPU -- satisfying "do not initialize CUDA" for CPU mode.
+
+    MUST be called exactly once, before enhance.py (and therefore torch) is
+    ever imported in this process (see jobs.py's JobManager._run, which
+    calls this immediately before warmup_engine()/the first
+    _import_engine()). Environment-variable-based device hiding only works
+    if set before torch's CUDA runtime is first touched; PyTorch does not
+    reliably un-see a GPU it has already initialized, so this function is
+    NOT meant to be called again later in the same process to hot-swap
+    devices -- callers changing the persisted preference while the app is
+    already running should tell the user a restart is needed (see
+    server.py's PUT /api/settings, which reports this via
+    ``restart_required``).
+    """
+    resolved = device_detect.resolve_effective_device(preference)
+    if resolved["effective_device"] == "cpu":
+        # "-1" (not "") reliably hides all CUDA devices from torch on this
+        # project's stack -- verified this session: an empty string caused
+        # torch to raise "Invalid device id" instead of cleanly reporting
+        # no devices.
+        os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+    with _DEVICE_STATE_LOCK:
+        _DEVICE_STATE.update(resolved)
+    return resolved
 
 
 class EngineError(Exception):
@@ -141,40 +196,82 @@ _TICK_SECONDS = 0.25
 
 def _run_with_stage_ticker(engine: ModuleType, img, on_stage: Optional[OnStage]):
     """Runs ``engine.enhance(METHOD, img)`` — the one real, unmodified call
-    path into the engine — on a background thread, while this thread ticks
-    ``on_stage`` through _STAGE_TIMELINE based on elapsed time. Returns
-    ``(out, dt)`` exactly as engine.enhance() does, or re-raises whatever
-    exception the engine call raised.
+    path into the engine — on the CALLING thread, while a separate,
+    GPU/torch-untouching ticker thread ticks ``on_stage`` through
+    _STAGE_TIMELINE based on elapsed time. Returns ``(out, dt)`` exactly as
+    engine.enhance() does, or re-raises whatever exception the engine call
+    raised.
+
+    Deliberately runs the heavy call on the caller's own thread rather than
+    spawning a worker thread for it (an earlier version of this function did
+    the opposite): PyTorch's cuDNN benchmark-autotune cache
+    (torch.backends.cudnn.benchmark=True, set in enhance.py) is thread-local,
+    and JobManager calls this via the same single persistent worker thread
+    for every job (see jobs.py's JobManager._run and its own warmup-on-this-
+    thread comment) -- spawning a brand-new thread per call here would give
+    every single image a cold cuDNN cache forever, not just the first one.
+    Measured: ~25s/image with the call kept on one persistent thread vs.
+    ~33s/image (every image, not just the first) when it ran on a fresh
+    thread each time. Only the lightweight ticker thread is spawned fresh
+    per call, and it never touches CUDA/torch, so it has no cache to lose.
     """
     import time as _time
 
     done = threading.Event()
-    result: dict = {}
 
-    def _worker() -> None:
+    def _ticker() -> None:
+        remaining = list(_STAGE_TIMELINE)
+        t0 = _time.monotonic()
+        while not done.wait(timeout=_TICK_SECONDS):
+            elapsed = _time.monotonic() - t0
+            while remaining and elapsed >= remaining[0][0]:
+                _, stage_name = remaining.pop(0)
+                if on_stage is not None:
+                    on_stage(stage_name)
+
+    ticker = threading.Thread(target=_ticker, daemon=True)
+    ticker.start()
+    try:
+        out, dt = engine.enhance(METHOD, img)
+    finally:
+        done.set()
+        ticker.join()
+    return out, dt
+
+
+def warmup_engine() -> None:
+    """Loads the engine's models before any real upload is processed, so
+    that cost lands at app startup instead of on whichever image happens
+    to be processed first. MUST be called after apply_device_preference()
+    has already resolved the effective device (see jobs.py's
+    JobManager._run, which does both in that order) -- dispatches on
+    get_device_state()["effective_device"].
+
+    GPU: pre-triggers cuDNN's one-time per-shape kernel autotune (see
+    enhance.warmup()'s own docstring), in-process, on the calling thread
+    specifically (cuDNN's benchmark-autotune cache is thread-local -- see
+    _run_with_stage_ticker's docstring for the ~8s-per-image-forever
+    measurement of getting this wrong). CPU: starts the persistent CPU
+    worker subprocess now (see CpuWorkerHandle/cpu_worker.py) and sends it
+    a WARMUP request so the ~15s cold import + OpenVINO compile also
+    happens here instead of on the first real CPU job.
+
+    Best-effort either way: any failure here (e.g. no GPU driver) is
+    swallowed, since the real first upload will simply pay whatever this
+    step would have paid — never worth blocking job processing over.
+    """
+    if get_device_state()["effective_device"] == "cpu":
+        _CPU_WORKER.warmup()
+        return
+    try:
+        engine = _import_engine()
+    except ImportError:
+        return
+    with _ENGINE_LOCK:
         try:
-            result["out"], result["dt"] = engine.enhance(METHOD, img)
-        except Exception as exc:  # noqa: BLE001 — re-raised on the caller's thread below
-            result["exc"] = exc
-        finally:
-            done.set()
-
-    worker = threading.Thread(target=_worker, daemon=True)
-    t0 = _time.monotonic()
-    worker.start()
-
-    remaining = list(_STAGE_TIMELINE)
-    while not done.wait(timeout=_TICK_SECONDS):
-        elapsed = _time.monotonic() - t0
-        while remaining and elapsed >= remaining[0][0]:
-            _, stage_name = remaining.pop(0)
-            if on_stage is not None:
-                on_stage(stage_name)
-    worker.join()
-
-    if "exc" in result:
-        raise result["exc"]
-    return result["out"], result["dt"]
+            engine.warmup()
+        except Exception:  # noqa: BLE001 — best-effort, never fatal to startup
+            pass
 
 
 def enhance_image(
@@ -190,12 +287,22 @@ def enhance_image(
     as one failed file, not a crash.
 
     ``on_stage``, when given, is called with one of the STAGES values as
-    processing reaches each milestone — see _run_with_stage_ticker for what
-    "reaches" means for the stages inside the single opaque engine call.
-    Optional and additive: omitting it reproduces the exact prior behavior.
+    processing reaches each milestone. Optional and additive: omitting it
+    reproduces the exact prior behavior.
+
+    Dispatches on the resolved device (see apply_device_preference /
+    get_device_state, set once at process startup by jobs.py's
+    JobManager._run): GPU runs in-process, exactly as before this session's
+    CPU-stability work. CPU runs in a standalone child process -- see
+    enhance_image_cpu_subprocess's own docstring and
+    docs/PERFORMANCE_OPTIMIZATION.md's CPU stability section for why.
     """
     input_path = Path(input_path)
     output_path = Path(output_path)
+
+    if get_device_state()["effective_device"] == "cpu":
+        enhance_image_cpu_subprocess(input_path, output_path, on_stage)
+        return
 
     def stage(name: str) -> None:
         if on_stage is not None:
@@ -229,3 +336,202 @@ def enhance_image(
             raise EngineError(
                 f"could not save enhanced output for {input_path.name}: {exc}"
             ) from exc
+
+
+def _cpu_worker_command() -> list:
+    """The argv to spawn backend/cpu_worker.py's main() as a standalone,
+    PERSISTENT process (started once, reused for every CPU job -- see
+    CpuWorkerHandle) -- see enhance_image_cpu_subprocess for why it must be
+    a separate process at all, and cpu_worker.py's own docstring for why it
+    must be persistent rather than spawned fresh per job.
+
+    A frozen PyInstaller build has no separate bundled python.exe to spawn
+    a helper from, so the packaged EXE re-invokes ITSELF with a special
+    ``--cpu-worker`` flag that packaging/pyinstaller/launcher.py checks for
+    first, before any of the real app's startup (mutex, ADINN_INSTALLED,
+    importing backend.shell/webview) -- see that file's own module
+    docstring. In dev, sys.executable is the venv's python.exe, invoked as
+    a normal module.
+    """
+    if getattr(sys, "frozen", False):
+        return [sys.executable, "--cpu-worker"]
+    return [sys.executable, "-m", "backend.cpu_worker"]
+
+
+_CPU_JOB_TIMEOUT_S = 60.0
+_CPU_STATUS_POLL_S = 0.15
+# Stages emitted (in order) the moment the status file confirms success --
+# see CpuWorkerHandle._send_and_await_status's docstring for why completion is
+# detected via a file rather than parsed from the child's stdout.
+_CPU_REMAINING_STAGES = (
+    STAGE_ANALYZING, STAGE_RESTORING, STAGE_ENHANCING_DETAILS,
+    STAGE_UPSCALING, STAGE_FINALIZING,
+)
+
+
+class CpuWorkerHandle:
+    """Owns the single, persistent CPU-worker child process (see
+    cpu_worker.py's own module docstring for the full "why persistent" and
+    "why a file, not stdout" story).
+
+    Thread-unsafe by design: JobManager only ever calls this from its one
+    persistent worker thread (the same "single-job-at-a-time" model as the
+    GPU path), so no internal locking is needed beyond what _ensure_alive
+    does to make (re)spawning idempotent if called concurrently.
+    """
+
+    def __init__(self) -> None:
+        self._proc: Optional[subprocess.Popen] = None
+        self._lock = threading.Lock()
+
+    def _spawn(self) -> subprocess.Popen:
+        return subprocess.Popen(
+            _cpu_worker_command(), cwd=str(REPO_ROOT),
+            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            text=True, bufsize=1,
+        )
+
+    def _ensure_alive(self) -> subprocess.Popen:
+        with self._lock:
+            if self._proc is None or self._proc.poll() is not None:
+                self._proc = self._spawn()
+            return self._proc
+
+    def _send_and_await_status(self, request: str, status_base: Path) -> dict:
+        """Sends ``request`` to the (possibly freshly spawned) worker and
+        blocks until ``<status_base>.status.json`` appears, confirming the
+        job actually finished -- see cpu_worker.py's _write_status
+        docstring for why this file, not a stdout line, is the
+        authoritative signal. Returns the parsed status dict
+        ({"ok": bool, "message": str}); raises EngineError on a write
+        failure, timeout, or the worker process dying outright.
+        """
+        import json
+        import time as _time
+
+        status_path = Path(str(status_base) + ".status.json")
+        try:
+            status_path.unlink()
+        except FileNotFoundError:
+            pass
+
+        proc = self._ensure_alive()
+        assert proc.stdin is not None
+        try:
+            proc.stdin.write(request + "\n")
+            proc.stdin.flush()
+        except (BrokenPipeError, OSError):
+            # The worker died before this request even reached it -- respawn
+            # once and retry, so a single bad moment doesn't wedge CPU mode.
+            with self._lock:
+                self._proc = None
+            proc = self._ensure_alive()
+            try:
+                proc.stdin.write(request + "\n")
+                proc.stdin.flush()
+            except (BrokenPipeError, OSError) as exc2:
+                raise EngineError(
+                    f"could not reach the CPU enhancement worker: {exc2}") from exc2
+
+        deadline = _time.monotonic() + _CPU_JOB_TIMEOUT_S
+        while _time.monotonic() < deadline:
+            if status_path.exists():
+                try:
+                    data = json.loads(status_path.read_text(encoding="utf-8"))
+                except (OSError, ValueError):
+                    _time.sleep(_CPU_STATUS_POLL_S)
+                    continue  # write still in flight (mkstemp+replace is
+                              # atomic, but the exists() check can race a
+                              # half-written temp file's rename briefly)
+                try:
+                    status_path.unlink()
+                except OSError:
+                    pass
+                return data
+            if proc.poll() is not None:
+                # The worker process itself exited without ever writing a
+                # status file -- the exact failure mode this isolation
+                # exists to contain. Surface whatever it printed and
+                # respawn for next time.
+                stderr_text = ""
+                try:
+                    stderr_text = proc.stderr.read().strip() if proc.stderr else ""
+                except Exception:  # noqa: BLE001 -- diagnostic only
+                    pass
+                exit_code = proc.poll()
+                with self._lock:
+                    self._proc = None
+                detail = f" (exit {exit_code}{': ' + stderr_text if stderr_text else ''})"
+                raise EngineError(
+                    "the CPU enhancement worker exited unexpectedly while "
+                    f"processing this image{detail}. It has been restarted "
+                    "for the next attempt.")
+            _time.sleep(_CPU_STATUS_POLL_S)
+
+        # Timed out with the process still alive but no status file -- a
+        # hang, not a crash. Kill and respawn rather than leaving a wedged
+        # worker for every future job.
+        with self._lock:
+            self._proc = None
+        try:
+            proc.kill()
+        except OSError:
+            pass
+        raise EngineError(
+            f"the CPU enhancement worker did not finish within {_CPU_JOB_TIMEOUT_S:.0f}s "
+            "and was restarted.")
+
+    def warmup(self) -> None:
+        status_base = REPO_ROOT / "backend" / ".workspace" / "__cpu_warmup"
+        status_base.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            self._send_and_await_status(f"WARMUP\t{status_base}", status_base)
+        except EngineError:
+            pass  # best-effort, matching the GPU path's warmup_engine()
+
+    def run(self, input_path: Path, output_path: Path, on_stage: Optional[OnStage]) -> None:
+        result = self._send_and_await_status(f"{input_path}\t{output_path}", Path(output_path))
+        if not result.get("ok"):
+            raise EngineError(result.get("message") or "CPU enhancement failed")
+        # The child ran the whole pipeline in one call with no mid-pipeline
+        # callback across the process boundary (see cpu_worker.py's
+        # _run_one docstring) -- emit the remaining stages now that success
+        # is confirmed, so the UI still shows real progression rather than
+        # jumping straight from "preparing" to done.
+        if on_stage is not None:
+            for name in _CPU_REMAINING_STAGES:
+                on_stage(name)
+
+
+_CPU_WORKER = CpuWorkerHandle()
+
+
+def enhance_image_cpu_subprocess(
+    input_path: Path,
+    output_path: Path,
+    on_stage: Optional[OnStage] = None,
+) -> None:
+    """Runs one image through backend/cpu_worker.py's persistent child
+    process instead of in-process.
+
+    Why: the packaged EXE's CPU path crashed intermittently
+    (STATUS_STACK_BUFFER_OVERRUN / Windows Event Log BEX64 -- real memory
+    corruption) with torch imported in the same process as pywebview +
+    JobManager's worker thread + the HTTP server's per-request threads,
+    even after replacing PyTorch's own CPU inference with OpenVINO (see
+    restore_exp/imdn_x4_ov.py). An isolated repro of the exact same
+    torch+cv2+IMDN CPU work, with none of that surrounding thread
+    population, never reproduced the crash across repeated runs -- this
+    function gives every real CPU job that same isolation by construction,
+    regardless of the crash's exact root cause inside torch/oneDNN.
+
+    Errors (including the worker process dying mid-job) are still surfaced
+    precisely as EngineError, exactly like the in-process path -- process
+    isolation is the fix here, not broad exception-swallowing.
+    """
+    def stage(name: str) -> None:
+        if on_stage is not None:
+            on_stage(name)
+
+    stage(STAGE_PREPARING)
+    _CPU_WORKER.run(input_path, output_path, on_stage)

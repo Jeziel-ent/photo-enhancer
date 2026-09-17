@@ -101,6 +101,41 @@ export async function getJobStatus(jobId: string): Promise<JobStatusResponse> {
   return parseJsonResponse<JobStatusResponse>(res);
 }
 
+export type ProcessingDevicePreference = "auto" | "gpu" | "cpu";
+
+export interface SettingsResponse {
+  ok: true;
+  processing_device: ProcessingDevicePreference;
+  /** null briefly right after app launch, before the one-time hardware
+   * resolution in the backend's worker thread has run. */
+  effective_device: "gpu" | "cpu" | null;
+  detected_gpu: string | null;
+  warning: string | null;
+  /** true when the on-disk preference no longer matches what this running
+   * process actually resolved at startup -- CUDA visibility can't be
+   * changed mid-process, so the new choice needs an app restart. */
+  restart_required: boolean;
+}
+
+/** GET /api/settings — current processing-device preference plus what's
+ * actually detected/active in the running backend process. */
+export async function getSettings(): Promise<SettingsResponse> {
+  const res = await fetch("/api/settings");
+  return parseJsonResponse<SettingsResponse>(res);
+}
+
+/** PUT /api/settings — persists a new processing-device preference. */
+export async function updateSettings(
+  processingDevice: ProcessingDevicePreference,
+): Promise<SettingsResponse> {
+  const res = await fetch("/api/settings", {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ processing_device: processingDevice }),
+  });
+  return parseJsonResponse<SettingsResponse>(res);
+}
+
 function filenameFromContentDisposition(header: string | null, fallback: string): string {
   if (!header) return fallback;
   const match = /filename="?([^"]+)"?/i.exec(header);
