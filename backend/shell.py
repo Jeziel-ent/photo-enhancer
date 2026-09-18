@@ -25,6 +25,7 @@ https://developer.microsoft.com/microsoft-edge/webview2/ (the
 
 from __future__ import annotations
 
+import json
 import os
 import shutil
 import subprocess
@@ -61,6 +62,45 @@ class DesktopBridge:
         self._job_manager = job_manager
 
     def save_result(self, job_id: str) -> dict:
+        return self.save_result_as(job_id, "png")
+
+    # Formats the single-image billboard-editor Save dialog offers. ZIP
+    # (batch) jobs never reach this -- they always save via the "png" path
+    # below, which is a byte-identical copy of the zip, same as before this
+    # method existed (see save_result_as's own docstring).
+    _IMAGE_SAVE_FORMATS = {
+        "png": ("PNG image (*.png)", ".png"),
+        "jpg": ("JPEG image (*.jpg)", ".jpg"),
+        "jpeg": ("JPEG image (*.jpeg)", ".jpeg"),
+    }
+
+    def save_result_as(
+        self,
+        job_id: str,
+        image_format: str = "png",
+        billboard_rects: Optional[list] = None,
+    ) -> dict:
+        """Opens the native Save As dialog for a completed job's result.
+
+        ``image_format`` is one of "png"/"jpg"/"jpeg" -- ignored for batch
+        (ZIP) jobs, which always save as-is. For a single-image job whose
+        result is already a PNG (the enhancement engine's only output
+        format -- see image_enhancer/src/enhance.py's save_image), "png"
+        with NO billboard rects copies the file byte-for-byte (unchanged
+        from the original save_result behavior); "jpg"/"jpeg" re-encode it
+        via cv2 at a high quality setting.
+
+        ``billboard_rects`` (the frontend's confirmed BillboardRect list, in
+        display order) is what makes a save leave the byte-identical path:
+        when it's non-empty the rects are composited onto a *copy* of the
+        engine's finished PNG by backend/billboard_overlay.py before writing
+        the chosen destination. The engine's own output file is never
+        touched, no inference runs here, and nothing is rasterized
+        frontend-side -- the rects travel as plain coordinates and OpenCV
+        draws them here at save time. Malformed/out-of-bounds rects are
+        clamped or dropped (see billboard_overlay.clamp_billboard_rects), so
+        a bad payload can never produce a broken save.
+        """
         job = self._job_manager.get_job(job_id)
         if job is None:
             return {"ok": False, "error": "job not found"}
@@ -72,10 +112,27 @@ class DesktopBridge:
             return {"ok": False, "error": "job completed but no result file was found"}
 
         result_path = Path(job.result_path)
-        suggested_name = job.result_filename or result_path.name
+        # pywebview hands over the rect list as actual Python objects; a JSON
+        # string only arrives from a non-bridge caller, but tolerate it rather
+        # than crash on a malformed payload. Anything that isn't a list is
+        # treated as "no billboards" and keeps the byte-identical PNG path.
+        if isinstance(billboard_rects, str):
+            try:
+                billboard_rects = json.loads(billboard_rects)
+            except (ValueError, json.JSONDecodeError):
+                billboard_rects = None
+        if not isinstance(billboard_rects, list):
+            billboard_rects = None
         is_zip = result_path.suffix == ".zip"
+        fmt = image_format if image_format in self._IMAGE_SAVE_FORMATS else "png"
+        suggested_ext = ".zip" if is_zip else self._IMAGE_SAVE_FORMATS[fmt][1]
+        suggested_name = (
+            job.result_filename or result_path.name
+        )
+        if not is_zip:
+            suggested_name = str(Path(suggested_name).with_suffix(suggested_ext))
         file_types = (
-            ("ZIP archive (*.zip)",) if is_zip else ("PNG image (*.png)",)
+            ("ZIP archive (*.zip)",) if is_zip else (self._IMAGE_SAVE_FORMATS[fmt][0],)
         )
 
         import webview  # already verified importable by main() before this bridge exists
@@ -91,7 +148,92 @@ class DesktopBridge:
         dest_path = destination if isinstance(destination, str) else destination[0]
 
         try:
-            shutil.copyfile(result_path, dest_path)
+            if is_zip or (fmt == "png" and not billboard_rects):
+                shutil.copyfile(result_path, dest_path)
+            else:
+                from .billboard_overlay import composite_result
+
+                ok, error = composite_result(
+                    result_path, dest_path, billboard_rects or [], fmt, quality=95)
+                if not ok:
+                    return {"ok": False, "error": error}
+        except OSError as exc:
+            return {"ok": False, "error": f"could not save file: {exc}"}
+        return {"ok": True, "path": str(dest_path)}
+
+    def save_batch_export(
+        self,
+        job_id: str,
+        image_format: str = "png",
+        include_outlines: bool = True,
+        images: Optional[list] = None,
+    ) -> dict:
+        """Opens the native Save As dialog for a fresh batch export ZIP.
+
+        Mirrors save_result_as's rect-tolerance and error handling, but
+        builds a brand-new ZIP (backend/output_manager.build_batch_export)
+        from each image's OWN rects rather than copying the job's existing
+        result.zip — that raw zip never has overlays and only exists in one
+        format. ``images`` is a list of {"result_id": str, "rects": [...]}
+        dicts, one per image the gallery should export; a stringified JSON
+        payload is tolerated the same way billboard_rects is elsewhere.
+        """
+        job = self._job_manager.get_job(job_id)
+        if job is None:
+            return {"ok": False, "error": "job not found"}
+
+        status = job.to_status_dict()
+        if status["status"] != jobs.STATUS_COMPLETED:
+            return {"ok": False, "error": f"job is not completed (status: {status['status']})"}
+
+        if isinstance(images, str):
+            try:
+                images = json.loads(images)
+            except (ValueError, json.JSONDecodeError):
+                images = None
+        if not isinstance(images, list) or not images:
+            return {"ok": False, "error": "no images to export"}
+
+        fmt = image_format if image_format in self._IMAGE_SAVE_FORMATS else "png"
+        items = []
+        for entry in images:
+            if not isinstance(entry, dict):
+                continue
+            result_id = entry.get("result_id")
+            if not isinstance(result_id, str):
+                continue
+            file_result = job.get_file_result(result_id)
+            if file_result is None:
+                continue
+            rects = entry.get("rects") or []
+            items.append((file_result.original_filename, file_result.output_path, rects))
+        if not items:
+            return {"ok": False, "error": "no matching images to export"}
+
+        from . import workspace
+        from .output_manager import build_batch_export
+
+        try:
+            zip_path = build_batch_export(
+                items, workspace.export_zip_path(job.id), fmt, bool(include_outlines))
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "error": f"could not build the export: {exc}"}
+
+        import webview  # already verified importable by main() before this bridge exists
+
+        window = webview.windows[0]
+        suggested_name = f"enhanced_images_{job.id[:8]}.zip"
+        destination = window.create_file_dialog(
+            webview.SAVE_DIALOG,
+            save_filename=suggested_name,
+            file_types=("ZIP archive (*.zip)",),
+        )
+        if not destination:
+            return {"ok": False, "cancelled": True}
+        dest_path = destination if isinstance(destination, str) else destination[0]
+
+        try:
+            shutil.copyfile(zip_path, dest_path)
         except OSError as exc:
             return {"ok": False, "error": f"could not save file: {exc}"}
         return {"ok": True, "path": str(dest_path)}

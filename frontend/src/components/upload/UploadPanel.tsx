@@ -258,7 +258,7 @@ export function UploadPanel({
         </div>
       ) : null}
 
-      <div className="flex items-center justify-between border-t border-line/70 pt-5">
+      <div className="flex flex-col items-stretch gap-3 border-t border-line/70 pt-5 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
         <p className="text-[13px] text-muted">
           {validFiles.length > 0
             ? `${validFiles.length} image${validFiles.length === 1 ? "" : "s"} selected`
@@ -270,7 +270,7 @@ export function UploadPanel({
           rounded="full"
           disabled={!canStart}
           icon={<IconArrowRight className="h-4 w-4" />}
-          className="flex-row-reverse"
+          className="flex-row-reverse justify-center"
           onClick={() => onStart(validFiles.map((s) => s.file))}
         >
           {submitting ? "Starting…" : "Enhance Images"}

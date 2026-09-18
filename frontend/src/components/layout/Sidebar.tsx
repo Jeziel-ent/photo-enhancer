@@ -19,7 +19,7 @@ function SidebarLink({
       aria-label={label}
       className={({ isActive }) =>
         cn(
-          "flex h-11 w-full items-center gap-2.5 rounded-xl px-4 text-[13.5px] font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand/70",
+          "flex h-10.5 w-full items-center gap-2.5 rounded-xl px-3.5 text-[13px] font-semibold transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand/70",
           isActive
             ? "bg-brand text-white shadow-card"
             : "text-muted hover:bg-ink/[0.05] hover:text-ink",
@@ -36,7 +36,7 @@ function SidebarLink({
 export function Sidebar() {
   return (
     <aside className="relative flex w-52 shrink-0 flex-col overflow-hidden border-r border-line bg-white/80 px-3 pb-0 pt-5">
-      <nav className="flex flex-col gap-1.5" aria-label="Primary">
+      <nav className="flex flex-col gap-2" aria-label="Primary">
         <SidebarLink to="/" label="Home">
           <IconHome className="h-4.5 w-4.5" />
         </SidebarLink>

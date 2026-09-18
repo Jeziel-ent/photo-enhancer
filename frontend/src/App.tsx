@@ -4,19 +4,30 @@ import { AppShell } from "./components/layout/AppShell";
 import { SplashScreen } from "./components/splash/SplashScreen";
 import { JobFailedPanel } from "./components/upload/JobFailedPanel";
 import { JobProgressPanel } from "./components/upload/JobProgressPanel";
-import { JobResultPanel } from "./components/upload/JobResultPanel";
+import { JobResultPanel, type GalleryResult } from "./components/upload/JobResultPanel";
 import { UploadPanel } from "./components/upload/UploadPanel";
 import { RecentPage } from "./components/recent/RecentPage";
 import { SettingsPage } from "./components/settings/SettingsPage";
 import { IconAlertTriangle } from "./components/ui/Icon";
+import { cn } from "./lib/cn";
 import {
   ApiError,
   createJob,
+  downloadIndividualResult,
   downloadResult,
+  exportBatch,
   getJobStatus,
   type JobStatusResponse,
 } from "./lib/api";
-import { isDesktopShell, recordSavedResult, saveResultNative } from "./lib/desktop";
+import {
+  isDesktopShell,
+  recordSavedResult,
+  saveBatchExportNative,
+  saveResultAsNative,
+  type BatchExportImage,
+  type BillboardOverlayRect,
+  type ImageSaveFormat,
+} from "./lib/desktop";
 import { makeThumbnailDataUrl } from "./lib/thumbnail";
 
 const POLL_INTERVAL_MS = 1000;
@@ -51,6 +62,15 @@ function HomePage() {
   const beforeUrlRef = useRef<string | null>(null);
   const afterUrlRef = useRef<string | null>(null);
 
+  // Multi-photo (gallery) jobs only: every uploaded File, in submission
+  // order — needed to build each gallery result's "before" object URL. Each
+  // result's stable `id` (backend/jobs.py's FileResult.result_id) IS its
+  // zero-padded index into this same array, so no separate lookup table is
+  // needed to correlate an enhanced result back to its original upload.
+  const uploadedFilesRef = useRef<File[]>([]);
+  const [galleryResults, setGalleryResults] = useState<GalleryResult[]>([]);
+  const galleryUrlsRef = useRef<string[]>([]);
+
   const clearComparison = () => {
     if (beforeUrlRef.current) URL.revokeObjectURL(beforeUrlRef.current);
     if (afterUrlRef.current) URL.revokeObjectURL(afterUrlRef.current);
@@ -58,6 +78,10 @@ function HomePage() {
     afterUrlRef.current = null;
     resultBlobRef.current = null;
     setComparison(null);
+    for (const url of galleryUrlsRef.current) URL.revokeObjectURL(url);
+    galleryUrlsRef.current = [];
+    uploadedFilesRef.current = [];
+    setGalleryResults([]);
   };
 
   useEffect(() => clearComparison, []);
@@ -89,6 +113,7 @@ function HomePage() {
     setCreating(true);
     setCreateError(null);
     clearComparison();
+    uploadedFilesRef.current = files;
     if (files.length === 1) {
       beforeUrlRef.current = URL.createObjectURL(files[0]);
     }
@@ -105,6 +130,7 @@ function HomePage() {
         completed_count: 0,
         total_count: created.total_count,
         errors: [],
+        results: [],
       });
     } catch (err) {
       setCreateError(messageFor(err, "Could not start the job."));
@@ -139,6 +165,41 @@ function HomePage() {
     };
   }, [job?.job_id, job?.status, job?.total_count]);
 
+  // Once a multi-file (gallery) job completes, fetch every succeeded file's
+  // own enhanced preview (never the ZIP, never re-run enhancement) and pair
+  // it with its original upload for the before/after slider. Runs once per
+  // job — already-populated results are left alone even as this effect
+  // re-fires on later status polls.
+  useEffect(() => {
+    if (!job || job.status !== "completed" || job.total_count <= 1) return;
+    if (galleryResults.length > 0 || job.results.length === 0) return;
+    let cancelled = false;
+
+    (async () => {
+      const entries = await Promise.all(
+        job.results.map(async (entry) => {
+          const file = uploadedFilesRef.current[Number.parseInt(entry.id, 10)];
+          if (!file) return null;
+          try {
+            const result = await downloadIndividualResult(job.job_id, entry.id);
+            const afterUrl = URL.createObjectURL(result.blob);
+            const beforeUrl = URL.createObjectURL(file);
+            galleryUrlsRef.current.push(afterUrl, beforeUrl);
+            return { id: entry.id, filename: entry.filename, beforeUrl, afterUrl } as GalleryResult;
+          } catch {
+            return null;
+          }
+        }),
+      );
+      if (cancelled) return;
+      setGalleryResults(entries.filter((e): e is GalleryResult => e !== null));
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [job?.job_id, job?.status, job?.total_count, job?.results, galleryResults.length]);
+
   const triggerBrowserDownload = (blob: Blob, filename: string) => {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -150,29 +211,42 @@ function HomePage() {
     URL.revokeObjectURL(url);
   };
 
-  const handleDownload = async () => {
+  // Single-photo results only — batch (gallery) export goes through
+  // handleExportBatch instead (see JobResultPanel, which never calls this
+  // for a multi-photo job).
+  const handleDownload = async (
+    format: ImageSaveFormat = "png",
+    billboardRects: BillboardOverlayRect[] = [],
+  ) => {
     if (!job) return;
     setDownloading(true);
     setDownloadError(null);
     try {
       if (isDesktopShell()) {
-        const outcome = await saveResultNative(job.job_id);
+        const outcome = await saveResultAsNative(job.job_id, format, billboardRects);
         if (!outcome.ok && "error" in outcome) {
           setDownloadError(outcome.error);
           return;
         }
         if (outcome.ok) {
-          const isBatch = job.total_count > 1;
-          const thumbnailDataUrl = !isBatch && resultBlobRef.current
+          const thumbnailDataUrl = resultBlobRef.current
             ? await makeThumbnailDataUrl(resultBlobRef.current.blob)
             : null;
           void recordSavedResult({
             path: outcome.path,
-            kind: isBatch ? "zip" : "image",
-            file_count: isBatch ? job.total_count - job.errors.length : undefined,
+            kind: "image",
             thumbnail_data_url: thumbnailDataUrl ?? undefined,
           });
         }
+        return;
+      }
+      // Browser path: when billboard rects are confirmed, re-fetch from the
+      // backend so the server can composite them onto the PNG (the image
+      // never crosses the frontend as base64). Without rects the raw cached
+      // blob is reused for a fast, zero-re-fetch save.
+      if (billboardRects.length > 0) {
+        const result = await downloadResult(job.job_id, billboardRects);
+        triggerBrowserDownload(result.blob, result.filename);
         return;
       }
       if (resultBlobRef.current) {
@@ -183,6 +257,43 @@ function HomePage() {
       triggerBrowserDownload(result.blob, result.filename);
     } catch (err) {
       setDownloadError(messageFor(err, "Could not save the result."));
+    } finally {
+      setDownloading(false);
+    }
+  };
+
+  const handleExportBatch = async (
+    format: ImageSaveFormat,
+    includeOutlines: boolean,
+    images: { resultId: string; rects: BillboardOverlayRect[] }[],
+  ) => {
+    if (!job) return;
+    setDownloading(true);
+    setDownloadError(null);
+    const payload: BatchExportImage[] = images.map((i) => ({
+      result_id: i.resultId,
+      rects: i.rects,
+    }));
+    try {
+      if (isDesktopShell()) {
+        const outcome = await saveBatchExportNative(job.job_id, format, includeOutlines, payload);
+        if (!outcome.ok && "error" in outcome) {
+          setDownloadError(outcome.error);
+          return;
+        }
+        if (outcome.ok) {
+          void recordSavedResult({
+            path: outcome.path,
+            kind: "zip",
+            file_count: job.total_count - job.errors.length,
+          });
+        }
+        return;
+      }
+      const result = await exportBatch(job.job_id, format, includeOutlines, payload);
+      triggerBrowserDownload(result.blob, result.filename);
+    } catch (err) {
+      setDownloadError(messageFor(err, "Could not export the batch."));
     } finally {
       setDownloading(false);
     }
@@ -217,13 +328,20 @@ function HomePage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
+    <div
+      className={cn(
+        "mx-auto w-full space-y-4",
+        job.status === "completed" ? "max-w-[1360px]" : "max-w-2xl",
+      )}
+    >
       {createError ? <ErrorBanner message={createError} /> : null}
       {job.status === "completed" ? (
         <JobResultPanel
           status={job}
           comparison={comparison}
+          results={galleryResults}
           onDownload={handleDownload}
+          onExportBatch={handleExportBatch}
           downloading={downloading}
           downloadError={downloadError}
           onReset={handleReset}

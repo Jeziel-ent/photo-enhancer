@@ -56,11 +56,10 @@ if (-not (Test-Path "$RepoRoot\dist\Adinn4KImageEnhancer\Adinn4KImageEnhancer.ex
 
 Write-Host "== 3/3 Compiling the Inno Setup installer ==" -ForegroundColor Cyan
 $iscc = Find-Iscc
-New-Item -ItemType Directory -Force -Path "$RepoRoot\packaging\output" | Out-Null
 & $iscc "$RepoRoot\packaging\inno\adinn_setup.iss"
 if ($LASTEXITCODE -ne 0) { throw "Inno Setup compile failed" }
 
 Write-Host "`nDone. Installer output:" -ForegroundColor Green
-Get-ChildItem "$RepoRoot\packaging\output\*.exe" | ForEach-Object {
+Get-ChildItem "$RepoRoot\dist\Adinn4KImageEnhancer-Setup-*.exe" | ForEach-Object {
     "{0}  ({1:N1} MB)" -f $_.FullName, ($_.Length / 1MB)
 }

@@ -11,7 +11,7 @@
 
 #define AppName "Adinn 4K Image Enhancer"
 #define AppVersion "0.1.0"
-#define AppPublisher "Adinn"
+#define AppPublisher "Adinn Advertising Services Ltd."
 #define AppExeName "Adinn4KImageEnhancer.exe"
 #define AppMutexName "Adinn4KImageEnhancerRunning"
 #define DistDir "..\..\dist\Adinn4KImageEnhancer"
@@ -31,7 +31,8 @@ VersionInfoDescription={#AppName} Setup
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
-OutputDir=..\output
+; Final installer lands next to the PyInstaller dist\ output it wraps.
+OutputDir=..\..\dist
 OutputBaseFilename=Adinn4KImageEnhancer-Setup-{#AppVersion}
 SetupIconFile={#AssetsDir}\adinn.ico
 UninstallDisplayIcon={app}\{#AppExeName}
@@ -70,7 +71,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 ; the class of bug this was) or add another placeholder mechanism, this uses
 ; a plain ASCII separator, matching this same file's existing "[OK]"/"[!]"
 ; markers on the System Requirements page for the same reliability reason.
+english.WelcomeLabel1=Welcome to Adinn 4K Image Enhancer Setup
 english.TaglineText=Enhance - Denoise - Upscale
+english.WelcomeDescription=Professional local 4K image enhancement for Windows -- GPU-accelerated when supported, with automatic CPU fallback. All processing runs on this PC; no external AI API required.
 english.ComponentAppDesc=The application itself (UI, local processing engine, runtime files).
 english.ComponentModelsDesc=Local AI models used for 4K enhancement (denoise, super-resolution, detail recovery). Required -- the app cannot enhance images without these.
 english.TaskDesktopDesc=Create a &desktop shortcut
@@ -244,10 +247,12 @@ begin
   SysReqMemo.Font.Name := 'Segoe UI';
   SysReqMemo.Font.Size := 9;
 
-  { Tagline on the welcome page, under the default title/subtitle. }
+  { Tagline + one-line description on the welcome page, under the default
+    title/subtitle -- short on purpose (no marketing copy, no extra
+    graphics/animations beyond the existing wizard artwork below). }
   if WizardForm.WelcomeLabel2 <> nil then
     WizardForm.WelcomeLabel2.Caption :=
-      CustomMessage('TaglineText') + #13#10#13#10 + WizardForm.WelcomeLabel2.Caption;
+      CustomMessage('TaglineText') + #13#10 + CustomMessage('WelcomeDescription') + #13#10#13#10 + WizardForm.WelcomeLabel2.Caption;
 end;
 
 procedure CurPageChanged(CurPageID: Integer);

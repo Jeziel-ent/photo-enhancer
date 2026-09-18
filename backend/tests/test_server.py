@@ -13,11 +13,15 @@ import threading
 import time
 import unittest
 import urllib.error
+import urllib.parse
 import urllib.request
 import zipfile
 from io import BytesIO
 from pathlib import Path
 from unittest import mock
+
+import cv2
+import numpy as np
 
 from backend import jobs as jobs_module
 from backend.jobs import JobManager
@@ -215,8 +219,172 @@ class ApiServerTestCase(unittest.TestCase):
             httpd.server_close()
             thread.join(timeout=5)
 
+    def test_get_result_with_billboard_composites_rectangles_onto_png(self):
+        status, body, _ = self._post_multipart(
+            "/api/jobs", [("files", "photo.jpg", "image/jpeg", b"\xff\xd8raw")])
+        self.assertEqual(status, 200)
+        job_id = json.loads(body)["job_id"]
+        self._wait_for_status(job_id, {"completed"})
+
+        # Override the fake-process result with a real decodeable PNG so the
+        # compositing route has actual pixels to work with.
+        real_png = Path(self._tmp.name) / "real.png"
+        cv2.imwrite(str(real_png), np.full((216, 384, 3), 100, np.uint8))
+        job = self.manager.get_job(job_id)
+        job.result_path = real_png
+        job.result_filename = "photo_enhanced.png"
+
+        rects = [{"x": 40, "y": 30, "width": 120, "height": 80}]
+        query = urllib.parse.quote(json.dumps(rects))
+        status, body, headers = self._get(f"/api/jobs/{job_id}/result?billboard={query}")
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["Content-Type"], "image/png")
+        decoded = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
+        self.assertIsNotNone(decoded)
+        self.assertEqual(decoded.shape[:2], (216, 384))
+        region = decoded[30:38, 40:160]
+        red = (region[:, :, 2] > 180) & (region[:, :, 1] < 90) & (region[:, :, 0] < 90)
+        self.assertGreater(int(red.sum()), 0)
+
+    def test_get_result_with_invalid_billboard_query_falls_back_to_raw_png(self):
+        status, body, _ = self._post_multipart(
+            "/api/jobs", [("files", "photo.jpg", "image/jpeg", b"\xff\xd8raw")])
+        self.assertEqual(status, 200)
+        job_id = json.loads(body)["job_id"]
+        self._wait_for_status(job_id, {"completed"})
+
+        query = urllib.parse.quote("not-json")
+        status, body, headers = self._get(
+            f"/api/jobs/{job_id}/result?billboard={query}")
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["Content-Type"], "image/png")
+        self.assertEqual(body, b"PNGDATA:\xff\xd8raw")
+
     def test_unknown_route_is_404(self):
         status, _, _ = self._get("/api/nope")
+        self.assertEqual(status, 404)
+
+    # -------------------------------------------------------- gallery/batch
+    def _post_json(self, path, payload):
+        body = json.dumps(payload).encode("utf-8")
+        req = urllib.request.Request(
+            self.base_url + path, data=body, method="POST",
+            headers={"Content-Type": "application/json"})
+        try:
+            with urllib.request.urlopen(req) as resp:
+                return resp.status, resp.read(), dict(resp.headers)
+        except urllib.error.HTTPError as exc:
+            return exc.code, exc.read(), dict(exc.headers)
+
+    def _create_batch_job(self, files):
+        status, body, _ = self._post_multipart("/api/jobs", files)
+        self.assertEqual(status, 200)
+        job_id = json.loads(body)["job_id"]
+        final = self._wait_for_status(job_id, {"completed", "failed"})
+        self.assertEqual(final["status"], "completed")
+        return job_id, final
+
+    def test_status_includes_per_file_results_in_upload_order(self):
+        job_id, final = self._create_batch_job([
+            ("files", "one.jpg", "image/jpeg", b"111"),
+            ("files", "two.png", "image/png", b"222"),
+        ])
+        self.assertEqual(
+            final["results"],
+            [{"id": "000", "filename": "one.jpg"}, {"id": "001", "filename": "two.png"}],
+        )
+
+    def test_status_results_excludes_failed_files(self):
+        job_id, final = self._create_batch_job([
+            ("files", "good.jpg", "image/jpeg", b"111"),
+            ("files", "bad.jpg", "image/jpeg", b"222"),
+        ])
+        self.assertEqual(final["results"], [{"id": "000", "filename": "good.jpg"}])
+
+    def test_get_individual_result_returns_that_files_own_png(self):
+        job_id, _ = self._create_batch_job([
+            ("files", "one.jpg", "image/jpeg", b"111"),
+            ("files", "two.png", "image/png", b"222"),
+        ])
+        status, body, headers = self._get(f"/api/jobs/{job_id}/results/001")
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["Content-Type"], "image/png")
+        self.assertEqual(body, b"PNGDATA:222")
+
+    def test_get_individual_result_unknown_id_is_404(self):
+        job_id, _ = self._create_batch_job([
+            ("files", "one.jpg", "image/jpeg", b"111"),
+        ])
+        status, _, _ = self._get(f"/api/jobs/{job_id}/results/999")
+        self.assertEqual(status, 404)
+
+    def test_get_individual_result_unknown_job_is_404(self):
+        status, _, _ = self._get("/api/jobs/does-not-exist/results/000")
+        self.assertEqual(status, 404)
+
+    def test_export_batch_returns_zip_with_common_format(self):
+        job_id, _ = self._create_batch_job([
+            ("files", "one.jpg", "image/jpeg", b"111"),
+            ("files", "two.png", "image/png", b"222"),
+        ])
+        # Swap in real decodeable PNGs so the export route has real pixels.
+        job = self.manager.get_job(job_id)
+        for f in job.files:
+            real_png = Path(self._tmp.name) / f"{f.result_id}.png"
+            cv2.imwrite(str(real_png), np.full((216, 384, 3), 100, np.uint8))
+            f.output_path = real_png
+
+        status, body, headers = self._post_json(f"/api/jobs/{job_id}/export", {
+            "format": "jpg",
+            "include_outlines": True,
+            "images": [
+                {"result_id": "000", "rects": [{"x": 10, "y": 10, "width": 50, "height": 40}]},
+                {"result_id": "001", "rects": []},
+            ],
+        })
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["Content-Type"], "application/zip")
+        with zipfile.ZipFile(BytesIO(body)) as zf:
+            self.assertEqual(
+                sorted(zf.namelist()), ["one_enhanced.jpg", "two_enhanced.jpg"])
+            one = cv2.imdecode(
+                np.frombuffer(zf.read("one_enhanced.jpg"), np.uint8), cv2.IMREAD_COLOR)
+            two = cv2.imdecode(
+                np.frombuffer(zf.read("two_enhanced.jpg"), np.uint8), cv2.IMREAD_COLOR)
+            one_red = (one[:, :, 2] > 180) & (one[:, :, 1] < 90) & (one[:, :, 0] < 90)
+            two_red = (two[:, :, 2] > 180) & (two[:, :, 1] < 90) & (two[:, :, 0] < 90)
+            self.assertGreater(int(one_red.sum()), 0)
+            self.assertEqual(int(two_red.sum()), 0)
+
+    def test_export_batch_invalid_format_is_400(self):
+        job_id, _ = self._create_batch_job([
+            ("files", "one.jpg", "image/jpeg", b"111"),
+        ])
+        status, body, _ = self._post_json(f"/api/jobs/{job_id}/export", {
+            "format": "bmp",
+            "include_outlines": False,
+            "images": [{"result_id": "000", "rects": []}],
+        })
+        self.assertEqual(status, 400)
+        self.assertFalse(json.loads(body)["ok"])
+
+    def test_export_batch_unknown_result_id_is_404(self):
+        job_id, _ = self._create_batch_job([
+            ("files", "one.jpg", "image/jpeg", b"111"),
+        ])
+        status, _, _ = self._post_json(f"/api/jobs/{job_id}/export", {
+            "format": "png",
+            "include_outlines": False,
+            "images": [{"result_id": "999", "rects": []}],
+        })
+        self.assertEqual(status, 404)
+
+    def test_export_batch_unknown_job_is_404(self):
+        status, _, _ = self._post_json("/api/jobs/does-not-exist/export", {
+            "format": "png",
+            "include_outlines": False,
+            "images": [{"result_id": "000", "rects": []}],
+        })
         self.assertEqual(status, 404)
 
 

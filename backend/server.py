@@ -11,7 +11,23 @@ Endpoints (all JSON except the result-download route):
                                     completed_count/total_count/errors
     GET  /api/jobs/<job_id>/result  the enhanced image (1 input), or a ZIP
                                     of every successfully enhanced image
-                                    (>1 input)
+                                    (>1 input). An optional
+                                    ?billboard=<url-encoded JSON array> query
+                                    composites confirmed editor rects onto a
+                                    copy of a single-image PNG result before
+                                    the download (see billboard_overlay.py;
+                                    ZIP stays as-is)
+    GET  /api/jobs/<job_id>/results/<result_id>
+                                    one image's own clean enhanced PNG from a
+                                    multi-file (gallery) job — never the ZIP,
+                                    never another file's image. Powers the
+                                    gallery's main preview and thumbnails.
+    POST /api/jobs/<job_id>/export  batch export: one ZIP built fresh from a
+                                    JSON body {format, include_outlines,
+                                    images: [{result_id, rects}]} — one
+                                    COMMON format for every image, each
+                                    image getting only its own rects burned
+                                    in (see output_manager.build_batch_export)
     GET  /api/settings              current processing-device preference +
                                     what's actually detected/active
     PUT  /api/settings              persist a new processing-device
@@ -42,7 +58,7 @@ import traceback
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Optional
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
 from . import engine_adapter, settings
 from .device import VALID_PREFERENCES
@@ -124,6 +140,22 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         self._write_file_response(path, mime, disposition=f'attachment; filename="{download_name}"')
 
+    def _send_bytes_response(
+        self,
+        status: int,
+        data: bytes,
+        mime: str,
+        disposition: Optional[str] = None,
+    ) -> None:
+        self.send_response(status)
+        self.send_header("Content-Type", mime)
+        self.send_header("Content-Length", str(len(data)))
+        if disposition:
+            self.send_header("Content-Disposition", disposition)
+        self._cors()
+        self.end_headers()
+        self.wfile.write(data)
+
     def _job_manager(self) -> JobManager:
         return self.server.job_manager  # type: ignore[attr-defined]
 
@@ -173,7 +205,12 @@ class ApiHandler(BaseHTTPRequestHandler):
 
         m = re.fullmatch(r"/api/jobs/([^/]+)/result", path)
         if m:
-            self._handle_get_result(m.group(1))
+            self._handle_get_result(m.group(1), parse_qs(urlparse(self.path).query))
+            return
+
+        m = re.fullmatch(r"/api/jobs/([^/]+)/results/([^/]+)", path)
+        if m:
+            self._handle_get_individual_result(m.group(1), m.group(2))
             return
 
         m = re.fullmatch(r"/api/jobs/([^/]+)", path)
@@ -215,7 +252,7 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
         self._send_json(200, {"ok": True, **job.to_status_dict()})
 
-    def _handle_get_result(self, job_id: str) -> None:
+    def _handle_get_result(self, job_id: str, query: Optional[dict] = None) -> None:
         job = self._job_manager().get_job(job_id)
         if job is None:
             self._send_error_json(404, "job not found")
@@ -229,27 +266,147 @@ class ApiHandler(BaseHTTPRequestHandler):
             self._send_error_json(500, "job completed but no result file was found")
             return
         result_path = Path(job.result_path)
-        mime = "application/zip" if result_path.suffix == ".zip" else "image/png"
-        self._send_file(result_path, mime, job.result_filename or result_path.name)
+        if result_path.suffix == ".zip":
+            self._send_file(result_path, "application/zip", job.result_filename or result_path.name)
+            return
+
+        billboard_rects = self._parse_billboard_query(query or {})
+        if billboard_rects:
+            # Browser-download path: composite the rects backend-side so the
+            # image never crosses the frontend. Only a PNG is ever produced
+            # here (single-image results are PNG); the ZIP route returned above.
+            try:
+                from .billboard_overlay import compose_png_bytes
+
+                png_data = compose_png_bytes(result_path, billboard_rects)
+            except Exception as exc:  # noqa: BLE001 -- any decode/encode failure surfaces as a 500
+                self._send_error_json(500, f"could not render the board overlay: {exc}")
+                return
+            self._send_bytes_response(
+                200, png_data, "image/png",
+                disposition=f'attachment; filename="{job.result_filename or result_path.name}"')
+            return
+
+        self._send_file(result_path, "image/png", job.result_filename or result_path.name)
+
+    def _handle_get_individual_result(self, job_id: str, result_id: str) -> None:
+        job = self._job_manager().get_job(job_id)
+        if job is None:
+            self._send_error_json(404, "job not found")
+            return
+        status_dict = job.to_status_dict()
+        if status_dict["status"] != STATUS_COMPLETED:
+            self._send_error_json(
+                409, f"job is not completed (status: {status_dict['status']})")
+            return
+        file_result = job.get_file_result(result_id)
+        if file_result is None or not Path(file_result.output_path).is_file():
+            self._send_error_json(404, "result not found for that image")
+            return
+        self._write_file_response(Path(file_result.output_path), "image/png")
+
+    def _parse_billboard_query(self, query: dict) -> Optional[list]:
+        """Extracts an optional ``?billboard=<url-encoded JSON array>`` query
+        param. Returns None (no overlay) for a missing/malformed payload and
+        a raw list for well-formed ones; actual clamping happens downstream in
+        billboard_overlay.clamp_billboard_rects."""
+        raw = (query or {}).get("billboard")
+        if not raw or not raw[0]:
+            return None
+        try:
+            value = json.loads(raw[0])
+        except (ValueError, json.JSONDecodeError):
+            return None
+        return value if isinstance(value, list) else None
 
     def do_POST(self) -> None:
-        if urlparse(self.path).path != "/api/jobs":
-            self._send_error_json(404, "not found")
+        path = urlparse(self.path).path
+        if path == "/api/jobs":
+            try:
+                job = self._handle_create_job()
+            except ApiError as exc:
+                self._send_error_json(exc.status, str(exc))
+            except Exception as exc:  # noqa: BLE001
+                traceback.print_exc(file=sys.stderr)
+                self._send_error_json(500, f"unexpected server error: {exc}")
+            else:
+                self._send_json(200, {
+                    "ok": True,
+                    "job_id": job.id,
+                    "status": job.status,
+                    "total_count": job.total_count,
+                })
             return
+
+        m = re.fullmatch(r"/api/jobs/([^/]+)/export", path)
+        if m:
+            try:
+                self._handle_export(m.group(1))
+            except ApiError as exc:
+                self._send_error_json(exc.status, str(exc))
+            except Exception as exc:  # noqa: BLE001
+                traceback.print_exc(file=sys.stderr)
+                self._send_error_json(500, f"unexpected server error: {exc}")
+            return
+
+        self._send_error_json(404, "not found")
+
+    def _read_json_body(self) -> dict:
         try:
-            job = self._handle_create_job()
-        except ApiError as exc:
-            self._send_error_json(exc.status, str(exc))
+            length = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            raise ApiError("invalid Content-Length") from None
+        body = self.rfile.read(length) if length > 0 else b"{}"
+        try:
+            payload = json.loads(body or b"{}")
+        except (ValueError, json.JSONDecodeError):
+            raise ApiError("invalid JSON body") from None
+        if not isinstance(payload, dict):
+            raise ApiError("invalid JSON body")
+        return payload
+
+    def _handle_export(self, job_id: str) -> None:
+        job = self._job_manager().get_job(job_id)
+        if job is None:
+            raise ApiError("job not found", 404)
+        status_dict = job.to_status_dict()
+        if status_dict["status"] != STATUS_COMPLETED:
+            raise ApiError(
+                f"job is not completed (status: {status_dict['status']})", 409)
+
+        payload = self._read_json_body()
+        image_format = payload.get("format")
+        if image_format not in ("png", "jpg", "jpeg"):
+            raise ApiError("format must be one of 'png', 'jpg', 'jpeg'")
+        include_outlines = bool(payload.get("include_outlines"))
+        images = payload.get("images")
+        if not isinstance(images, list) or not images:
+            raise ApiError("images must be a non-empty list")
+
+        items = []
+        for entry in images:
+            if not isinstance(entry, dict):
+                raise ApiError("each image entry must be an object")
+            result_id = entry.get("result_id")
+            if not isinstance(result_id, str):
+                raise ApiError("each image entry needs a result_id")
+            file_result = job.get_file_result(result_id)
+            if file_result is None:
+                raise ApiError(f"unknown result_id: {result_id!r}", 404)
+            rects = entry.get("rects") or []
+            items.append((file_result.original_filename, file_result.output_path, rects))
+
+        from . import workspace
+        from .output_manager import build_batch_export
+
+        try:
+            zip_path = build_batch_export(
+                items, workspace.export_zip_path(job.id), image_format, include_outlines)
         except Exception as exc:  # noqa: BLE001
-            traceback.print_exc(file=sys.stderr)
-            self._send_error_json(500, f"unexpected server error: {exc}")
-        else:
-            self._send_json(200, {
-                "ok": True,
-                "job_id": job.id,
-                "status": job.status,
-                "total_count": job.total_count,
-            })
+            self._send_error_json(500, f"could not build the export: {exc}")
+            return
+
+        self._send_file(zip_path, "application/zip", f"enhanced_images_{job.id[:8]}.zip")
 
     def _handle_create_job(self):
         content_type = self.headers.get("Content-Type", "")

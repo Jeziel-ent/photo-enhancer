@@ -9,6 +9,8 @@ from __future__ import annotations
 import zipfile
 from pathlib import Path
 
+_EXPORT_EXTENSIONS = {"png": ".png", "jpg": ".jpg", "jpeg": ".jpeg"}
+
 
 def build_result(
     succeeded: list[tuple[str, Path]],
@@ -30,22 +32,54 @@ def build_result(
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         used_names: set[str] = set()
         for original_name, enhanced_path in succeeded:
-            arcname = _unique_arcname(original_name, enhanced_path, used_names)
+            stem = Path(original_name).stem or enhanced_path.stem
+            arcname = _unique_arcname(stem, enhanced_path.suffix, used_names)
             zf.write(enhanced_path, arcname=arcname)
     return zip_path
 
 
-def _unique_arcname(original_filename: str, enhanced_path: Path, used_names: set[str]) -> str:
-    stem = Path(original_filename).stem or enhanced_path.stem
-    candidate = f"{stem}_enhanced{enhanced_path.suffix}"
+def build_batch_export(
+    items: list[tuple[str, Path, list]],
+    zip_path: Path,
+    image_format: str,
+    include_outlines: bool,
+) -> Path:
+    """Builds the "Save ZIP" batch export: every image is re-encoded to one
+    COMMON ``image_format`` ("png"/"jpg"/"jpeg"), and gets ONLY its own
+    board rectangles burned in (never another image's) — and only when
+    ``include_outlines`` is on. The original per-file engine outputs are
+    never modified; this always writes a fresh zip.
+
+    ``items`` is ``(original_filename, enhanced_path, rects)`` per image, in
+    the order they should appear in the zip. Raises ValueError if empty.
+    """
+    if not items:
+        raise ValueError("no images to export")
+    from . import billboard_overlay  # local import: keeps cv2 off jobs.py's import path
+
+    zip_path.parent.mkdir(parents=True, exist_ok=True)
+    ext = _EXPORT_EXTENSIONS.get(image_format, ".png")
+    with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
+        used_names: set[str] = set()
+        for original_name, enhanced_path, rects in items:
+            data = billboard_overlay.compose_bytes(
+                enhanced_path, rects if include_outlines else [], image_format)
+            stem = Path(original_name).stem or enhanced_path.stem
+            arcname = _unique_arcname(stem, ext, used_names)
+            zf.writestr(arcname, data)
+    return zip_path
+
+
+def _unique_arcname(stem: str, suffix: str, used_names: set[str]) -> str:
+    candidate = f"{stem}_enhanced{suffix}"
     if candidate not in used_names:
         used_names.add(candidate)
         return candidate
     # Two uploads shared a filename stem (e.g. two "photo.jpg" from different
     # folders) — disambiguate rather than overwrite one inside the zip.
     n = 2
-    while f"{stem}_enhanced_{n}{enhanced_path.suffix}" in used_names:
+    while f"{stem}_enhanced_{n}{suffix}" in used_names:
         n += 1
-    candidate = f"{stem}_enhanced_{n}{enhanced_path.suffix}"
+    candidate = f"{stem}_enhanced_{n}{suffix}"
     used_names.add(candidate)
     return candidate

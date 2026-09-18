@@ -55,6 +55,7 @@ _STAGE_FRACTION = {
 class FileResult:
     original_filename: str
     input_path: Path
+    result_id: str = ""
     output_path: Optional[Path] = None
     error: Optional[str] = None
 
@@ -77,6 +78,16 @@ class Job:
     def total_count(self) -> int:
         return len(self.files)
 
+    def get_file_result(self, result_id: str) -> Optional["FileResult"]:
+        """Looks up one successfully enhanced file by its stable result id
+        (see create_job) — used by the individual-result and batch-export
+        routes. Returns None for an unknown id or one that hasn't (or
+        didn't) produce an output file."""
+        for f in self.files:
+            if f.result_id == result_id and f.output_path is not None:
+                return f
+        return None
+
     def _current_file_fraction(self) -> float:
         if self.status != STATUS_PROCESSING or self.current_stage is None:
             return 0.0
@@ -94,6 +105,17 @@ class Job:
             if f.error
         ]
 
+    def _results(self) -> list[dict]:
+        """One entry per successfully enhanced file, in upload order — the
+        stable per-file identifier (`id`, == its zero-padded upload index)
+        the frontend gallery uses to fetch that file's own preview/export
+        independently of the others."""
+        return [
+            {"id": f.result_id, "filename": f.original_filename}
+            for f in self.files
+            if f.output_path is not None
+        ]
+
     def to_status_dict(self) -> dict:
         """A consistent snapshot of this job's state, safe to read while the
         worker thread is concurrently mutating it."""
@@ -108,6 +130,7 @@ class Job:
                 "completed_count": self.completed_count,
                 "total_count": self.total_count,
                 "errors": self._errors(),
+                "results": self._results(),
             }
 
 
@@ -167,7 +190,11 @@ class JobManager:
             safe_name = Path(original_filename).name or f"file_{index}"
             input_path = in_dir / f"{index:03d}_{safe_name}"
             input_path.write_bytes(data)
-            files.append(FileResult(original_filename=original_filename, input_path=input_path))
+            files.append(FileResult(
+                original_filename=original_filename,
+                input_path=input_path,
+                result_id=f"{index:03d}",
+            ))
 
         job = Job(id=job_id, files=files)
         with self._jobs_lock:

@@ -116,6 +116,42 @@ class JobManagerTestCase(unittest.TestCase):
         self.assertEqual(len(status["errors"]), 2)
         self.assertIsNone(job.result_path)
 
+    def test_status_results_list_ids_and_filenames_in_upload_order(self):
+        def fake_process(input_path, output_path):
+            output_path.write_bytes(b"ok")
+
+        manager = JobManager(process_fn=fake_process)
+        job = manager.create_job([("a.jpg", b"1"), ("b.jpg", b"2")])
+        job = self._wait_done(manager, job.id)
+        self.assertEqual(
+            job.to_status_dict()["results"],
+            [{"id": "000", "filename": "a.jpg"}, {"id": "001", "filename": "b.jpg"}],
+        )
+
+    def test_status_results_excludes_failed_files(self):
+        def fake_process(input_path, output_path):
+            if "bad" in input_path.name:
+                raise RuntimeError("nope")
+            output_path.write_bytes(b"ok")
+
+        manager = JobManager(process_fn=fake_process)
+        job = manager.create_job([("good.jpg", b"1"), ("bad.jpg", b"2")])
+        job = self._wait_done(manager, job.id)
+        self.assertEqual(
+            job.to_status_dict()["results"], [{"id": "000", "filename": "good.jpg"}])
+
+    def test_get_file_result_looks_up_by_result_id(self):
+        def fake_process(input_path, output_path):
+            output_path.write_bytes(b"ok")
+
+        manager = JobManager(process_fn=fake_process)
+        job = manager.create_job([("a.jpg", b"1"), ("b.jpg", b"2")])
+        job = self._wait_done(manager, job.id)
+        found = job.get_file_result("001")
+        self.assertIsNotNone(found)
+        self.assertEqual(found.original_filename, "b.jpg")
+        self.assertIsNone(job.get_file_result("999"))
+
     def test_unknown_job_id_returns_none(self):
         manager = JobManager(process_fn=lambda i, o: None)
         self.assertIsNone(manager.get_job("does-not-exist"))

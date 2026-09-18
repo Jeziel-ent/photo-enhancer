@@ -5,18 +5,15 @@ import { IconChevronLeft, IconChevronRight } from "../ui/Icon";
  * Real before/after comparison slider for a completed job: `beforeSrc` is
  * the actual uploaded source image, `afterSrc` is the actual generated 4K
  * result — both object URLs the caller owns and revokes. No demo/decorative
- * imagery.
+ * imagery. The caller overlays the Before / After · 4K badges via its own
+ * layout; this component renders only the draggable split.
  */
 export function CompareSlider({
   beforeSrc,
   afterSrc,
-  beforeLabel = "Before",
-  afterLabel = "4K After",
 }: {
   beforeSrc: string;
   afterSrc: string;
-  beforeLabel?: string;
-  afterLabel?: string;
 }) {
   const [position, setPosition] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -48,7 +45,7 @@ export function CompareSlider({
   return (
     <div
       ref={containerRef}
-      className="relative aspect-[4/3] w-full touch-none overflow-hidden rounded-xl border border-line select-none"
+      className="relative aspect-[16/9] w-full touch-none overflow-hidden rounded-xl border border-line select-none"
       onPointerDown={(event) => {
         draggingRef.current = true;
         updateFromClientX(event.clientX);
@@ -96,13 +93,6 @@ export function CompareSlider({
         <IconChevronLeft className="h-3.5 w-3.5" />
         <IconChevronRight className="-ml-1.5 h-3.5 w-3.5" />
       </button>
-
-      <span className="pointer-events-none absolute bottom-2 left-2 rounded-full bg-ink/60 px-2.5 py-1 text-[10.5px] font-medium text-white backdrop-blur-sm">
-        {beforeLabel}
-      </span>
-      <span className="pointer-events-none absolute bottom-2 right-2 rounded-full bg-brand px-2.5 py-1 text-[10.5px] font-semibold text-white">
-        {afterLabel}
-      </span>
     </div>
   );
 }

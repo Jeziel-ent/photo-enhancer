@@ -62,8 +62,39 @@ export interface RecentEntriesOk {
 
 export type RecentEntriesResult = RecentEntriesOk | ErrorResult;
 
+export type ImageSaveFormat = "png" | "jpg" | "jpeg";
+
+/** A confirmed billboard rectangle in 3840x2160 image-space coordinates,
+ * passed to the backend so OpenCV can composite it at save time (never
+ * rasterized frontend-side). Matches the shape of BillboardCanvas's
+ * BillboardRect minus its display-only `id`. */
+export interface BillboardOverlayRect {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/** One gallery image's own rects for a native batch export — mirrors the
+ * browser path's api.ts BatchExportImage. */
+export interface BatchExportImage {
+  result_id: string;
+  rects: BillboardOverlayRect[];
+}
+
 interface PywebviewApi {
   save_result(jobId: string): Promise<SaveResultOutcome>;
+  save_result_as(
+    jobId: string,
+    imageFormat: ImageSaveFormat,
+    billboardRects?: BillboardOverlayRect[],
+  ): Promise<SaveResultOutcome>;
+  save_batch_export(
+    jobId: string,
+    imageFormat: ImageSaveFormat,
+    includeOutlines: boolean,
+    images: BatchExportImage[],
+  ): Promise<SaveResultOutcome>;
   record_saved_result(entry: RecordSavedResultInput): Promise<RecentEntriesResult>;
   get_recent_history(): Promise<RecentEntriesResult>;
   open_in_explorer(path: string): Promise<OkOrError>;
@@ -95,6 +126,35 @@ function requireApi(): PywebviewApi {
  */
 export async function saveResultNative(jobId: string): Promise<SaveResultOutcome> {
   return requireApi().save_result(jobId);
+}
+
+/**
+ * Same as saveResultNative, but for a single-image job lets the caller pick
+ * PNG/JPG/JPEG (see backend/shell.py's DesktopBridge.save_result_as — a
+ * batch/ZIP job ignores the format and always saves the zip as-is). Only
+ * call this when isDesktopShell() is true — throws otherwise.
+ */
+export async function saveResultAsNative(
+  jobId: string,
+  format: ImageSaveFormat,
+  billboardRects: BillboardOverlayRect[] = [],
+): Promise<SaveResultOutcome> {
+  return requireApi().save_result_as(jobId, format, billboardRects);
+}
+
+/**
+ * Native "Save As" for a batch export ZIP: one common format + include-
+ * outlines flag for the whole batch, each image carrying only its own
+ * rects (see backend/shell.py's DesktopBridge.save_batch_export). Only call
+ * this when isDesktopShell() is true — throws otherwise.
+ */
+export async function saveBatchExportNative(
+  jobId: string,
+  format: ImageSaveFormat,
+  includeOutlines: boolean,
+  images: BatchExportImage[],
+): Promise<SaveResultOutcome> {
+  return requireApi().save_batch_export(jobId, format, includeOutlines, images);
 }
 
 /** Persists a lightweight record of a result the user just actually saved. */

@@ -24,14 +24,14 @@ function IconButton({
 export function AppHeader() {
   return (
     <header className="relative z-40 flex h-[76px] w-full shrink-0 items-center justify-between border-b border-line/70 bg-white/70 px-6 backdrop-blur-xl">
-      <Link to="/" className="flex items-center gap-3.5" aria-label="Adinn home">
+      <Link to="/" className="flex items-center gap-4" aria-label="Adinn home">
         <img src={adinnLogo} alt="Adinn" className="h-9 w-auto select-none" draggable={false} />
-        <span className="h-8 w-px bg-line" aria-hidden="true" />
-        <span className="flex flex-col">
+        <span className="h-9 w-px bg-line" aria-hidden="true" />
+        <span className="flex flex-col gap-0.5">
           <span className="text-[16px] font-semibold leading-tight tracking-tight text-ink">
             4K Image Enhancer
           </span>
-          <span className="text-[11px] leading-tight text-faint">
+          <span className="text-[11px] tracking-wide text-faint">
             Enhance · Denoise · Upscale
           </span>
         </span>

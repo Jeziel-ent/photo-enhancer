@@ -18,7 +18,7 @@ export function AppShell() {
         />
         <Sidebar />
         <main className="relative flex-1 overflow-y-auto">
-          <div className="mx-auto w-full max-w-[1180px] px-8 py-8">
+          <div className="mx-auto w-full max-w-[1360px] px-8 py-8">
             <Outlet />
           </div>
         </main>

@@ -51,6 +51,13 @@ def result_zip_path(job_id: str) -> Path:
     return job_dir(job_id) / "result.zip"
 
 
+def export_zip_path(job_id: str) -> Path:
+    """A separate ZIP from result_zip_path — holds a batch *export* (chosen
+    format + optional per-image board overlays), rebuilt fresh on every
+    export request rather than reusing/overwriting the raw batch result."""
+    return job_dir(job_id) / "export.zip"
+
+
 def prepare_job_dirs(job_id: str) -> tuple[Path, Path]:
     """Creates (and returns) this job's input/ and output/ directories."""
     in_dir = input_dir(job_id)
