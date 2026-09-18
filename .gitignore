@@ -29,6 +29,19 @@ image_enhancer/research_results/cpu_imdn_optimized/*
 image_enhancer/enhanced/
 image_enhancer/reports/
 
+# MVP 2 research workspace: downloaded datasets, downloaded model
+# checkpoints, and generated benchmark/comparison outputs. Never committed --
+# see docs/MVP2_RESEARCH.md for what's here and how to regenerate it.
+research/datasets/
+research/models/
+research/inputs/
+research/outputs/
+research/benchmarks/
+!research/benchmarks/*.csv
+!research/benchmarks/*.json
+research/reports/*.png
+research/reports/*.jpg
+
 # Backend generated output
 # .workspace/ holds per-job input/output files and result zips for the API
 backend/.workspace/

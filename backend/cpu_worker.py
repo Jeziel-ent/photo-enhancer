@@ -130,8 +130,13 @@ def _run_one(shared, input_path: str, output_path: str) -> None:
         return
 
     stage("analyzing")
+    # MVP 2: preserve the source's own aspect ratio instead of always
+    # stretching to a fixed 3840x2160 16:9 box -- mirrors engine_adapter.py's
+    # GPU-path target computation (see enhance.aspect_preserving_target's
+    # docstring for the formula).
+    target = shared.aspect_preserving_target(img.shape[1], img.shape[0])
     try:
-        out = shared.cpu_final_enhance(img)
+        out = shared.cpu_final_enhance(img, target=target)
     except Exception as exc:  # noqa: BLE001
         msg = f"enhancement failed for {Path(input_path).name}: {exc}"
         print(f"ERROR: {msg}", flush=True)

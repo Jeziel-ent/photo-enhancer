@@ -64,6 +64,20 @@ class DesktopBridge:
     def save_result(self, job_id: str) -> dict:
         return self.save_result_as(job_id, "png")
 
+    @staticmethod
+    def _coerce_adjust(adjust) -> Optional[dict]:
+        """Tolerates a stringified-JSON adjust payload the same way
+        billboard_rects/images are tolerated below (pywebview normally hands
+        over real Python objects, but a non-bridge caller might send JSON
+        text). Returns None for anything that isn't a genuine, non-empty
+        dict."""
+        if isinstance(adjust, str):
+            try:
+                adjust = json.loads(adjust)
+            except (ValueError, json.JSONDecodeError):
+                return None
+        return adjust if isinstance(adjust, dict) and adjust else None
+
     # Formats the single-image billboard-editor Save dialog offers. ZIP
     # (batch) jobs never reach this -- they always save via the "png" path
     # below, which is a byte-identical copy of the zip, same as before this
@@ -79,6 +93,7 @@ class DesktopBridge:
         job_id: str,
         image_format: str = "png",
         billboard_rects: Optional[list] = None,
+        adjust: Optional[dict] = None,
     ) -> dict:
         """Opens the native Save As dialog for a completed job's result.
 
@@ -86,20 +101,25 @@ class DesktopBridge:
         (ZIP) jobs, which always save as-is. For a single-image job whose
         result is already a PNG (the enhancement engine's only output
         format -- see image_enhancer/src/enhance.py's save_image), "png"
-        with NO billboard rects copies the file byte-for-byte (unchanged
-        from the original save_result behavior); "jpg"/"jpeg" re-encode it
-        via cv2 at a high quality setting.
+        with NO billboard rects and NO adjustments copies the file
+        byte-for-byte (unchanged from the original save_result behavior);
+        any adjustment or rect (or "jpg"/"jpeg") re-encodes it.
 
         ``billboard_rects`` (the frontend's confirmed BillboardRect list, in
-        display order) is what makes a save leave the byte-identical path:
-        when it's non-empty the rects are composited onto a *copy* of the
-        engine's finished PNG by backend/billboard_overlay.py before writing
-        the chosen destination. The engine's own output file is never
-        touched, no inference runs here, and nothing is rasterized
-        frontend-side -- the rects travel as plain coordinates and OpenCV
-        draws them here at save time. Malformed/out-of-bounds rects are
-        clamped or dropped (see billboard_overlay.clamp_billboard_rects), so
-        a bad payload can never produce a broken save.
+        display order) and ``adjust`` (the frontend's current manual-
+        adjustment slider values -- brightness/contrast/highlights/shadows/
+        saturation/detail) are what make a save leave the byte-identical
+        path: adjustments are applied first, then rects are composited on
+        top, onto a *copy* of the engine's finished PNG, by
+        backend/adjustment_overlay.py -- the SAME function the browser
+        download/preview path uses (see that module's own docstring) --
+        before writing the chosen destination. The engine's own output file
+        is never touched, no inference runs here, and nothing is rasterized
+        frontend-side. Malformed/out-of-bounds rects are clamped or dropped
+        (see billboard_overlay.clamp_billboard_rects) and malformed/
+        out-of-range adjustment values are clamped
+        (adjustments.normalize_adjustments), so a bad payload can never
+        produce a broken save.
         """
         job = self._job_manager.get_job(job_id)
         if job is None:
@@ -123,6 +143,7 @@ class DesktopBridge:
                 billboard_rects = None
         if not isinstance(billboard_rects, list):
             billboard_rects = None
+        adjust = self._coerce_adjust(adjust)
         is_zip = result_path.suffix == ".zip"
         fmt = image_format if image_format in self._IMAGE_SAVE_FORMATS else "png"
         suggested_ext = ".zip" if is_zip else self._IMAGE_SAVE_FORMATS[fmt][1]
@@ -148,13 +169,13 @@ class DesktopBridge:
         dest_path = destination if isinstance(destination, str) else destination[0]
 
         try:
-            if is_zip or (fmt == "png" and not billboard_rects):
+            if is_zip or (fmt == "png" and not billboard_rects and not adjust):
                 shutil.copyfile(result_path, dest_path)
             else:
-                from .billboard_overlay import composite_result
+                from .adjustment_overlay import composite_result
 
                 ok, error = composite_result(
-                    result_path, dest_path, billboard_rects or [], fmt, quality=95)
+                    result_path, dest_path, billboard_rects or [], adjust, fmt, quality=95)
                 if not ok:
                     return {"ok": False, "error": error}
         except OSError as exc:
@@ -167,6 +188,7 @@ class DesktopBridge:
         image_format: str = "png",
         include_outlines: bool = True,
         images: Optional[list] = None,
+        adjust: Optional[dict] = None,
     ) -> dict:
         """Opens the native Save As dialog for a fresh batch export ZIP.
 
@@ -177,6 +199,9 @@ class DesktopBridge:
         format. ``images`` is a list of {"result_id": str, "rects": [...]}
         dicts, one per image the gallery should export; a stringified JSON
         payload is tolerated the same way billboard_rects is elsewhere.
+        ``adjust``, when given, is the ONE common manual-adjustment value
+        set applied to every image in the batch (same clamped semantics as
+        save_result_as).
         """
         job = self._job_manager.get_job(job_id)
         if job is None:
@@ -193,6 +218,7 @@ class DesktopBridge:
                 images = None
         if not isinstance(images, list) or not images:
             return {"ok": False, "error": "no images to export"}
+        adjust = self._coerce_adjust(adjust)
 
         fmt = image_format if image_format in self._IMAGE_SAVE_FORMATS else "png"
         items = []
@@ -215,7 +241,7 @@ class DesktopBridge:
 
         try:
             zip_path = build_batch_export(
-                items, workspace.export_zip_path(job.id), fmt, bool(include_outlines))
+                items, workspace.export_zip_path(job.id), fmt, bool(include_outlines), adjust)
         except Exception as exc:  # noqa: BLE001
             return {"ok": False, "error": f"could not build the export: {exc}"}
 

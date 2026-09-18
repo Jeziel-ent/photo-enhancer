@@ -44,6 +44,30 @@ OUT_W, OUT_H = 3840, 2160
 _REALESRGAN_CACHE = {}
 
 
+def aspect_preserving_target(width: int, height: int, max_dim: int = OUT_W) -> tuple:
+    """MVP 2 aspect-ratio-preserving output size: the longest side becomes
+    `max_dim` (3840 in production), the other side scales to match the
+    SOURCE image's own aspect ratio exactly -- no stretch, no crop, no
+    distortion. Both dimensions are rounded to the nearest even integer
+    (minimum 2) since every downstream stage (tiled Restormer/SwinIR-M,
+    LAB/YUV conversions, the multi-scale detail Gaussian pyramid) is safest
+    with even dimensions; this costs at most 1px of aspect drift, far below
+    anything visible.
+
+    A 1920x1080 (16:9) source still yields exactly (3840, 2160) -- the
+    product's original fixed target is simply this formula's 16:9 special
+    case, not a separate behavior.
+    """
+    if width <= 0 or height <= 0:
+        raise ValueError("aspect_preserving_target expects positive width/height")
+    scale = max_dim / max(width, height)
+    out_w = round(width * scale)
+    out_h = round(height * scale)
+    out_w = max(2, out_w - (out_w % 2))
+    out_h = max(2, out_h - (out_h % 2))
+    return (out_w, out_h)
+
+
 def get_realesrgan(model_name="RealESRGAN_x4plus"):
     """Lazily load (and cache) a Real-ESRGAN model on the best device."""
     if model_name in _REALESRGAN_CACHE:
@@ -597,14 +621,22 @@ _FINAL_CPU_SR_TILE = 256
 _FINAL_CPU_SR_OVERLAP = 16
 
 
-def _final_d1_weak(orig):
+def _final_d1_weak(orig, target=(OUT_W, OUT_H)):
     """D1-weak (proven): K=0.30 denoise blend + 4x SR -> 4K.
 
     GPU: Restormer real-denoise + SwinIR-M x4 (tiled so peak VRAM stays near
     ~1.5 GB with bf16 autocast, RTX 3050 8GB-safe). CPU: classical
     fastNlMeansDenoisingColored + IMDN x4 (see comment above -- SwinIR-M and
     Restormer are both CPU-infeasible within this product's runtime budget).
-    Returns (d1_4k, peak_vram_mb, device_str)."""
+    Returns (d1_4k, peak_vram_mb, device_str).
+
+    ``target`` MUST match whatever `final_enhance` resized `faithful` to --
+    `_final_f3_natural` fuses this function's output with `faithful`
+    pixel-for-pixel, so a mismatched shape would crash there. Defaulting to
+    the classic (OUT_W, OUT_H) keeps every existing direct caller (e.g.
+    image_enhancer/tests/test_final_pipeline.py, which never passes target)
+    byte-identical; only `final_enhance` (via engine_adapter's aspect-ratio
+    computation) ever passes a non-default value."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     if device.type == "cpu":
@@ -624,7 +656,7 @@ def _final_d1_weak(orig):
         blend = np.clip(orig.astype(np.float32) * (1.0 - k)
                          + dn_img.astype(np.float32) * k, 0, 255).astype(np.uint8)
         sr = imdn_x4_ov.sr_bgr(blend, overlap=_FINAL_CPU_SR_OVERLAP)
-        out = cv2.resize(sr, (OUT_W, OUT_H), interpolation=cv2.INTER_LANCZOS4)
+        out = cv2.resize(sr, target, interpolation=cv2.INTER_LANCZOS4)
         return out, 0.0, str(device)
 
     from pro_exp import pipeline2
@@ -642,7 +674,7 @@ def _final_d1_weak(orig):
     with _amp_ctx(device):
         sr = swinir_m.sr_bgr(blend, device, tile=_FINAL_SR_TILE,
                               overlap=_FINAL_SR_OVERLAP)
-    out = cv2.resize(sr, (OUT_W, OUT_H), interpolation=cv2.INTER_LANCZOS4)
+    out = cv2.resize(sr, target, interpolation=cv2.INTER_LANCZOS4)
     peak = 0.0
     if torch.cuda.is_available():
         peak = float(torch.cuda.max_memory_allocated() / 1048576.0)
@@ -749,8 +781,8 @@ def _final_valid_box(box, W, H):
     return (x, y, w, h)
 
 
-def _final_scale_box(box, w_orig):
-    s = OUT_W / w_orig
+def _final_scale_box(box, w_orig, out_w=OUT_W):
+    s = out_w / w_orig
     x, y, w, h = box
     return (int(round(x * s)), int(round(y * s)),
             int(round(w * s)), int(round(h * s)))
@@ -895,10 +927,14 @@ def final_enhance(img, target=(OUT_W, OUT_H), return_stages=False):
          pixel's own local 5x5 [min,max] -- the whole frame, not just boards)
       -> Candidate A (verified billboard boxes only: native crop ->
          Restormer motion-deblur -> SwinIR-M x4 SR -> single resize to the
-         box's true frame scale (OUT_W / W0, matching box4) -> adaptive
+         box's true frame scale (target[0] / W0, matching box4) -> adaptive
          touch-up -> feathered back in, each box independent of the
          others)
-      -> 3840x2160 BGR uint8.
+      -> `target` BGR uint8 (defaults to 3840x2160; pass
+         aspect_preserving_target(W0, H0) to preserve the source's own
+         aspect ratio instead of stretching to 16:9 -- see that function's
+         docstring. Callers that never pass target keep the exact
+         historical 3840x2160-always behavior).
 
     Adaptive tonal correction (tonal_correction.py) runs first, on the
     whole-frame path only: a bounded, deterministic, luminance-only global
@@ -924,13 +960,23 @@ def final_enhance(img, target=(OUT_W, OUT_H), return_stages=False):
         raise ValueError("final_enhance expects an image of at least 16x16")
 
     stages = {}
-    img_toned, tonal_meta = tonal_correction.adaptive_tonal_correction(img, return_meta=True)
+    # MVP 2 "automatic engine + manual controls": enhance_photographic_quality
+    # only fixes a genuinely broken exposure/contrast defect (a bounded,
+    # deterministic LUT) and is a true no-op on an already well-exposed
+    # photo. It deliberately applies no proactive brightness lift, no HDR-
+    # like local tone mapping/detail boost, no color-cast correction, and no
+    # saturation lift -- all of that is now a user-driven manual adjustment
+    # (see image_enhancer/src/adjustments.py + the frontend's Brightness/
+    # Contrast/Highlights/Shadows/Saturation/Detail sliders), applied only
+    # at preview/export time, strictly after this stage and the AI
+    # restoration/SR pipeline below -- never re-entering either.
+    img_toned, tonal_meta = tonal_correction.enhance_photographic_quality(img, return_meta=True)
     stages["tonal_correction"] = tonal_meta
 
     faithful = simple_upscale(img_toned, target)
     stages["faithful"] = faithful
 
-    d1, peak_vram_mb, device = _final_d1_weak(img_toned)
+    d1, peak_vram_mb, device = _final_d1_weak(img_toned, target)
     stages["d1_weak"] = d1
     stages["peak_vram_mb"] = peak_vram_mb
     stages["device"] = device
@@ -954,7 +1000,7 @@ def final_enhance(img, target=(OUT_W, OUT_H), return_stages=False):
             if vb is None:
                 continue
             vx, vy, vw, vh = vb
-            bx, by, bw, bh = _final_scale_box(vb, W0)
+            bx, by, bw, bh = _final_scale_box(vb, W0, out_w=target[0])
             xs = min(bx + bw, out.shape[1])
             ys = min(by + bh, out.shape[0])
             if xs - bx < 8 or ys - by < 8:

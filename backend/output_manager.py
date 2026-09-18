@@ -43,27 +43,32 @@ def build_batch_export(
     zip_path: Path,
     image_format: str,
     include_outlines: bool,
+    adjust: dict | None = None,
 ) -> Path:
     """Builds the "Save ZIP" batch export: every image is re-encoded to one
-    COMMON ``image_format`` ("png"/"jpg"/"jpeg"), and gets ONLY its own
-    board rectangles burned in (never another image's) — and only when
-    ``include_outlines`` is on. The original per-file engine outputs are
-    never modified; this always writes a fresh zip.
+    COMMON ``image_format`` ("png"/"jpg"/"jpeg"), gets ONLY its own board
+    rectangles burned in (never another image's) — and only when
+    ``include_outlines`` is on — and, when ``adjust`` is given, the SAME
+    manual adjustment values (Brightness/Contrast/Highlights/Shadows/
+    Saturation/Detail) applied to every image in the batch (see
+    backend/adjustment_overlay.py — the one shared implementation preview
+    and export both use). The original per-file engine outputs are never
+    modified; this always writes a fresh zip.
 
     ``items`` is ``(original_filename, enhanced_path, rects)`` per image, in
     the order they should appear in the zip. Raises ValueError if empty.
     """
     if not items:
         raise ValueError("no images to export")
-    from . import billboard_overlay  # local import: keeps cv2 off jobs.py's import path
+    from . import adjustment_overlay  # local import: keeps cv2 off jobs.py's import path
 
     zip_path.parent.mkdir(parents=True, exist_ok=True)
     ext = _EXPORT_EXTENSIONS.get(image_format, ".png")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         used_names: set[str] = set()
         for original_name, enhanced_path, rects in items:
-            data = billboard_overlay.compose_bytes(
-                enhanced_path, rects if include_outlines else [], image_format)
+            data = adjustment_overlay.compose_bytes(
+                enhanced_path, rects if include_outlines else [], adjust, image_format)
             stem = Path(original_name).stem or enhanced_path.stem
             arcname = _unique_arcname(stem, ext, used_names)
             zf.writestr(arcname, data)

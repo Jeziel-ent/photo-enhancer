@@ -9,8 +9,13 @@ export interface BillboardRect {
   height: number;
 }
 
-const IMAGE_W = 3840;
-const IMAGE_H = 2160;
+/** MVP 2 fallback only: used before a result's real dimensions have loaded
+ * (see frontend/src/lib/imageDimensions.ts) -- matches the pre-MVP2 fixed
+ * 16:9 output exactly, so a still-loading 16:9 image behaves identically to
+ * before. Every real caller passes the image's actual imageWidth/imageHeight
+ * once known. */
+const DEFAULT_IMAGE_W = 3840;
+const DEFAULT_IMAGE_H = 2160;
 const MIN_SIZE_PX = 24;
 const HANDLE_SIZE = 12;
 
@@ -42,29 +47,33 @@ function pctFromPoints(ax: number, ay: number, bx: number, by: number): PctRect 
   return { x, y, w: x2 - x, h: y2 - y };
 }
 
-function pctToImageRect(pct: PctRect): { x: number; y: number; width: number; height: number } {
-  const x = Math.round((pct.x / 100) * IMAGE_W);
-  const y = Math.round((pct.y / 100) * IMAGE_H);
-  const width = Math.round((pct.w / 100) * IMAGE_W);
-  const height = Math.round((pct.h / 100) * IMAGE_H);
+function pctToImageRect(
+  pct: PctRect,
+  imageW: number,
+  imageH: number,
+): { x: number; y: number; width: number; height: number } {
+  const x = Math.round((pct.x / 100) * imageW);
+  const y = Math.round((pct.y / 100) * imageH);
+  const width = Math.round((pct.w / 100) * imageW);
+  const height = Math.round((pct.h / 100) * imageH);
   return {
-    x: clamp(x, 0, IMAGE_W - 1),
-    y: clamp(y, 0, IMAGE_H - 1),
-    width: clamp(width, 0, IMAGE_W - x),
-    height: clamp(height, 0, IMAGE_H - y),
+    x: clamp(x, 0, imageW - 1),
+    y: clamp(y, 0, imageH - 1),
+    width: clamp(width, 0, imageW - x),
+    height: clamp(height, 0, imageH - y),
   };
 }
 
-function pctToBillboardRect(pct: PctRectWithId): BillboardRect {
-  return { ...pctToImageRect(pct), id: pct.id };
+function pctToBillboardRect(pct: PctRectWithId, imageW: number, imageH: number): BillboardRect {
+  return { ...pctToImageRect(pct, imageW, imageH), id: pct.id };
 }
 
-function imageRectToPct(rect: BillboardRect): PctRectWithId {
+function imageRectToPct(rect: BillboardRect, imageW: number, imageH: number): PctRectWithId {
   return {
-    x: (rect.x / IMAGE_W) * 100,
-    y: (rect.y / IMAGE_H) * 100,
-    w: (rect.width / IMAGE_W) * 100,
-    h: (rect.height / IMAGE_H) * 100,
+    x: (rect.x / imageW) * 100,
+    y: (rect.y / imageH) * 100,
+    w: (rect.width / imageW) * 100,
+    h: (rect.height / imageH) * 100,
     id: rect.id,
   };
 }
@@ -82,6 +91,8 @@ type DragMode =
 
 export function BillboardCanvas({
   imageSrc,
+  imageWidth = DEFAULT_IMAGE_W,
+  imageHeight = DEFAULT_IMAGE_H,
   rectangles,
   selectedId,
   onChange,
@@ -92,6 +103,12 @@ export function BillboardCanvas({
   onDrawCommit,
 }: {
   imageSrc: string;
+  /** The result image's REAL pixel dimensions (see
+   * frontend/src/lib/imageDimensions.ts) -- rectangles are stored in this
+   * same coordinate space. Defaults to the classic 3840x2160 for a caller
+   * that hasn't loaded real dimensions yet. */
+  imageWidth?: number;
+  imageHeight?: number;
   rectangles: BillboardRect[];
   selectedId: string | null;
   onChange: (rects: BillboardRect[]) => void;
@@ -106,7 +123,7 @@ export function BillboardCanvas({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [draftRects, setDraftRects] = useState<PctRectWithId[]>(() =>
-    rectangles.map(imageRectToPct),
+    rectangles.map((r) => imageRectToPct(r, imageWidth, imageHeight)),
   );
   const dragRef = useRef<DragMode | null>(null);
   const startPointRef = useRef<{ x: number; y: number } | null>(null);
@@ -123,8 +140,8 @@ export function BillboardCanvas({
   }, [onDrawCommit]);
 
   useEffect(() => {
-    setDraftRects(rectangles.map(imageRectToPct));
-  }, [rectangles]);
+    setDraftRects(rectangles.map((r) => imageRectToPct(r, imageWidth, imageHeight)));
+  }, [rectangles, imageWidth, imageHeight]);
 
   useEffect(() => {
     draftRef.current = draftRects;
@@ -132,9 +149,9 @@ export function BillboardCanvas({
 
   const commitToParent = useCallback(
     (next: PctRectWithId[]) => {
-      onChange(next.map(pctToBillboardRect));
+      onChange(next.map((r) => pctToBillboardRect(r, imageWidth, imageHeight)));
     },
-    [onChange],
+    [onChange, imageWidth, imageHeight],
   );
 
   const pctFromClient = useCallback((clientX: number, clientY: number) => {
@@ -254,8 +271,8 @@ export function BillboardCanvas({
 
     const prev = draftRef.current;
     const next = prev.filter((r) => {
-      const wPx = (r.w / 100) * IMAGE_W;
-      const hPx = (r.h / 100) * IMAGE_H;
+      const wPx = (r.w / 100) * imageWidth;
+      const hPx = (r.h / 100) * imageHeight;
       return wPx >= MIN_SIZE_PX && hPx >= MIN_SIZE_PX;
     });
     setDraftRects(next);
@@ -295,7 +312,7 @@ export function BillboardCanvas({
     <div
       ref={containerRef}
       className="relative w-full touch-none overflow-hidden rounded-xl border border-line bg-canvas select-none"
-      style={{ aspectRatio: `${IMAGE_W} / ${IMAGE_H}` }}
+      style={{ aspectRatio: `${imageWidth} / ${imageHeight}` }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
       onPointerUp={finishDrag}

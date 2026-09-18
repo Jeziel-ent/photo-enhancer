@@ -194,7 +194,7 @@ _STAGE_TIMELINE = (
 _TICK_SECONDS = 0.25
 
 
-def _run_with_stage_ticker(engine: ModuleType, img, on_stage: Optional[OnStage]):
+def _run_with_stage_ticker(engine: ModuleType, img, on_stage: Optional[OnStage], target):
     """Runs ``engine.enhance(METHOD, img)`` — the one real, unmodified call
     path into the engine — on the CALLING thread, while a separate,
     GPU/torch-untouching ticker thread ticks ``on_stage`` through
@@ -232,7 +232,7 @@ def _run_with_stage_ticker(engine: ModuleType, img, on_stage: Optional[OnStage])
     ticker = threading.Thread(target=_ticker, daemon=True)
     ticker.start()
     try:
-        out, dt = engine.enhance(METHOD, img)
+        out, dt = engine.enhance(METHOD, img, target=target)
     finally:
         done.set()
         ticker.join()
@@ -321,9 +321,15 @@ def enhance_image(
             raise EngineError(f"could not read {input_path.name}: {exc}") from exc
 
         stage(STAGE_ANALYZING)
+        # MVP 2: the output box preserves the SOURCE image's own aspect
+        # ratio (longest side -> 3840) instead of always stretching to a
+        # fixed 3840x2160 16:9 box -- see enhance.aspect_preserving_target's
+        # own docstring for the formula and docs/MVP2_RESEARCH.md Phase 2
+        # for the review requirement this satisfies.
+        target = engine.aspect_preserving_target(img.shape[1], img.shape[0])
         prev_regions, prev_billboard = _neutralize_billboard_regions(engine)
         try:
-            out, _dt = _run_with_stage_ticker(engine, img, on_stage)
+            out, _dt = _run_with_stage_ticker(engine, img, on_stage, target)
         except Exception as exc:  # noqa: BLE001
             raise EngineError(f"enhancement failed for {input_path.name}: {exc}") from exc
         finally:

@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { JobStatusResponse } from "../../lib/api";
+import { DEFAULT_ADJUSTMENTS, type AdjustmentParams } from "../../lib/adjustments";
 import { cn } from "../../lib/cn";
 import { isDesktopShell, type ImageSaveFormat } from "../../lib/desktop";
+import { loadImageDimensions, type ImageDimensions } from "../../lib/imageDimensions";
 import { Badge } from "../ui/Badge";
 import { Button } from "../ui/Button";
 import { Card } from "../ui/Card";
@@ -16,6 +18,8 @@ import {
   IconRefresh,
   IconTrash,
 } from "../ui/Icon";
+import { AdjustedPreviewCanvas } from "./AdjustedPreviewCanvas";
+import { AdjustmentControls } from "./AdjustmentControls";
 import {
   BillboardCanvas,
   formatRectPosition,
@@ -92,7 +96,17 @@ function Toggle({
   );
 }
 
-function BoardThumb({ src, rect }: { src?: string; rect: BillboardRect }) {
+function BoardThumb({
+  src,
+  rect,
+  imageDimensions,
+}: {
+  src?: string;
+  rect: BillboardRect;
+  /** The result image's real pixel dimensions (rect coordinates are in this
+   * same space) — falls back to the classic 3840x2160 while not yet known. */
+  imageDimensions: ImageDimensions;
+}) {
   if (!src) {
     return (
       <span className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-line bg-canvas text-faint">
@@ -100,8 +114,8 @@ function BoardThumb({ src, rect }: { src?: string; rect: BillboardRect }) {
       </span>
     );
   }
-  const rectW = rect.width / 3840;
-  const rectH = rect.height / 2160;
+  const rectW = rect.width / imageDimensions.width;
+  const rectH = rect.height / imageDimensions.height;
   return (
     <span className="relative inline-block h-12 w-12 shrink-0 overflow-hidden rounded-md border border-line bg-canvas">
       <img
@@ -202,14 +216,21 @@ export function JobResultPanel({
   results: GalleryResult[];
   /** `format`/`billboardRects` only apply to a single-image result — the
    * confirmed editor rectangles (3840x2160 image space) the backend should
-   * composite onto the saved image. */
-  onDownload: (format: ImageSaveFormat, billboardRects: BillboardRect[]) => void;
+   * composite onto the saved image. `adjust`, when not at its defaults, is
+   * the current manual-adjustment slider state (see lib/adjustments.ts). */
+  onDownload: (
+    format: ImageSaveFormat,
+    billboardRects: BillboardRect[],
+    adjust?: AdjustmentParams,
+  ) => void;
   /** Batch ("Save ZIP") export: one common format + include-outlines flag
-   * for the whole job, each image carrying only its own confirmed rects. */
+   * for the whole job, each image carrying only its own confirmed rects,
+   * plus one common `adjust` applied to every image. */
   onExportBatch: (
     format: ImageSaveFormat,
     includeOutlines: boolean,
     images: { resultId: string; rects: BillboardRect[] }[],
+    adjust?: AdjustmentParams,
   ) => void;
   downloading: boolean;
   downloadError: string | null;
@@ -225,8 +246,23 @@ export function JobResultPanel({
   const [adding, setAdding] = useState(false);
   const [includeOutlines, setIncludeOutlines] = useState(true);
   const [saveFormat, setSaveFormat] = useState<ImageSaveFormat>("png");
+  // MVP 2: manual post-processing adjustments, applied AFTER the automatic
+  // enhancement (see lib/adjustments.ts + AdjustmentControls). One shared
+  // value for the whole job (single photo, or every photo in a gallery
+  // batch) -- mirrors how `saveFormat`/`includeOutlines` are already one
+  // shared setting rather than per-image state.
+  const [adjustments, setAdjustments] = useState<AdjustmentParams>({ ...DEFAULT_ADJUSTMENTS });
   const areasPanelRef = useRef<HTMLDivElement>(null);
   const editSnapshotRef = useRef<{ id: string; selection: ImageSelection } | null>(null);
+  // MVP 2: each result's REAL pixel dimensions (no longer always
+  // 3840x2160 — aspect ratio is preserved, not stretched). Cached per
+  // result id so re-selecting an already-loaded gallery photo is instant.
+  // Falls back to the classic 3840x2160 (matching pre-MVP2 behavior
+  // exactly) for the brief moment before a freshly-selected image's real
+  // size has loaded.
+  const [dimensionsByResult, setDimensionsByResult] = useState<Record<string, ImageDimensions>>(
+    {},
+  );
 
   // Default the gallery selection to the first available result as soon as
   // it shows up — never leaves the main preview stuck on "no selection".
@@ -263,6 +299,33 @@ export function JobResultPanel({
 
   const isEditing = editingId !== null && editingId === activeId;
   const canDrawBoards = activeComparison !== null && activeId !== null;
+  const activeDimensions: ImageDimensions = (activeId && dimensionsByResult[activeId]) || {
+    width: 3840,
+    height: 2160,
+  };
+
+  useEffect(() => {
+    if (!activeId || !activeComparison || dimensionsByResult[activeId]) return;
+    let cancelled = false;
+    loadImageDimensions(activeComparison.afterUrl)
+      .then((dims) => {
+        if (!cancelled) setDimensionsByResult((prev) => ({ ...prev, [activeId]: dims }));
+      })
+      .catch(() => {
+        // Keep the 3840x2160 fallback — board marking still works, just
+        // against the pre-MVP2 default until/unless it happens to load.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeId, activeComparison, dimensionsByResult]);
+
+  // MVP 2: the adjustment sliders' live preview is now rendered entirely
+  // client-side (see AdjustedPreviewCanvas / lib/previewAdjustments.ts) --
+  // no backend fetch per slider change. `adjustments` itself is passed
+  // straight down to the canvas below; only the Export button's click
+  // handler ever sends it to the backend (once, for the real, full-
+  // resolution, pixel-exact result).
 
   const enterEditing = () => {
     if (!activeId) return;
@@ -360,6 +423,8 @@ export function JobResultPanel({
                 isEditing || rects.length > 0 ? (
                   <BillboardCanvas
                     imageSrc={activeComparison.afterUrl}
+                    imageWidth={activeDimensions.width}
+                    imageHeight={activeDimensions.height}
                     rectangles={rects}
                     selectedId={selectedId}
                     onChange={setRects}
@@ -372,7 +437,14 @@ export function JobResultPanel({
                 ) : (
                   <CompareSlider
                     beforeSrc={activeComparison.beforeUrl}
-                    afterSrc={activeComparison.afterUrl}
+                    after={
+                      <AdjustedPreviewCanvas
+                        srcUrl={activeComparison.afterUrl}
+                        adjustments={adjustments}
+                        alt="Enhanced 4K result"
+                        className="h-full w-full object-cover"
+                      />
+                    }
                   />
                 )
               ) : (
@@ -492,8 +564,14 @@ export function JobResultPanel({
           ) : null}
         </div>
 
-        {/* Right column: board areas + export */}
+        {/* Right column: adjustments + board areas + export */}
         <div ref={areasPanelRef} className="flex min-w-0 scroll-mt-6 flex-col gap-5">
+          <AdjustmentControls
+            value={adjustments}
+            onChange={setAdjustments}
+            disabled={!activeComparison}
+          />
+
           <Card padding="md" className="animate-fade-in">
             <div className="mb-3 flex items-center justify-between gap-2">
               <div className="min-w-0">
@@ -567,6 +645,7 @@ export function JobResultPanel({
                           <BoardThumb
                             src={activeComparison?.afterUrl}
                             rect={rect}
+                            imageDimensions={activeDimensions}
                           />
                           <span className="min-w-0 flex-1">
                             <span className="block text-[13px] font-medium text-ink">
@@ -646,8 +725,9 @@ export function JobResultPanel({
                       saveFormat,
                       includeOutlines,
                       results.map((r) => ({ resultId: r.id, rects: getSelection(r.id).rects })),
+                      adjustments,
                     )
-                  : onDownload(saveFormat, exportRects)
+                  : onDownload(saveFormat, exportRects, adjustments)
               }
             >
               {downloading

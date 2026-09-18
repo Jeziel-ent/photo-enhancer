@@ -11,21 +11,33 @@ Endpoints (all JSON except the result-download route):
                                     completed_count/total_count/errors
     GET  /api/jobs/<job_id>/result  the enhanced image (1 input), or a ZIP
                                     of every successfully enhanced image
-                                    (>1 input). An optional
-                                    ?billboard=<url-encoded JSON array> query
-                                    composites confirmed editor rects onto a
-                                    copy of a single-image PNG result before
-                                    the download (see billboard_overlay.py;
-                                    ZIP stays as-is)
+                                    (>1 input). Two optional query params
+                                    (single-image results only; the ZIP path
+                                    always stays as-is):
+                                      ?billboard=<url-encoded JSON array>
+                                        composites confirmed editor rects
+                                        onto a copy of the PNG result
+                                      ?adjust=<url-encoded JSON object>
+                                        applies manual post-processing
+                                        adjustments (brightness/contrast/
+                                        highlights/shadows/saturation/detail)
+                                        BEFORE any billboard rects are drawn
+                                        (see adjustment_overlay.py — the same
+                                        endpoint powers both the live preview
+                                        fetch and the final download, so
+                                        there is exactly one code path)
     GET  /api/jobs/<job_id>/results/<result_id>
                                     one image's own clean enhanced PNG from a
                                     multi-file (gallery) job — never the ZIP,
                                     never another file's image. Powers the
                                     gallery's main preview and thumbnails.
+                                    Also accepts an optional ?adjust= query,
+                                    same semantics as above.
     POST /api/jobs/<job_id>/export  batch export: one ZIP built fresh from a
                                     JSON body {format, include_outlines,
-                                    images: [{result_id, rects}]} — one
-                                    COMMON format for every image, each
+                                    adjust, images: [{result_id, rects}]} —
+                                    one COMMON format (and, when given, one
+                                    common `adjust`) for every image, each
                                     image getting only its own rects burned
                                     in (see output_manager.build_batch_export)
     GET  /api/settings              current processing-device preference +
@@ -210,7 +222,8 @@ class ApiHandler(BaseHTTPRequestHandler):
 
         m = re.fullmatch(r"/api/jobs/([^/]+)/results/([^/]+)", path)
         if m:
-            self._handle_get_individual_result(m.group(1), m.group(2))
+            self._handle_get_individual_result(
+                m.group(1), m.group(2), parse_qs(urlparse(self.path).query))
             return
 
         m = re.fullmatch(r"/api/jobs/([^/]+)", path)
@@ -271,16 +284,20 @@ class ApiHandler(BaseHTTPRequestHandler):
             return
 
         billboard_rects = self._parse_billboard_query(query or {})
-        if billboard_rects:
-            # Browser-download path: composite the rects backend-side so the
-            # image never crosses the frontend. Only a PNG is ever produced
-            # here (single-image results are PNG); the ZIP route returned above.
+        adjust = self._parse_adjust_query(query or {})
+        if billboard_rects or adjust:
+            # Browser-download / preview path: composite adjustments + rects
+            # backend-side so the image never crosses the frontend twice.
+            # Only a PNG is ever produced here (single-image results are
+            # PNG); the ZIP route returned above. This is the SAME function
+            # the live preview fetch and the final download both call — see
+            # adjustment_overlay.py's own module docstring.
             try:
-                from .billboard_overlay import compose_png_bytes
+                from .adjustment_overlay import compose_bytes
 
-                png_data = compose_png_bytes(result_path, billboard_rects)
+                png_data = compose_bytes(result_path, billboard_rects or [], adjust, "png")
             except Exception as exc:  # noqa: BLE001 -- any decode/encode failure surfaces as a 500
-                self._send_error_json(500, f"could not render the board overlay: {exc}")
+                self._send_error_json(500, f"could not render the adjusted image: {exc}")
                 return
             self._send_bytes_response(
                 200, png_data, "image/png",
@@ -289,7 +306,9 @@ class ApiHandler(BaseHTTPRequestHandler):
 
         self._send_file(result_path, "image/png", job.result_filename or result_path.name)
 
-    def _handle_get_individual_result(self, job_id: str, result_id: str) -> None:
+    def _handle_get_individual_result(
+        self, job_id: str, result_id: str, query: Optional[dict] = None
+    ) -> None:
         job = self._job_manager().get_job(job_id)
         if job is None:
             self._send_error_json(404, "job not found")
@@ -303,6 +322,19 @@ class ApiHandler(BaseHTTPRequestHandler):
         if file_result is None or not Path(file_result.output_path).is_file():
             self._send_error_json(404, "result not found for that image")
             return
+
+        adjust = self._parse_adjust_query(query or {})
+        if adjust:
+            try:
+                from .adjustment_overlay import compose_bytes
+
+                png_data = compose_bytes(Path(file_result.output_path), [], adjust, "png")
+            except Exception as exc:  # noqa: BLE001
+                self._send_error_json(500, f"could not render the adjusted image: {exc}")
+                return
+            self._send_bytes_response(200, png_data, "image/png")
+            return
+
         self._write_file_response(Path(file_result.output_path), "image/png")
 
     def _parse_billboard_query(self, query: dict) -> Optional[list]:
@@ -318,6 +350,28 @@ class ApiHandler(BaseHTTPRequestHandler):
         except (ValueError, json.JSONDecodeError):
             return None
         return value if isinstance(value, list) else None
+
+    def _parse_adjust_query(self, query: dict) -> Optional[dict]:
+        """Extracts an optional ``?adjust=<url-encoded JSON object>`` query
+        param (brightness/contrast/highlights/shadows/saturation/detail).
+        Returns None for a missing/malformed/default-valued payload so the
+        caller's fast, no-op file-serving path is unaffected; actual
+        clamping happens downstream in adjustments.normalize_adjustments."""
+        raw = (query or {}).get("adjust")
+        if not raw or not raw[0]:
+            return None
+        try:
+            value = json.loads(raw[0])
+        except (ValueError, json.JSONDecodeError):
+            return None
+        if not isinstance(value, dict):
+            return None
+        from .adjustment_overlay import _resolve_image_enhancer_src
+
+        _resolve_image_enhancer_src()
+        import adjustments as adj  # image_enhancer/src/adjustments.py
+
+        return None if adj.is_default(value) else value
 
     def do_POST(self) -> None:
         path = urlparse(self.path).path
@@ -379,6 +433,8 @@ class ApiHandler(BaseHTTPRequestHandler):
         if image_format not in ("png", "jpg", "jpeg"):
             raise ApiError("format must be one of 'png', 'jpg', 'jpeg'")
         include_outlines = bool(payload.get("include_outlines"))
+        adjust = payload.get("adjust")
+        adjust = adjust if isinstance(adjust, dict) else None
         images = payload.get("images")
         if not isinstance(images, list) or not images:
             raise ApiError("images must be a non-empty list")
@@ -401,7 +457,7 @@ class ApiHandler(BaseHTTPRequestHandler):
 
         try:
             zip_path = build_batch_export(
-                items, workspace.export_zip_path(job.id), image_format, include_outlines)
+                items, workspace.export_zip_path(job.id), image_format, include_outlines, adjust)
         except Exception as exc:  # noqa: BLE001
             self._send_error_json(500, f"could not build the export: {exc}")
             return

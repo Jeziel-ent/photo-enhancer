@@ -5,6 +5,8 @@
  * the browser download flow when this isn't available.
  */
 
+import { isDefaultAdjustments, type AdjustmentParams } from "./adjustments";
+
 export interface SaveResultOk {
   ok: true;
   path: string;
@@ -88,12 +90,14 @@ interface PywebviewApi {
     jobId: string,
     imageFormat: ImageSaveFormat,
     billboardRects?: BillboardOverlayRect[],
+    adjust?: AdjustmentParams,
   ): Promise<SaveResultOutcome>;
   save_batch_export(
     jobId: string,
     imageFormat: ImageSaveFormat,
     includeOutlines: boolean,
     images: BatchExportImage[],
+    adjust?: AdjustmentParams,
   ): Promise<SaveResultOutcome>;
   record_saved_result(entry: RecordSavedResultInput): Promise<RecentEntriesResult>;
   get_recent_history(): Promise<RecentEntriesResult>;
@@ -132,29 +136,38 @@ export async function saveResultNative(jobId: string): Promise<SaveResultOutcome
  * Same as saveResultNative, but for a single-image job lets the caller pick
  * PNG/JPG/JPEG (see backend/shell.py's DesktopBridge.save_result_as — a
  * batch/ZIP job ignores the format and always saves the zip as-is). Only
- * call this when isDesktopShell() is true — throws otherwise.
+ * call this when isDesktopShell() is true — throws otherwise. `adjust`, when
+ * given and non-default, is applied before any billboard rects (see
+ * lib/adjustments.ts and adjustment_overlay.py — the same semantics as the
+ * browser download path).
  */
 export async function saveResultAsNative(
   jobId: string,
   format: ImageSaveFormat,
   billboardRects: BillboardOverlayRect[] = [],
+  adjust?: AdjustmentParams,
 ): Promise<SaveResultOutcome> {
-  return requireApi().save_result_as(jobId, format, billboardRects);
+  return requireApi().save_result_as(
+    jobId, format, billboardRects, adjust && !isDefaultAdjustments(adjust) ? adjust : undefined);
 }
 
 /**
  * Native "Save As" for a batch export ZIP: one common format + include-
  * outlines flag for the whole batch, each image carrying only its own
  * rects (see backend/shell.py's DesktopBridge.save_batch_export). Only call
- * this when isDesktopShell() is true — throws otherwise.
+ * this when isDesktopShell() is true — throws otherwise. `adjust`, when
+ * given and non-default, is applied to every image in the batch.
  */
 export async function saveBatchExportNative(
   jobId: string,
   format: ImageSaveFormat,
   includeOutlines: boolean,
   images: BatchExportImage[],
+  adjust?: AdjustmentParams,
 ): Promise<SaveResultOutcome> {
-  return requireApi().save_batch_export(jobId, format, includeOutlines, images);
+  return requireApi().save_batch_export(
+    jobId, format, includeOutlines, images,
+    adjust && !isDefaultAdjustments(adjust) ? adjust : undefined);
 }
 
 /** Persists a lightweight record of a result the user just actually saved. */

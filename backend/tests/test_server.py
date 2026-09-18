@@ -246,6 +246,59 @@ class ApiServerTestCase(unittest.TestCase):
         red = (region[:, :, 2] > 180) & (region[:, :, 1] < 90) & (region[:, :, 0] < 90)
         self.assertGreater(int(red.sum()), 0)
 
+    def test_get_result_with_adjust_applies_brightness(self):
+        status, body, _ = self._post_multipart(
+            "/api/jobs", [("files", "photo.jpg", "image/jpeg", b"\xff\xd8raw")])
+        self.assertEqual(status, 200)
+        job_id = json.loads(body)["job_id"]
+        self._wait_for_status(job_id, {"completed"})
+
+        real_png = Path(self._tmp.name) / "real_adjust.png"
+        cv2.imwrite(str(real_png), np.full((100, 100, 3), 120, np.uint8))
+        job = self.manager.get_job(job_id)
+        job.result_path = real_png
+        job.result_filename = "photo_enhanced.png"
+
+        query = urllib.parse.quote(json.dumps({"brightness": 60}))
+        status, body, headers = self._get(f"/api/jobs/{job_id}/result?adjust={query}")
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["Content-Type"], "image/png")
+        decoded = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
+        self.assertIsNotNone(decoded)
+        self.assertGreater(int(decoded.mean()), 120)
+
+    def test_get_result_with_default_adjust_is_noop(self):
+        status, body, _ = self._post_multipart(
+            "/api/jobs", [("files", "photo.jpg", "image/jpeg", b"\xff\xd8raw")])
+        self.assertEqual(status, 200)
+        job_id = json.loads(body)["job_id"]
+        self._wait_for_status(job_id, {"completed"})
+
+        query = urllib.parse.quote(json.dumps({"brightness": 0, "detail": 0}))
+        status, body, headers = self._get(f"/api/jobs/{job_id}/result?adjust={query}")
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["Content-Type"], "image/png")
+        self.assertEqual(body, b"PNGDATA:\xff\xd8raw")
+
+    def test_get_individual_result_with_adjust_applies_brightness(self):
+        job_id, final = self._create_batch_job([
+            ("files", "one.jpg", "image/jpeg", b"111"),
+        ])
+        result_id = final["results"][0]["id"]
+        file_result = self.manager.get_job(job_id).get_file_result(result_id)
+        real_png = Path(self._tmp.name) / "real_gallery_adjust.png"
+        cv2.imwrite(str(real_png), np.full((80, 80, 3), 120, np.uint8))
+        file_result.output_path = real_png
+
+        query = urllib.parse.quote(json.dumps({"brightness": 60}))
+        status, body, headers = self._get(
+            f"/api/jobs/{job_id}/results/{result_id}?adjust={query}")
+        self.assertEqual(status, 200)
+        self.assertEqual(headers["Content-Type"], "image/png")
+        decoded = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
+        self.assertIsNotNone(decoded)
+        self.assertGreater(int(decoded.mean()), 120)
+
     def test_get_result_with_invalid_billboard_query_falls_back_to_raw_png(self):
         status, body, _ = self._post_multipart(
             "/api/jobs", [("files", "photo.jpg", "image/jpeg", b"\xff\xd8raw")])
@@ -356,6 +409,33 @@ class ApiServerTestCase(unittest.TestCase):
             self.assertGreater(int(one_red.sum()), 0)
             self.assertEqual(int(two_red.sum()), 0)
 
+    def test_export_batch_applies_common_adjust_to_every_image(self):
+        job_id, _ = self._create_batch_job([
+            ("files", "one.jpg", "image/jpeg", b"111"),
+            ("files", "two.png", "image/png", b"222"),
+        ])
+        job = self.manager.get_job(job_id)
+        for f in job.files:
+            real_png = Path(self._tmp.name) / f"{f.result_id}_adj.png"
+            cv2.imwrite(str(real_png), np.full((80, 80, 3), 120, np.uint8))
+            f.output_path = real_png
+
+        status, body, headers = self._post_json(f"/api/jobs/{job_id}/export", {
+            "format": "png",
+            "include_outlines": False,
+            "adjust": {"brightness": 60},
+            "images": [
+                {"result_id": "000", "rects": []},
+                {"result_id": "001", "rects": []},
+            ],
+        })
+        self.assertEqual(status, 200)
+        with zipfile.ZipFile(BytesIO(body)) as zf:
+            for name in ("one_enhanced.png", "two_enhanced.png"):
+                decoded = cv2.imdecode(
+                    np.frombuffer(zf.read(name), np.uint8), cv2.IMREAD_COLOR)
+                self.assertGreater(int(decoded.mean()), 120)
+
     def test_export_batch_invalid_format_is_400(self):
         job_id, _ = self._create_batch_job([
             ("files", "one.jpg", "image/jpeg", b"111"),
@@ -378,6 +458,75 @@ class ApiServerTestCase(unittest.TestCase):
             "images": [{"result_id": "999", "rects": []}],
         })
         self.assertEqual(status, 404)
+
+    # ------------------------------------------ MVP 2: non-16:9 aspect ratio
+    # Board coordinates/overlay export are handled entirely by
+    # backend/billboard_overlay.py, which reads the real image's own
+    # cv2.imread shape at compose time -- it was already resolution/aspect
+    # agnostic before MVP 2 (only the GPU/CPU enhancement pipeline's own
+    # hardcoded 3840x2160 target needed fixing, see docs/MVP2_RESEARCH.md
+    # Phase 1). These tests prove that HTTP-layer contract holds for a
+    # genuinely non-16:9 "enhanced" result (a 3840x3840 square, as a 1:1
+    # input would now produce), not just the classic 16:9 box every other
+    # test in this file already uses.
+    def test_billboard_composite_maps_correctly_on_square_result(self):
+        status, body, _ = self._post_multipart(
+            "/api/jobs", [("files", "square.jpg", "image/jpeg", b"\xff\xd8raw")])
+        job_id = json.loads(body)["job_id"]
+        self._wait_for_status(job_id, {"completed"})
+
+        # Swap in a real, decodeable SQUARE PNG (not 16:9) -- what a 1:1
+        # input now produces end to end.
+        square_png = Path(self._tmp.name) / "square_real.png"
+        cv2.imwrite(str(square_png), np.full((400, 400, 3), 100, np.uint8))
+        job = self.manager.get_job(job_id)
+        job.result_path = square_png
+        job.result_filename = "square_enhanced.png"
+
+        # A rect anchored near the bottom-right, which would be OUT OF
+        # BOUNDS on a 16:9 assumption at this same pixel size but is valid
+        # on the real 400x400 square.
+        rects = [{"x": 300, "y": 300, "width": 80, "height": 80}]
+        query = urllib.parse.quote(json.dumps(rects))
+        status, body, headers = self._get(f"/api/jobs/{job_id}/result?billboard={query}")
+        self.assertEqual(status, 200)
+        decoded = cv2.imdecode(np.frombuffer(body, np.uint8), cv2.IMREAD_COLOR)
+        self.assertEqual(decoded.shape[:2], (400, 400))  # dimensions preserved, not stretched
+        region = decoded[300:308, 300:380]
+        red = (region[:, :, 2] > 180) & (region[:, :, 1] < 90) & (region[:, :, 0] < 90)
+        self.assertGreater(int(red.sum()), 0)
+
+    def test_batch_export_preserves_non_16_9_dimensions_per_image(self):
+        job_id, _ = self._create_batch_job([
+            ("files", "square.jpg", "image/jpeg", b"111"),
+            ("files", "portrait.png", "image/png", b"222"),
+        ])
+        job = self.manager.get_job(job_id)
+        square_path = Path(self._tmp.name) / "sq.png"
+        portrait_path = Path(self._tmp.name) / "pt.png"
+        cv2.imwrite(str(square_path), np.full((320, 320, 3), 100, np.uint8))   # 1:1
+        cv2.imwrite(str(portrait_path), np.full((480, 270, 3), 100, np.uint8))  # 9:16-ish (H x W)
+        job.files[0].output_path = square_path
+        job.files[1].output_path = portrait_path
+
+        status, body, headers = self._post_json(f"/api/jobs/{job_id}/export", {
+            "format": "png",
+            "include_outlines": False,
+            "images": [
+                {"result_id": "000", "rects": []},
+                {"result_id": "001", "rects": []},
+            ],
+        })
+        self.assertEqual(status, 200)
+        with zipfile.ZipFile(BytesIO(body)) as zf:
+            names = sorted(zf.namelist())
+            self.assertEqual(names, ["portrait_enhanced.png", "square_enhanced.png"])
+            sq = cv2.imdecode(np.frombuffer(zf.read("square_enhanced.png"), np.uint8), cv2.IMREAD_COLOR)
+            pt = cv2.imdecode(np.frombuffer(zf.read("portrait_enhanced.png"), np.uint8), cv2.IMREAD_COLOR)
+            # Neither image was stretched/cropped/resized by the export path --
+            # each keeps its own real (non-16:9) dimensions from the engine.
+            self.assertEqual(sq.shape[:2], (320, 320))
+            self.assertEqual(pt.shape[:2], (480, 270))
 
     def test_export_batch_unknown_job_is_404(self):
         status, _, _ = self._post_json("/api/jobs/does-not-exist/export", {

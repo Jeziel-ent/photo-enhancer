@@ -29,6 +29,7 @@ import {
   type ImageSaveFormat,
 } from "./lib/desktop";
 import { makeThumbnailDataUrl } from "./lib/thumbnail";
+import { isDefaultAdjustments, type AdjustmentParams } from "./lib/adjustments";
 
 const POLL_INTERVAL_MS = 1000;
 
@@ -217,13 +218,15 @@ function HomePage() {
   const handleDownload = async (
     format: ImageSaveFormat = "png",
     billboardRects: BillboardOverlayRect[] = [],
+    adjust?: AdjustmentParams,
   ) => {
     if (!job) return;
+    const hasAdjust = Boolean(adjust && !isDefaultAdjustments(adjust));
     setDownloading(true);
     setDownloadError(null);
     try {
       if (isDesktopShell()) {
-        const outcome = await saveResultAsNative(job.job_id, format, billboardRects);
+        const outcome = await saveResultAsNative(job.job_id, format, billboardRects, adjust);
         if (!outcome.ok && "error" in outcome) {
           setDownloadError(outcome.error);
           return;
@@ -240,12 +243,13 @@ function HomePage() {
         }
         return;
       }
-      // Browser path: when billboard rects are confirmed, re-fetch from the
-      // backend so the server can composite them onto the PNG (the image
-      // never crosses the frontend as base64). Without rects the raw cached
-      // blob is reused for a fast, zero-re-fetch save.
-      if (billboardRects.length > 0) {
-        const result = await downloadResult(job.job_id, billboardRects);
+      // Browser path: when billboard rects are confirmed or adjustments are
+      // active, re-fetch from the backend so the server can composite them
+      // onto the PNG (the image never crosses the frontend as base64).
+      // Without either, the raw cached blob is reused for a fast,
+      // zero-re-fetch save.
+      if (billboardRects.length > 0 || hasAdjust) {
+        const result = await downloadResult(job.job_id, billboardRects, adjust);
         triggerBrowserDownload(result.blob, result.filename);
         return;
       }
@@ -266,6 +270,7 @@ function HomePage() {
     format: ImageSaveFormat,
     includeOutlines: boolean,
     images: { resultId: string; rects: BillboardOverlayRect[] }[],
+    adjust?: AdjustmentParams,
   ) => {
     if (!job) return;
     setDownloading(true);
@@ -276,7 +281,8 @@ function HomePage() {
     }));
     try {
       if (isDesktopShell()) {
-        const outcome = await saveBatchExportNative(job.job_id, format, includeOutlines, payload);
+        const outcome = await saveBatchExportNative(
+          job.job_id, format, includeOutlines, payload, adjust);
         if (!outcome.ok && "error" in outcome) {
           setDownloadError(outcome.error);
           return;
@@ -290,7 +296,7 @@ function HomePage() {
         }
         return;
       }
-      const result = await exportBatch(job.job_id, format, includeOutlines, payload);
+      const result = await exportBatch(job.job_id, format, includeOutlines, payload, adjust);
       triggerBrowserDownload(result.blob, result.filename);
     } catch (err) {
       setDownloadError(messageFor(err, "Could not export the batch."));

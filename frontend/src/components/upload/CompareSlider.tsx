@@ -1,19 +1,23 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { IconChevronLeft, IconChevronRight } from "../ui/Icon";
 
 /**
  * Real before/after comparison slider for a completed job: `beforeSrc` is
- * the actual uploaded source image, `afterSrc` is the actual generated 4K
- * result — both object URLs the caller owns and revokes. No demo/decorative
- * imagery. The caller overlays the Before / After · 4K badges via its own
- * layout; this component renders only the draggable split.
+ * the actual uploaded source image (an object URL the caller owns and
+ * revokes) and `after` is the "after" layer's content. `after` is a
+ * ReactNode (not a plain `src` string) so the caller can render either a
+ * plain `<img>` or a live `<canvas>` (MVP 2's client-side adjustment
+ * preview — see lib/previewAdjustments.ts) as the after layer without this
+ * component knowing which. No demo/decorative imagery. The caller overlays
+ * the Before / After · 4K badges via its own layout; this component renders
+ * only the draggable split.
  */
 export function CompareSlider({
   beforeSrc,
-  afterSrc,
+  after,
 }: {
   beforeSrc: string;
-  afterSrc: string;
+  after: ReactNode;
 }) {
   const [position, setPosition] = useState(50);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -51,12 +55,7 @@ export function CompareSlider({
         updateFromClientX(event.clientX);
       }}
     >
-      <img
-        src={afterSrc}
-        alt="Enhanced 4K result"
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        draggable={false}
-      />
+      <div className="pointer-events-none absolute inset-0 h-full w-full">{after}</div>
       <div
         className="pointer-events-none absolute inset-0 overflow-hidden"
         style={{ clipPath: `inset(0 ${100 - position}% 0 0)` }}

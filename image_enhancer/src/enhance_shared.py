@@ -32,6 +32,22 @@ import numpy as np
 OUT_W, OUT_H = 3840, 2160
 
 
+def aspect_preserving_target(width: int, height: int, max_dim: int = OUT_W) -> tuple:
+    """Identical formula to enhance.py's own aspect_preserving_target (kept
+    as a separate copy here for the same reason every other function in
+    this module is duplicated rather than imported -- see this module's own
+    docstring: enhance.py imports torch at module scope, and the CPU worker
+    process must never import torch at all)."""
+    if width <= 0 or height <= 0:
+        raise ValueError("aspect_preserving_target expects positive width/height")
+    scale = max_dim / max(width, height)
+    out_w = round(width * scale)
+    out_h = round(height * scale)
+    out_w = max(2, out_w - (out_w % 2))
+    out_h = max(2, out_h - (out_h % 2))
+    return (out_w, out_h)
+
+
 def load_image(path):
     img = cv2.imread(str(path), cv2.IMREAD_COLOR)
     if img is None:
@@ -154,7 +170,7 @@ _FINAL_CPU_DN_HCOLOR = 5
 _FINAL_CPU_SR_OVERLAP = 16
 
 
-def cpu_final_enhance(img):
+def cpu_final_enhance(img, target=(OUT_W, OUT_H)):
     """The CPU-mode equivalent of enhance.final_enhance -- same pipeline
     shape (tonal correction -> faithful upscale -> denoise+SR blend ->
     F3-natural -> G7-MS -> A+), same shared post-processing functions
@@ -163,6 +179,12 @@ def cpu_final_enhance(img):
     imdn_x4_ov.py and this module's own docstring for why: torch cannot be
     imported anywhere in this call graph without risking the
     torch+OpenVINO native crash this module exists to avoid).
+
+    ``target`` defaults to the classic (OUT_W, OUT_H) so any existing
+    direct caller that never passes it keeps byte-identical behavior; pass
+    aspect_preserving_target(w0, h0) to preserve the source's own aspect
+    ratio (see that function's docstring) -- backend/cpu_worker.py does
+    this for every real job.
 
     No billboard/Candidate-A branch: that stage is dead code for this
     product even on the GPU path (engine_adapter always neutralizes
@@ -179,8 +201,13 @@ def cpu_final_enhance(img):
     if h0 < 16 or w0 < 16:
         raise ValueError("cpu_final_enhance expects an image of at least 16x16")
 
-    img_toned, _meta = tonal_correction.adaptive_tonal_correction(img, return_meta=True)
-    faithful = simple_upscale(img_toned)
+    # MVP 2: see enhance.py's identical call -- enhance_photographic_quality
+    # only fixes a genuinely broken exposure/contrast defect and is a no-op
+    # otherwise (no proactive brightness lift, no HDR tone mapping/detail
+    # boost, no color correction -- all of that is now a manual adjustment,
+    # applied later via adjustments.py). CPU and GPU paths stay in sync.
+    img_toned, _meta = tonal_correction.enhance_photographic_quality(img, return_meta=True)
+    faithful = simple_upscale(img_toned, target)
 
     dn = cv2.fastNlMeansDenoisingColored(
         img_toned, None, _FINAL_CPU_DN_H, _FINAL_CPU_DN_HCOLOR, 7, 21)
@@ -188,14 +215,14 @@ def cpu_final_enhance(img):
     blend = np.clip(img_toned.astype(np.float32) * (1.0 - k)
                      + dn.astype(np.float32) * k, 0, 255).astype(np.uint8)
     sr = imdn_x4_ov.sr_bgr(blend, overlap=_FINAL_CPU_SR_OVERLAP)
-    d1 = cv2.resize(sr, (OUT_W, OUT_H), interpolation=cv2.INTER_LANCZOS4)
+    d1 = cv2.resize(sr, target, interpolation=cv2.INTER_LANCZOS4)
 
     f3 = final_f3_natural(faithful, d1)
     f3_ms = final_multiscale_detail(f3)
     f3_plus = final_whole_frame_detail(f3_ms)
 
-    if f3_plus.shape[1] != OUT_W or f3_plus.shape[0] != OUT_H:
-        f3_plus = cv2.resize(f3_plus, (OUT_W, OUT_H), interpolation=cv2.INTER_LANCZOS4)
+    if f3_plus.shape[1] != target[0] or f3_plus.shape[0] != target[1]:
+        f3_plus = cv2.resize(f3_plus, target, interpolation=cv2.INTER_LANCZOS4)
     return f3_plus
 
 

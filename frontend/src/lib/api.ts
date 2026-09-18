@@ -6,6 +6,8 @@
  * docstring for the exact contract this mirrors.
  */
 
+import { isDefaultAdjustments, type AdjustmentParams } from "./adjustments";
+
 export type JobStatus = "queued" | "processing" | "completed" | "failed";
 
 export interface JobFileError {
@@ -168,22 +170,36 @@ function filenameFromContentDisposition(header: string | null, fallback: string)
   return match ? match[1] : fallback;
 }
 
+function adjustQueryParam(adjust?: AdjustmentParams): string | null {
+  if (!adjust || isDefaultAdjustments(adjust)) return null;
+  return `adjust=${encodeURIComponent(JSON.stringify(adjust))}`;
+}
+
 /**
  * GET /api/jobs/:id/result — the enhanced PNG (single-file job) or a ZIP
  * (multi-file job). Throws ApiError (409/404/500 all come back as JSON)
  * if the job isn't in a downloadable state yet.
  *
  * Pass `billboardRects` to have the backend composite the confirmed editor
- * rectangles onto a single-image result before serving it.
+ * rectangles onto a single-image result before serving it, and/or `adjust`
+ * to have it apply manual post-processing adjustments first (see
+ * lib/adjustments.ts). This same call backs BOTH the live adjustment
+ * preview (debounced, called from JobResultPanel while a slider moves) and
+ * the final download — there is no separate preview-only code path.
  */
 export async function downloadResult(
   jobId: string,
   billboardRects?: BillboardRectSpec[],
+  adjust?: AdjustmentParams,
 ): Promise<JobResult> {
   let url = `/api/jobs/${encodeURIComponent(jobId)}/result`;
+  const params: string[] = [];
   if (billboardRects && billboardRects.length > 0) {
-    url += `?billboard=${encodeURIComponent(JSON.stringify(billboardRects))}`;
+    params.push(`billboard=${encodeURIComponent(JSON.stringify(billboardRects))}`);
   }
+  const adjustParam = adjustQueryParam(adjust);
+  if (adjustParam) params.push(adjustParam);
+  if (params.length > 0) url += `?${params.join("&")}`;
   const res = await fetch(url);
   if (!res.ok) {
     const body = await readJson(res);
@@ -203,15 +219,18 @@ export async function downloadResult(
  * GET /api/jobs/:id/results/:resultId — one gallery image's own clean
  * enhanced PNG (never the ZIP, never another image's file). Used to
  * populate the gallery's main preview and thumbnails without waiting on a
- * ZIP re-fetch, and without re-running enhancement.
+ * ZIP re-fetch, and without re-running enhancement. Pass `adjust` for the
+ * same live-preview/export use as downloadResult above.
  */
 export async function downloadIndividualResult(
   jobId: string,
   resultId: string,
+  adjust?: AdjustmentParams,
 ): Promise<JobResult> {
-  const res = await fetch(
-    `/api/jobs/${encodeURIComponent(jobId)}/results/${encodeURIComponent(resultId)}`,
-  );
+  let url = `/api/jobs/${encodeURIComponent(jobId)}/results/${encodeURIComponent(resultId)}`;
+  const adjustParam = adjustQueryParam(adjust);
+  if (adjustParam) url += `?${adjustParam}`;
+  const res = await fetch(url);
   if (!res.ok) {
     const body = await readJson(res);
     const message = isApiErrorBody(body) ? body.error : `request failed (${res.status})`;
@@ -224,7 +243,8 @@ export async function downloadIndividualResult(
 /**
  * POST /api/jobs/:id/export — the batch ("Save ZIP") export path: one
  * COMMON format for every image, each image getting only its own board
- * rects burned in when `includeOutlines` is on. Mirrors
+ * rects burned in when `includeOutlines` is on, and (when given) one
+ * COMMON `adjust` applied to every image. Mirrors
  * backend/output_manager.build_batch_export exactly.
  */
 export async function exportBatch(
@@ -232,11 +252,18 @@ export async function exportBatch(
   format: "png" | "jpg" | "jpeg",
   includeOutlines: boolean,
   images: BatchExportImage[],
+  adjust?: AdjustmentParams,
 ): Promise<JobResult> {
+  const body: Record<string, unknown> = {
+    format,
+    include_outlines: includeOutlines,
+    images,
+  };
+  if (adjust && !isDefaultAdjustments(adjust)) body.adjust = adjust;
   const res = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/export`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ format, include_outlines: includeOutlines, images }),
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const body = await readJson(res);
