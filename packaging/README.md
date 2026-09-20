@@ -11,7 +11,8 @@ unchanged; this directory only adds a build/distribution layer on top of it.
 |---|---|
 | `pyinstaller/adinn.spec` | PyInstaller build spec — turns the app into a onedir bundle (`dist/Adinn4KImageEnhancer/`). |
 | `pyinstaller/launcher.py` | Tiny entry point PyInstaller actually runs: sets `ADINN_INSTALLED=1`, creates the "already running" mutex, then calls the *existing* `backend.shell.main()` — no startup logic is reimplemented. |
-| `inno/adinn_setup.iss` | Inno Setup 6 script — wizard flow, system-requirements page, components/shortcuts, uninstaller. Compiles `dist/Adinn4KImageEnhancer/` into one installer `.exe`. |
+| `inno/adinn_setup.iss` | Inno Setup 6 script — wizard flow, system-requirements page, components/shortcuts, uninstaller, and the VC++ runtime prerequisite step. Compiles `dist/Adinn4KImageEnhancer/` into one installer `.exe`. |
+| `vc_redist/vc_redist.x64.exe` | **Official** Microsoft Visual C++ 2015-2022 Redistributable (x64), staged for the installer's prerequisite step (gitignored — see below). |
 | `assets/adinn.ico` | App/installer icon, generated from `frontend/src/assets/adinn-icon-512.png` (Pillow — already a project dependency, no new one added). |
 | `assets/wizard_image.bmp`, `wizard_small.bmp` | Wizard branding bitmaps, generated the same way. |
 | `build.ps1` | Orchestrates all three steps (frontend → PyInstaller → Inno Setup) in one command. |
@@ -28,6 +29,11 @@ user's machine.)
 
 # Inno Setup 6
 winget install --id JRSoftware.InnoSetup -e
+
+# Stage the official Microsoft VC++ Redistributable with the installer
+# (packaging\vc_redist\vc_redist.x64.exe). Download it ONLY from Microsoft's
+# own link, then verify before first use (see below):
+Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile "packaging\vc_redist\vc_redist.x64.exe"
 ```
 
 ## Build
@@ -45,6 +51,43 @@ cd frontend; npm install; npm run build; cd ..
 ```
 
 Output: `packaging\output\Adinn4KImageEnhancer-Setup-0.1.0.exe`.
+
+## VC++ runtime prerequisite (required on the target machine)
+
+The packaged app's frozen torch/CUDA stack links against the **Microsoft
+Visual C++ 2015-2022 Redistributable (x64)** (`msvcp140.dll` /
+`vcruntime140.dll` / `vcruntime140_1.dll`). The stale private copies that
+previously shipped *inside* the bundle are deliberately excluded (see
+`docs/RELEASE_READINESS.md` -> VC++ RUNTIME for why), so a machine that never
+had a current runtime installed by anything would otherwise fail with a
+missing-DLL error the first time a GPU job imports the engine.
+
+The installer therefore:
+
+1. **Stages the official redistributable** — `packaging\vc_redist\vc_redist.x64.exe`,
+   bundled into the installer payload (`Flags: dontcopy`, staged to `{tmp}`
+   at install time, never installed as part of the app, never left on disk).
+2. **Checks the registry first** — `HKLM\SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64`
+   (Major/Minor/Bld). If an installed runtime `>= 14.44.35211` (the build
+   staged with this release) already exists, the redistributable is **not**
+   run at all.
+3. **Installs silently only when required** — `vc_redist.x64.exe /install /quiet /norestart`
+   from the staged official binary, before any app file is written; a
+   non-zero exit aborts the install with the manual download link shown.
+
+The staged binary is **gitignored** (a 24 MB third-party signed artifact —
+see `.gitignore`: `packaging/vc_redist/`). Before first use on a build
+machine, download it from Microsoft's own link and verify it:
+
+```powershell
+# Official source, Microsoft-signed:
+Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile "packaging\vc_redist\vc_redist.x64.exe"
+Get-AuthenticodeSignature "packaging\vc_redist\vc_redist.x64.exe" | Format-List SignerCertificate  # CN=Microsoft Corporation
+Get-FileHash "packaging\vc_redist\vc_redist.x64.exe" -Algorithm SHA256   # 14.44.35211.0 = CC0FF0EB1DC3F5188AE6300FAEF32BF5BEEBA4BDD6E8E445A9184072096B713B
+```
+
+Do **not** source this file from a third-party website; do not silently run
+anything else system-wide during install.
 
 ## Why PyInstaller + Inno Setup
 

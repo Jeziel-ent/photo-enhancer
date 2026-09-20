@@ -269,8 +269,7 @@ function HomePage() {
   const handleExportBatch = async (
     format: ImageSaveFormat,
     includeOutlines: boolean,
-    images: { resultId: string; rects: BillboardOverlayRect[] }[],
-    adjust?: AdjustmentParams,
+    images: { resultId: string; rects: BillboardOverlayRect[]; adjust?: AdjustmentParams }[],
   ) => {
     if (!job) return;
     setDownloading(true);
@@ -278,11 +277,14 @@ function HomePage() {
     const payload: BatchExportImage[] = images.map((i) => ({
       result_id: i.resultId,
       rects: i.rects,
+      ...(i.adjust && !isDefaultAdjustments(i.adjust)
+        ? { adjust: { ...i.adjust } }
+        : {}),
     }));
     try {
       if (isDesktopShell()) {
         const outcome = await saveBatchExportNative(
-          job.job_id, format, includeOutlines, payload, adjust);
+          job.job_id, format, includeOutlines, payload);
         if (!outcome.ok && "error" in outcome) {
           setDownloadError(outcome.error);
           return;
@@ -296,7 +298,7 @@ function HomePage() {
         }
         return;
       }
-      const result = await exportBatch(job.job_id, format, includeOutlines, payload, adjust);
+      const result = await exportBatch(job.job_id, format, includeOutlines, payload);
       triggerBrowserDownload(result.blob, result.filename);
     } catch (err) {
       setDownloadError(messageFor(err, "Could not export the batch."));

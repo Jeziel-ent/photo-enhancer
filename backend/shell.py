@@ -196,12 +196,12 @@ class DesktopBridge:
         builds a brand-new ZIP (backend/output_manager.build_batch_export)
         from each image's OWN rects rather than copying the job's existing
         result.zip — that raw zip never has overlays and only exists in one
-        format. ``images`` is a list of {"result_id": str, "rects": [...]}
-        dicts, one per image the gallery should export; a stringified JSON
-        payload is tolerated the same way billboard_rects is elsewhere.
-        ``adjust``, when given, is the ONE common manual-adjustment value
-        set applied to every image in the batch (same clamped semantics as
-        save_result_as).
+        format. ``images`` is a list of {"result_id": str, "rects": [...],
+        "adjust"?: {...}} dicts, one per image the gallery should export;
+        a stringified JSON payload is tolerated the same way billboard_rects
+        is elsewhere. Each image is exported with ONLY its own ``adjust``
+        (same clamped semantics as save_result_as); an entry without one
+        falls back to the common ``adjust`` param.
         """
         job = self._job_manager.get_job(job_id)
         if job is None:
@@ -232,7 +232,10 @@ class DesktopBridge:
             if file_result is None:
                 continue
             rects = entry.get("rects") or []
-            items.append((file_result.original_filename, file_result.output_path, rects))
+            per_image_adjust = self._coerce_adjust(entry.get("adjust"))
+            items.append(
+                (file_result.original_filename, file_result.output_path, rects, per_image_adjust)
+            )
         if not items:
             return {"ok": False, "error": "no matching images to export"}
 

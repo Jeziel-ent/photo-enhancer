@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "../../lib/cn";
 
 export interface BillboardRect {
@@ -101,6 +101,7 @@ export function BillboardCanvas({
   addingMode = false,
   onDrawStart,
   onDrawCommit,
+  background,
 }: {
   imageSrc: string;
   /** The result image's REAL pixel dimensions (see
@@ -120,6 +121,11 @@ export function BillboardCanvas({
   onDrawStart?: () => void;
   /** Fired when a board drawing gesture completes (pointer up). */
   onDrawCommit?: () => void;
+  /** Optional custom backdrop rendered in place of the plain <imageSrc>
+   * <img> -- MVP 2 uses this to draw the board markers on top of the
+   * client-side ADJUSTED preview instead of the stale base enhanced image.
+   * When omitted, the plain image is shown exactly as before. */
+  background?: ReactNode;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [draftRects, setDraftRects] = useState<PctRectWithId[]>(() =>
@@ -318,12 +324,16 @@ export function BillboardCanvas({
       onPointerUp={finishDrag}
       onPointerCancel={finishDrag}
     >
-      <img
-        src={imageSrc}
-        alt="Enhanced 4K result"
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover"
-        draggable={false}
-      />
+      {background ? (
+        <div className="pointer-events-none absolute inset-0 h-full w-full">{background}</div>
+      ) : (
+        <img
+          src={imageSrc}
+          alt="Enhanced 4K result"
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover"
+          draggable={false}
+        />
+      )}
 
       {draftRects.map((r) => {
         const isSelected = r.id === selectedId;

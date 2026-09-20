@@ -89,6 +89,22 @@ _MODELS_EXCLUDED = {
     # Only referenced by the pan_* benchmark scripts (which ship under
     # image_enhancer/src only as inert research data).
     "pan_4x.pt",
+    # --- Phase B Group 3 (release-closeout package audit) additions ---
+    # R&D-only weights that the FINAL package-audit pass found still shipping
+    # despite zero references in any production file (backend/, enhance.py's
+    # "final" METHOD call graph, tonal_correction.py, pro_exp/{pipeline2,
+    # prolook}.py, restore_exp/{restormer,restormer_arch,swinir_m,imdn_x4_ov}.py,
+    # swinir/network_swinir.py, cpu_worker.py -- all grep-verified; each name
+    # below appears ONLY in already-excluded research/experiment trees).
+    # EDSR_x4.pb (36.8 MB): OpenVINO/PB twin of the already-excluded EDSR_x4.pt.
+    "EDSR_x4.pb",
+    # pan\pan_4x_tile256_int8.bin/.xml (1.1 MB total): OpenVINO IR for the
+    # pan_* R&D benchmark only.
+    "pan_4x_tile256_int8.bin",
+    "pan_4x_tile256_int8.xml",
+    # real_drct\Real_DRCT_GAN_SRx4_mse_net_g_latest (234.2 MB): the un-zipped
+    # DRCT checkpoint (dependency of the already-excluded .zip). R&D only.
+    "Real_DRCT_GAN_SRx4_mse_net_g_latest",
     # A 1.2+ GB root-level .zip sitting next to the real
     # 003_..._SwinIR-M_x4_PSNR.pth (same stem, different extension, appeared
     # a day after every other checkpoint's timestamp) -- grepped
@@ -139,6 +155,20 @@ _SRC_RESEARCH_DIRS = {
     "f2_exp", "f3_exp", "f3_gate_exp", "f3_local_exp", "fidelity_exp",
     "g1_exp", "g2_exp", "g3_exp", "g4_exp", "g5_exp", "g6_exp", "g7_exp",
     "g8_exp", "g8_fix_exp", "g9_exp", "restore_exp/ref",
+    # --- correlation-fusion / final-quality-research session additions ---
+    # None of these are imported anywhere in enhance.py's production call
+    # graph (the correlation-fusion mechanism they validated was folded
+    # into enhance.py itself as _final_correlation_fusion -- these are the
+    # R&D scripts/notebooks that produced it, kept for provenance only).
+    "d1_res_exp", "d1_residual_exp", "f3_clip_exp", "f3_diag_exp",
+    "f3_env_w_exp", "f3_t0_exp", "post_swinir_fusion_diag_exp", "research",
+    # --- release-closeout package-audit addition: the R&D carn/pan experiment
+    # checkpoints (carn.pth, pan_4x.pt, pan_4x_tile256.onnx, plus a 99.8 MB
+    # DUPLICATE of the required real_denoising.pth) shipped only because
+    # image_enhancer/src is bundled wholesale as loose data -- none of the four
+    # is referenced by any production module (grep-verified). Dropping the tree
+    # removes ~108 MB of inert weight from the install.
+    "restore_exp/carn_pan_exp",
 }
 _SRC_RESEARCH_FILES = {
     "benchmark.py", "benchmark_final.py", "compare_report.py",
@@ -425,6 +455,34 @@ _DROP_BUNDLED_NAMES = {
     # extension (ImportError is caught -> AVIF simply unavailable); no other
     # format is affected.
     "_avif.cp310-win_amd64.pyd",
+    # --- packaged-GPU-DLL-init fix (see
+    # image_enhancer/reports/packaged_gpu_dll_diag/REPORT.md for the full
+    # diagnostic) --- one of the collect_all() calls above (pythonnet/cv2/
+    # timm) pulls in its own private copy of the MSVC redistributable
+    # (msvcp140.dll/vcruntime140.dll/vcruntime140_1.dll) at the flat
+    # _internal root. Confirmed by direct file-version comparison to be an
+    # OLDER build (14.36.32532.0) than the runtime torch's cu128 build
+    # actually needs, and by AddDllDirectory search-order semantics
+    # (_internal is searched before System32) to SHADOW the correct,
+    # current system-installed copy -- this is what caused torch's own
+    # c10.dll to fail with WinError 1114 ("DLL initialization routine
+    # failed") the moment engine_adapter imports enhance.py inside the
+    # frozen process, wedging every GPU job at "queued" forever with no
+    # visible error (console=False swallows the traceback). Dropping these
+    # 3 files here (not bundling a replacement -- see the report's Section
+    # 10 for why bundling a "fixed" copy just moves the same shadowing risk
+    # to a future user machine) lets the app fall through to
+    # LOAD_LIBRARY_SEARCH_SYSTEM32 and pick up the correct, current
+    # redistributable actually installed on the machine instead. Real
+    # product implication: the packaged app now depends on the target
+    # machine having a current Microsoft Visual C++ Redistributable
+    # installed -- see docs/RELEASE_READINESS.md's VC++ Runtime section for
+    # the installer-prerequisite follow-up this requires. Validated by
+    # rebuilding from this exact spec and running 1 + 5 sequential + 1
+    # batch real GPU jobs through the rebuilt packaged EXE, all successful.
+    "msvcp140.dll",
+    "vcruntime140.dll",
+    "vcruntime140_1.dll",
 }
 
 

@@ -39,7 +39,7 @@ def build_result(
 
 
 def build_batch_export(
-    items: list[tuple[str, Path, list]],
+    items: list[tuple],
     zip_path: Path,
     image_format: str,
     include_outlines: bool,
@@ -48,15 +48,20 @@ def build_batch_export(
     """Builds the "Save ZIP" batch export: every image is re-encoded to one
     COMMON ``image_format`` ("png"/"jpg"/"jpeg"), gets ONLY its own board
     rectangles burned in (never another image's) — and only when
-    ``include_outlines`` is on — and, when ``adjust`` is given, the SAME
-    manual adjustment values (Brightness/Contrast/Highlights/Shadows/
-    Saturation/Detail) applied to every image in the batch (see
+    ``include_outlines`` is on — and applies manual adjustments
+    (Brightness/Contrast/Highlights/Shadows/Saturation/Detail) via
     backend/adjustment_overlay.py — the one shared implementation preview
-    and export both use). The original per-file engine outputs are never
+    and export both use. Each image's values are its OWN: an ``items``
+    entry may carry a per-image ``adjust`` dict as its 4th element
+    (``(name, path, rects, per_image_adjust)``); when it is None/absent the
+    common ``adjust`` param is used for that image. Setting equal void
+    values for every image behaves exactly like the previous common-adjust
+    single-payload export. The original per-file engine outputs are never
     modified; this always writes a fresh zip.
 
     ``items`` is ``(original_filename, enhanced_path, rects)`` per image, in
-    the order they should appear in the zip. Raises ValueError if empty.
+    the order they should appear in the zip (or the 4-tuple form above).
+    Raises ValueError if empty.
     """
     if not items:
         raise ValueError("no images to export")
@@ -66,9 +71,15 @@ def build_batch_export(
     ext = _EXPORT_EXTENSIONS.get(image_format, ".png")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
         used_names: set[str] = set()
-        for original_name, enhanced_path, rects in items:
+        for item in items:
+            if len(item) >= 4:
+                original_name, enhanced_path, rects, per_image_adjust = item
+            else:
+                original_name, enhanced_path, rects = item
+                per_image_adjust = None
+            item_adjust = per_image_adjust if per_image_adjust is not None else adjust
             data = adjustment_overlay.compose_bytes(
-                enhanced_path, rects if include_outlines else [], adjust, image_format)
+                enhanced_path, rects if include_outlines else [], item_adjust, image_format)
             stem = Path(original_name).stem or enhanced_path.stem
             arcname = _unique_arcname(stem, ext, used_names)
             zf.writestr(arcname, data)

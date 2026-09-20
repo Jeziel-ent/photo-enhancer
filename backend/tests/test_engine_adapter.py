@@ -15,8 +15,10 @@ involved -- only `_billboard_boxes()`, not the SR pipeline, is exercised).
 
 import os
 import sys
+import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 import numpy as np
 
@@ -108,6 +110,54 @@ class BillboardRegionsNeutralizedTestCase(unittest.TestCase):
         engine_adapter._restore_billboard_regions(enhance, prev_regions, prev_billboard)
         self.assertNotIn("REGIONS_CONFIG", os.environ)
         self.assertNotIn("BILLBOARD_IMAGE", os.environ)
+
+
+class EngineImportFailureDoesNotWedgeTheQueueTestCase(unittest.TestCase):
+    """Regression test for the real packaged-GPU incident (see
+    image_enhancer/reports/packaged_gpu_dll_diag/REPORT.md): a native DLL/
+    CUDA init failure inside `import torch` (transitively imported by
+    `import enhance`) raises OSError, not ImportError. Before the fix,
+    warmup_engine()'s and enhance_image()'s `except ImportError` clauses did
+    not catch it -- warmup_engine() let the exception kill
+    JobManager._run()'s background thread outright, silently wedging every
+    future job at "queued" forever with no visible error; enhance_image()
+    would have leaked a raw OSError instead of a clean EngineError even if
+    the thread had survived. Mocks `_import_engine` directly (not real
+    torch/enhance) so this runs on any machine, matching this fast test
+    suite's no-GPU-required contract."""
+
+    def setUp(self):
+        # Force the GPU dispatch branch regardless of what's actually
+        # detected on the machine running this test -- these tests exercise
+        # pure exception-handling logic, never real GPU/CPU work.
+        self._prior_state = dict(engine_adapter._DEVICE_STATE)
+        engine_adapter._DEVICE_STATE.update(
+            {"preference": "gpu", "detected_gpu": "fake", "effective_device": "gpu", "warning": None})
+        self.addCleanup(engine_adapter._DEVICE_STATE.update, self._prior_state)
+
+    def test_warmup_engine_swallows_a_non_import_error_from_import_engine(self):
+        with mock.patch.object(
+                engine_adapter, "_import_engine",
+                side_effect=OSError("[WinError 1114] simulated DLL init failure")):
+            try:
+                engine_adapter.warmup_engine()
+            except OSError:
+                self.fail(
+                    "warmup_engine() let a non-ImportError exception from "
+                    "_import_engine() propagate -- this is exactly what "
+                    "kills JobManager._run()'s background thread and wedges "
+                    "every future job at 'queued' forever")
+
+    def test_enhance_image_wraps_a_non_import_error_as_engine_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            src = Path(tmp) / "in.png"
+            src.write_bytes(b"not a real image, never read before the mocked failure")
+            with mock.patch.object(
+                    engine_adapter, "_import_engine",
+                    side_effect=OSError("[WinError 1114] simulated DLL init failure")):
+                with self.assertRaises(engine_adapter.EngineError) as ctx:
+                    engine_adapter.enhance_image(src, Path(tmp) / "out.png")
+        self.assertIn("image enhancement engine is unavailable", str(ctx.exception))
 
 
 if __name__ == "__main__":

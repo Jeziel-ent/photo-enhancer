@@ -58,6 +58,11 @@ frontend/*.log
 packaging/output/
 packaging/*.log
 
+# Staged Microsoft Visual C++ Runtime prerequisite binary (official
+# vc_redist.x64.exe, signed by Microsoft) -- a build-time staging artifact,
+# not project source. Obtain/re-verify it per packaging/README.md.
+packaging/vc_redist/
+
 # Temporary files
 *.tmp
 *.temp
@@ -71,3 +76,16 @@ packaging/*.log
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+# Local packaging/build backups
+dist_moved_dlls_backup/
+dist_w2.0_backup/
+
+# Research / experiment artifacts
+image_enhancer/src/d1_res_exp/
+image_enhancer/src/d1_residual_exp/
+image_enhancer/src/f3_clip_exp/
+image_enhancer/src/f3_diag_exp/
+image_enhancer/src/f3_env_w_exp/
+image_enhancer/src/f3_t0_exp/
+image_enhancer/src/post_swinir_fusion_diag_exp/
+image_enhancer/src/research/

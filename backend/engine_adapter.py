@@ -265,7 +265,15 @@ def warmup_engine() -> None:
         return
     try:
         engine = _import_engine()
-    except ImportError:
+    except Exception:  # noqa: BLE001 — best-effort, never fatal to startup (see
+        # this function's own docstring). Broadened from `except ImportError`:
+        # a native DLL/CUDA init failure inside `import torch` (transitively
+        # imported by `import enhance`) raises OSError, not ImportError -- an
+        # ImportError-only catch here let that kill JobManager._run()'s
+        # calling thread outright (an uncaught exception on a background
+        # thread), silently wedging every future job at "queued" forever with
+        # no visible error. See docs/RELEASE_READINESS.md's "user-facing GPU
+        # failure" note for the real incident this fixes.
         return
     with _ENGINE_LOCK:
         try:
@@ -311,7 +319,16 @@ def enhance_image(
     stage(STAGE_PREPARING)
     try:
         engine = _import_engine()
-    except ImportError as exc:
+    except Exception as exc:  # noqa: BLE001 — broadened from `except ImportError`:
+        # a native DLL/CUDA init failure inside `import torch` raises OSError,
+        # not ImportError. Wrapping ANY import-time failure as EngineError
+        # here (same as the existing ImportError case) ensures JobManager's
+        # per-file try/except (backend/jobs.py's _process_job, which already
+        # catches general Exception) reports a clean, user-facing message
+        # instead of a raw OSError string -- this path is only reached at
+        # all once the worker thread survives warmup_engine()'s own broadened
+        # catch above; this is the per-job-file safety net for the same
+        # failure class.
         raise EngineError(f"image enhancement engine is unavailable: {exc}") from exc
 
     with _ENGINE_LOCK:

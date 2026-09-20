@@ -147,6 +147,111 @@ class TestBuildBatchExport(unittest.TestCase):
         with self.assertRaises(ValueError):
             build_batch_export([], self.tmp_dir / "export.zip", "png", include_outlines=True)
 
+    # ---------------------------------------------- per-image `adjust`
+    # (4-tuple items: (name, path, rects, per_image_adjust)) -- regression
+    # coverage for the per-image manual-adjustment batch export feature.
+    # Uses lossless PNG throughout so exported bytes can be compared for
+    # EXACT pixel equality against backend.adjustment_overlay.render_bgr
+    # (the one shared implementation preview/export/batch all call), not
+    # just "looks different".
+
+    def test_per_image_adjust_applied_independently(self):
+        from backend import adjustment_overlay
+
+        out_a = self._make_png("000_a.png")
+        out_b = self._make_png("001_b.png")
+        base = cv2.imread(str(out_a), cv2.IMREAD_COLOR)
+        adjust_a = {"brightness": 20, "contrast": 10, "highlights": 0,
+                    "shadows": 0, "saturation": 0, "detail": 15}
+        adjust_b = {"brightness": -20, "contrast": -10, "highlights": 0,
+                    "shadows": 0, "saturation": 0, "detail": 0}
+        zip_path = self.tmp_dir / "export.zip"
+
+        result = build_batch_export(
+            [("a.jpg", out_a, [], adjust_a), ("b.jpg", out_b, [], adjust_b)],
+            zip_path, "png", include_outlines=True)
+
+        with zipfile.ZipFile(result) as zf:
+            a_bytes = zf.read("a_enhanced.png")
+            b_bytes = zf.read("b_enhanced.png")
+        a_img = cv2.imdecode(np.frombuffer(a_bytes, np.uint8), cv2.IMREAD_COLOR)
+        b_img = cv2.imdecode(np.frombuffer(b_bytes, np.uint8), cv2.IMREAD_COLOR)
+
+        # both exported successfully, at the source's full resolution
+        self.assertEqual(a_img.shape, base.shape)
+        self.assertEqual(b_img.shape, base.shape)
+
+        # each image received ONLY its own adjustment values: exact
+        # pixel-for-pixel match against the shared render_bgr() applied
+        # with that image's OWN adjust dict on the SAME identical source
+        expected_a = adjustment_overlay.render_bgr(base, [], adjust_a)
+        expected_b = adjustment_overlay.render_bgr(base, [], adjust_b)
+        np.testing.assert_array_equal(a_img, expected_a)
+        np.testing.assert_array_equal(b_img, expected_b)
+
+        # adjustments are not shared/cross-applied: A (brightened) must be
+        # strictly brighter than B (darkened) despite an identical source
+        self.assertGreater(float(a_img.mean()), float(base.mean()))
+        self.assertLess(float(b_img.mean()), float(base.mean()))
+        self.assertGreater(float(a_img.mean()), float(b_img.mean()))
+        # and neither leaked the other's values onto it
+        self.assertFalse(np.array_equal(a_img, b_img))
+
+    def test_entries_without_adjust_fall_back_to_common_adjust(self):
+        from backend import adjustment_overlay
+
+        out_a = self._make_png("000_a.png")
+        base = cv2.imread(str(out_a), cv2.IMREAD_COLOR)
+        common_adjust = {"brightness": 30, "contrast": 0, "highlights": 0,
+                          "shadows": 0, "saturation": 0, "detail": 0}
+        zip_path = self.tmp_dir / "export.zip"
+
+        # 4-tuple item with per_image_adjust=None must fall back to the
+        # shared `adjust` kwarg -- same as before this feature existed
+        result = build_batch_export(
+            [("a.jpg", out_a, [], None)], zip_path, "png",
+            include_outlines=False, adjust=common_adjust)
+
+        with zipfile.ZipFile(result) as zf:
+            a_bytes = zf.read("a_enhanced.png")
+        a_img = cv2.imdecode(np.frombuffer(a_bytes, np.uint8), cv2.IMREAD_COLOR)
+        expected = adjustment_overlay.render_bgr(base, [], common_adjust)
+        np.testing.assert_array_equal(a_img, expected)
+
+    def test_legacy_three_tuple_items_still_work_with_per_image_adjust(self):
+        """Backward compatibility: a batch mixing OLD 3-tuple items (no
+        per-image adjust at all) and NEW 4-tuple items (own adjust) in the
+        SAME call must not break either -- the 3-tuple item behaves exactly
+        as it did before this feature existed (untouched, since no common
+        `adjust` is given either), and the 4-tuple item still gets its own
+        adjustment."""
+        from backend import adjustment_overlay
+
+        out_a = self._make_png("000_a.png")
+        out_b = self._make_png("001_b.png")
+        base = cv2.imread(str(out_a), cv2.IMREAD_COLOR)
+        adjust_b = {"brightness": -25, "contrast": 0, "highlights": 0,
+                    "shadows": 0, "saturation": 0, "detail": 0}
+        zip_path = self.tmp_dir / "export.zip"
+
+        result = build_batch_export(
+            [("a.jpg", out_a, []), ("b.jpg", out_b, [], adjust_b)],
+            zip_path, "png", include_outlines=False)
+
+        with zipfile.ZipFile(result) as zf:
+            a_bytes = zf.read("a_enhanced.png")
+            b_bytes = zf.read("b_enhanced.png")
+        a_img = cv2.imdecode(np.frombuffer(a_bytes, np.uint8), cv2.IMREAD_COLOR)
+        b_img = cv2.imdecode(np.frombuffer(b_bytes, np.uint8), cv2.IMREAD_COLOR)
+
+        # legacy 3-tuple item: no adjust applied at all (no common `adjust`
+        # was passed either) -- byte-identical to the untouched source
+        np.testing.assert_array_equal(a_img, base)
+        # the 4-tuple sibling in the SAME batch still got its own adjust
+        expected_b = adjustment_overlay.render_bgr(base, [], adjust_b)
+        np.testing.assert_array_equal(b_img, expected_b)
+        self.assertLess(float(b_img.mean()), float(a_img.mean()))
+
 
 if __name__ == "__main__":
     unittest.main()

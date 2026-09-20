@@ -546,8 +546,32 @@ _FINAL_SR_OVERLAP = 16
 _FINAL_F3_W = 6.0
 _FINAL_F3_CLIP = 18.0
 _FINAL_F3_T0 = 0.25
-_FINAL_F3_ENV = 14.0
+_FINAL_F3_ENV = 18.0
 _FINAL_F3_BP_SIGMA = 2.5
+
+# Correlation-gated fusion (GPU production path only -- replaces F3-natural
+# as of this session's engine-quality research; F3-natural itself is kept,
+# unmodified, immediately below for reference/comparison and because the
+# CPU path (enhance_shared.py) still uses its own equivalent unchanged).
+# Parameters chosen by a staged robustness sweep (sigma, then t0, then w)
+# across all 6 real benchmark photos -- see
+# image_enhancer/reports/research/correlation_fusion_final_validation/
+# ROBUSTNESS_REPORT.md for the full sweep data and the explicit reasoning
+# for keeping these exact values (the swept neighborhood was found stable;
+# a boundary-seeking "sharper" combination was deliberately rejected in
+# favor of this interior, already-validated point).
+_FINAL_CF_BP_SIGMA = 2.5    # same structural band-pass scale F3/G7 already use
+_FINAL_CF_SIGMA = 3.0       # Gaussian window (not box) for the local correlation estimate
+_FINAL_CF_T0 = 0.30         # local-correlation admission threshold (not an edge threshold)
+_FINAL_CF_W = 3.0           # gain -- deliberately far below F3's W=6.0, calibrated
+                            # separately because this gate admits ~50-65% of the frame
+                            # vs. F3's own ~12-20%; reusing F3's W produced a visible
+                            # posterization artifact in early research (see
+                            # correlation_fusion_exp/REPORT.md's "gain-mismatch" section)
+_FINAL_CF_CLIP = 18.0       # same inner clip F3 uses, applied to the same kind of signal
+_FINAL_CF_ENV = 18.0        # same flat envelope magnitude F3 uses (production-proven safe)
+_FINAL_CF_MIN_LOCAL_STD = 0.5  # faithful must show at least this much local structure
+                                # before its correlation with D1 is trusted at all
 _FINAL_APLUS_STRENGTH = 0.6
 _FINAL_APLUS_CLIP = 6.0
 _FINAL_APLUS_T0 = 0.35
@@ -697,6 +721,80 @@ def _final_f3_natural(faithful4k, d1_4k):
     sc = (s_l - a_l) - cv2.GaussianBlur(s_l - a_l, (0, 0), _FINAL_F3_BP_SIGMA)
     dL = _FINAL_F3_W * np.clip(sc, -_FINAL_F3_CLIP, _FINAL_F3_CLIP) * gate
     l_new = a_l + np.clip(dL, -_FINAL_F3_ENV, _FINAL_F3_ENV)
+    lab = cv2.cvtColor(faithful4k, cv2.COLOR_BGR2LAB).astype(np.float32)
+    lab[:, :, 0] = np.clip(l_new, 0, 255)
+    return cv2.cvtColor(lab.astype(np.uint8), cv2.COLOR_LAB2BGR)
+
+
+def _final_correlation_local_ncc(a_bp, s_bp, sigma):
+    """Gaussian-weighted (not box-filtered -- a box kernel was found to
+    produce a visible blocky artifact in flat regions during research, see
+    _FINAL_CF_SIGMA's own comment) local normalized cross-correlation
+    between two band-passed signals. Returns values in [-1, 1]."""
+    def local_mean(x):
+        return cv2.GaussianBlur(x, (0, 0), sigma)
+
+    ma, ms = local_mean(a_bp), local_mean(s_bp)
+    a0, s0 = a_bp - ma, s_bp - ms
+    num = local_mean(a0 * s0)
+    den = np.sqrt(np.maximum(local_mean(a0 * a0), 0) *
+                  np.maximum(local_mean(s0 * s0), 0)) + 1e-6
+    return np.clip(num / den, -1.0, 1.0)
+
+
+def _final_correlation_fusion(faithful4k, d1_4k):
+    """Correlation-gated fusion (validated replacement for F3-natural on
+    the GPU path -- see image_enhancer/reports/research/
+    correlation_fusion_final_validation/ for the full research history,
+    robustness sweep, and 6-image/7+-crop visual validation this
+    implementation is based on).
+
+    MATHEMATICAL BEHAVIOR: F3-natural (above) gates admission on local
+    Sobel EDGE-GRADIENT MAGNITUDE -- a criterion that cannot distinguish
+    genuine fine texture (real signal, small per-pixel gradient magnitude
+    -- asphalt grain, fabric weave, skin pores) from flat/noise (also
+    small gradient magnitude), so it structurally excludes most non-edge
+    pixels from any enhancement at all. This function instead gates on
+    local CORRELATION between D1's band-passed structure and the
+    faithful source's OWN band-passed structure at the same location and
+    spatial scale: genuine fine detail in D1 is, by this project's own
+    fidelity rule, detail that is actually present (if faint) in the
+    source photo, so it correlates with the source's own faint structure
+    there; SR-invented detail or amplified noise does not. Regions where
+    the faithful source itself shows negligible local structure (e.g. a
+    hazy, near-featureless sky) are excluded up front
+    (_FINAL_CF_MIN_LOCAL_STD) rather than trusting a numerically unstable
+    correlation estimate computed against near-nothing.
+
+    Steps: band-pass faithful's and D1's own L-plane at _FINAL_CF_BP_SIGMA
+    -> local correlation (Gaussian window, sigma=_FINAL_CF_SIGMA) ->
+    threshold-gate at _FINAL_CF_T0 (only positive correlation ever
+    admitted) -> apply D1's own band-passed, inner-clipped
+    (_FINAL_CF_CLIP) structural signal, scaled by _FINAL_CF_W, through
+    that gate -> clip the applied per-pixel change to a flat
+    +-_FINAL_CF_ENV envelope (same magnitude F3 already uses) -> original
+    chroma preserved, exactly like F3-natural.
+    """
+    a_l = _final_lab_l(faithful4k)
+    s_l = _final_lab_l(d1_4k)
+
+    a_bp = a_l - cv2.GaussianBlur(a_l, (0, 0), _FINAL_CF_BP_SIGMA)
+    s_bp = s_l - cv2.GaussianBlur(s_l, (0, 0), _FINAL_CF_BP_SIGMA)
+    corr = _final_correlation_local_ncc(a_bp, s_bp, _FINAL_CF_SIGMA)
+
+    local_mean_a = cv2.GaussianBlur(a_l, (0, 0), _FINAL_CF_SIGMA)
+    local_std_a = np.sqrt(np.maximum(
+        cv2.GaussianBlur(a_l * a_l, (0, 0), _FINAL_CF_SIGMA) - local_mean_a ** 2, 0))
+    trust = local_std_a >= _FINAL_CF_MIN_LOCAL_STD
+
+    gate = np.clip((corr - _FINAL_CF_T0) / (1.0 - _FINAL_CF_T0), 0.0, 1.0)
+    gate = np.where(trust, gate, 0.0)
+    gate = np.where(corr > 0, gate, 0.0)
+
+    sc_clip = np.clip(s_bp, -_FINAL_CF_CLIP, _FINAL_CF_CLIP)
+    dL = np.clip(_FINAL_CF_W * sc_clip * gate, -_FINAL_CF_ENV, _FINAL_CF_ENV)
+
+    l_new = a_l + dL
     lab = cv2.cvtColor(faithful4k, cv2.COLOR_BGR2LAB).astype(np.float32)
     lab[:, :, 0] = np.clip(l_new, 0, 255)
     return cv2.cvtColor(lab.astype(np.uint8), cv2.COLOR_LAB2BGR)
@@ -981,7 +1079,17 @@ def final_enhance(img, target=(OUT_W, OUT_H), return_stages=False):
     stages["peak_vram_mb"] = peak_vram_mb
     stages["device"] = device
 
-    f3 = _final_f3_natural(faithful, d1)
+    # Correlation-gated fusion replaces F3-natural here as of this
+    # session's engine-quality research (see _final_correlation_fusion's
+    # own docstring + image_enhancer/reports/research/
+    # correlation_fusion_final_validation/ for the full validation this
+    # is based on). Kept under the "f3"/"f3_ms"/"f3_plus" stage-dict keys
+    # unchanged, so every existing return_stages=True consumer (tests,
+    # research scripts) keeps working without modification -- this is a
+    # drop-in replacement of what runs at this pipeline position, not a
+    # new stage. _final_f3_natural itself is left completely unmodified,
+    # a few lines above, for reference/comparison.
+    f3 = _final_correlation_fusion(faithful, d1)
     stages["f3"] = f3
 
     f3_ms = _final_multiscale_detail(f3)

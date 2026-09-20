@@ -8,6 +8,12 @@
 ; This script only packages the already-built PyInstaller output plus a few
 ; branding assets -- it does not build the frontend or the Python app itself
 ; (see packaging/build.ps1 for the full pipeline).
+;
+; It also stages the official Microsoft Visual C++ 2015-2022 Redistributable
+; (x64) as the installer's prerequisite (see the VcRedist* defines and the
+; VC++ prerequisite section in [Code] below): installed silently from the
+; staged official binary only when the target machine lacks a current enough
+; runtime, and skipped entirely when a >= 14.44.35211 build already exists.
 
 #define AppName "Adinn 4K Image Enhancer"
 #define AppVersion "0.1.0"
@@ -16,6 +22,19 @@
 #define AppMutexName "Adinn4KImageEnhancerRunning"
 #define DistDir "..\..\dist\Adinn4KImageEnhancer"
 #define AssetsDir "..\assets"
+; Official Microsoft Visual C++ 2015-2022 Redistributable (x64), staged next
+; to this script in \packaging\vc_redist\vc_redist.x64.exe. This is the
+; installer prerequisite that guarantees the packaged torch/CUDA stack can
+; load its native DLLs on a machine that has never had any other VC++ runtime
+; installed. Obtain it ONLY from Microsoft's own link (never a third party):
+;   https://aka.ms/vs/17/release/vc_redist.x64.exe
+; Verify it before staging: Authenticode-signed by Microsoft Corporation, and
+; SHA-256  CC0FF0EB1DC3F5188AE6300FAEF32BF5BEEBA4BDD6E8E445A9184072096B713B
+; (recorded for the 14.44.35211.0 build staged with this release). The [Code]
+; below only runs it when the registry does not already show an installed
+; runtime >= that build, and only from the official-verified binary.
+#define VcRedistFileName "vc_redist.x64.exe"
+#define VcRedistDir "..\vc_redist"
 
 [Setup]
 ; Fixed GUID -- do not change between releases, or Windows/Inno will treat
@@ -102,6 +121,12 @@ Source: "{#DistDir}\{#AppExeName}"; DestDir: "{app}"; Components: app; Flags: ig
 Source: "{#DistDir}\_internal\*"; DestDir: "{app}\_internal"; Components: app; Flags: ignoreversion recursesubdirs createallsubdirs; Excludes: "image_enhancer\models\*"
 
 Source: "{#DistDir}\_internal\image_enhancer\models\*"; DestDir: "{app}\_internal\image_enhancer\models"; Components: models; Flags: ignoreversion recursesubdirs createallsubdirs
+
+; VC++ runtime prerequisite: bundled into the installer but copied only to
+; the temporary folder at install time (never installed as part of the app),
+; so the [Code] prerequisite step can run it silently. ExtractTemporaryFile
+; pulls it out only when PrepareToInstall decides it is actually needed.
+Source: "{#VcRedistDir}\{#VcRedistFileName}"; DestDir: "{tmp}"; Flags: dontcopy
 
 [Icons]
 Name: "{group}\{#AppName}"; Filename: "{app}\{#AppExeName}"; Tasks: startmenuicon
@@ -232,6 +257,96 @@ begin
     Result := 'Disk space required: ~6 GB free on the installation drive';
 end;
 
+{ --------------------------------------------------------------------
+  Microsoft Visual C++ 2015-2022 Redistributable (x64) prerequisite.
+
+  torch's cu128 build links against this runtime; with the stale bundled
+  copies no longer shipped (see packaging/pyinstaller/adinn.spec's
+  _DROP_BUNDLED_NAMES), a machine with no current redistributable would
+  otherwise fail with a missing-DLL error the first time a GPU job imports
+  the engine. This installs the official binary above only when the
+  registry shows no installed runtime >= the required build, and skips the
+  reinstall when one is already present.
+
+  Required minimum = the build staged with this installer
+  (14.44.35211.0 = Major 14, Minor 44, Bld 35211). Anything at or above it
+  satisfies torch; anything below or a missing key means we run ours.
+  -------------------------------------------------------------------- }
+
+function VcRuntimeCurrent(out Major, Minor, Bld: Cardinal): Boolean;
+begin
+  Result :=
+    RegQueryDWordValue(HKLM, 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64',
+      'Major', Major) and
+    RegQueryDWordValue(HKLM, 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64',
+      'Minor', Minor) and
+    RegQueryDWordValue(HKLM, 'SOFTWARE\Microsoft\VisualStudio\14.0\VC\Runtimes\x64',
+      'Bld', Bld);
+end;
+
+function VcRuntimeRequired(): String;
+begin
+  { The staged binary needs 14.44.35211.0 or newer. }
+  Result := '14.44.35211';
+end;
+
+function VcRuntimeInstalledLine(): String;
+var
+  Major, Minor, Bld: Cardinal;
+begin
+  if VcRuntimeCurrent(Major, Minor, Bld) then
+    Result := Format('[OK] VC++ runtimes: %d.%d.%d present (need %s+)', [Major, Minor, Bld, VcRuntimeRequired()])
+  else
+    Result := '[!] VC++ runtimes: not found -- will install the bundled Microsoft Redistributable';
+end;
+
+function IsVcRuntimeSatisfied(): Boolean;
+var
+  Major, Minor, Bld: Cardinal;
+begin
+  if not VcRuntimeCurrent(Major, Minor, Bld) then
+  begin
+    Result := False;
+    Exit;
+  end;
+  { Satisfied only if the installed build is >= the required one. }
+  Result :=
+    (Cardinal(Major) > 14) or
+    ((Cardinal(Major) = 14) and ((Cardinal(Minor) > 44) or
+     ((Cardinal(Minor) = 44) and (Cardinal(Bld) >= 35211))));
+end;
+
+function PrepareToInstall(var NeedsRestart: Boolean): String;
+var
+  ResultCode: Integer;
+begin
+  Result := '';
+  if IsVcRuntimeSatisfied() then
+  begin
+    Log('VC++ runtime already present -- skipping bundled redistributable.');
+    Exit;
+  end;
+
+  { Extract the staged official binary and install it silently. This runs
+    elevated (PrivilegesRequired=admin), before any app file is written, and
+    only the Microsoft-signed binary staged above is ever executed. }
+  ExtractTemporaryFile('{#VcRedistFileName}');
+  Log('Installing the bundled Microsoft VC++ redistributable silently...');
+  if not Exec(ExpandConstant('{tmp}\{#VcRedistFileName}'),
+      '/install /quiet /norestart', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+  begin
+    Result := 'Could not start the Microsoft Visual C++ Redistributable installer.';
+    Exit;
+  end;
+  if ResultCode <> 0 then
+  begin
+    Result := Format('The Microsoft Visual C++ Redistributable installer failed (code %d). '
+      + 'Install it manually from https://aka.ms/vs/17/release/vc_redist.x64.exe and retry.', [ResultCode]);
+    Exit;
+  end;
+  Log('VC++ redistributable installed successfully.');
+end;
+
 procedure InitializeWizard();
 begin
   SysReqPage := CreateCustomPage(wpWelcome, CustomMessage('SysReqTitle'), CustomMessage('SysReqSubtitle'));
@@ -270,6 +385,7 @@ begin
       Lines.Add(DetectRamLine());
       Lines.Add(DetectDiskLine());
       Lines.Add(DetectGpuLine());
+      Lines.Add(VcRuntimeInstalledLine());
       Lines.Add('');
       Lines.Add('An NVIDIA GPU is not required to install or run this app -- it always');
       Lines.Add('works fully offline on the CPU too, just slower per image. Nothing above');

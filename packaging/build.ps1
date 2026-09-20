@@ -23,6 +23,20 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $RepoRoot
 
+# Official Microsoft VC++ 2015-2022 Redistributable (x64) staged next to the
+# Inno script (packaging/vc_redist/vc_redist.x64.exe). Required by the frozen
+# torch/CUDA stack on a machine with no runtime already present; the Inno
+# script installs it silently, but ONLY when the registry shows no current
+# enough build, and always from the official-verified staged binary. Obtain
+# it from https://aka.ms/vs/17/release/vc_redist.x64.exe and verify it (see
+# packaging/README.md) before building the installer. Fail fast here so a
+# missing prerequisite can never silently produce an installer that drops it.
+$VcRedistPath = Join-Path $PSScriptRoot "vc_redist\vc_redist.x64.exe"
+if (-not (Test-Path $VcRedistPath)) {
+    throw "Staged prerequisite missing: $VcRedistPath. Download the official vc_redist.x64.exe from https://aka.ms/vs/17/release/vc_redist.x64.exe and place it there before building the installer."
+}
+Write-Host "  [prereq] VC++ redistributable staged: $VcRedistPath" -ForegroundColor DarkGray
+
 function Find-Iscc {
     $candidates = @(
         "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe",

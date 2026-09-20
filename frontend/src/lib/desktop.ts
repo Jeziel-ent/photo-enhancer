@@ -77,11 +77,12 @@ export interface BillboardOverlayRect {
   height: number;
 }
 
-/** One gallery image's own rects for a native batch export — mirrors the
- * browser path's api.ts BatchExportImage. */
+/** One gallery image's own rects AND its own adjustments for a native
+ * batch export — mirrors the browser path's api.ts BatchExportImage. */
 export interface BatchExportImage {
   result_id: string;
   rects: BillboardOverlayRect[];
+  adjust?: AdjustmentParams;
 }
 
 interface PywebviewApi {
@@ -154,20 +155,18 @@ export async function saveResultAsNative(
 /**
  * Native "Save As" for a batch export ZIP: one common format + include-
  * outlines flag for the whole batch, each image carrying only its own
- * rects (see backend/shell.py's DesktopBridge.save_batch_export). Only call
- * this when isDesktopShell() is true — throws otherwise. `adjust`, when
- * given and non-default, is applied to every image in the batch.
+ * rects and its own adjustments (see backend/shell.py's
+ * DesktopBridge.save_batch_export). Only call this when isDesktopShell()
+ * is true — throws otherwise. An image with no `adjust` (or with the
+ * defaults) is exported untouched.
  */
 export async function saveBatchExportNative(
   jobId: string,
   format: ImageSaveFormat,
   includeOutlines: boolean,
   images: BatchExportImage[],
-  adjust?: AdjustmentParams,
 ): Promise<SaveResultOutcome> {
-  return requireApi().save_batch_export(
-    jobId, format, includeOutlines, images,
-    adjust && !isDefaultAdjustments(adjust) ? adjust : undefined);
+  return requireApi().save_batch_export(jobId, format, includeOutlines, images);
 }
 
 /** Persists a lightweight record of a result the user just actually saved. */

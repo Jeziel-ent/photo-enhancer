@@ -158,10 +158,14 @@ export async function updateSettings(
 }
 
 /** One image's per-image export request within a batch export — its own
- * board rects only, never another image's. */
+ * board rects only, never another image's. `adjust`, when present (and not
+ * the developer defaults), is that image's OWN manual-adjustment slider
+ * state (see lib/adjustments.ts) — the backend applies each image's values
+ * only to that image, never to its siblings. */
 export interface BatchExportImage {
   result_id: string;
   rects: BillboardRectSpec[];
+  adjust?: AdjustmentParams;
 }
 
 function filenameFromContentDisposition(header: string | null, fallback: string): string {
@@ -243,23 +247,21 @@ export async function downloadIndividualResult(
 /**
  * POST /api/jobs/:id/export — the batch ("Save ZIP") export path: one
  * COMMON format for every image, each image getting only its own board
- * rects burned in when `includeOutlines` is on, and (when given) one
- * COMMON `adjust` applied to every image. Mirrors
- * backend/output_manager.build_batch_export exactly.
+ * rects burned in when `includeOutlines` is on, and each image's OWN
+ * `adjust` (when present and non-default) applied only to that image.
+ * Mirrors backend/output_manager.build_batch_export exactly.
  */
 export async function exportBatch(
   jobId: string,
   format: "png" | "jpg" | "jpeg",
   includeOutlines: boolean,
   images: BatchExportImage[],
-  adjust?: AdjustmentParams,
 ): Promise<JobResult> {
   const body: Record<string, unknown> = {
     format,
     include_outlines: includeOutlines,
     images,
   };
-  if (adjust && !isDefaultAdjustments(adjust)) body.adjust = adjust;
   const res = await fetch(`/api/jobs/${encodeURIComponent(jobId)}/export`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

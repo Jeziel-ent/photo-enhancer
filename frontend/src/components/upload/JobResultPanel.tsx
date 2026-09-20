@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { JobStatusResponse } from "../../lib/api";
-import { DEFAULT_ADJUSTMENTS, type AdjustmentParams } from "../../lib/adjustments";
+import { DEFAULT_ADJUSTMENTS, isDefaultAdjustments, type AdjustmentParams } from "../../lib/adjustments";
 import { cn } from "../../lib/cn";
 import { isDesktopShell, type ImageSaveFormat } from "../../lib/desktop";
 import { loadImageDimensions, type ImageDimensions } from "../../lib/imageDimensions";
@@ -224,13 +224,12 @@ export function JobResultPanel({
     adjust?: AdjustmentParams,
   ) => void;
   /** Batch ("Save ZIP") export: one common format + include-outlines flag
-   * for the whole job, each image carrying only its own confirmed rects,
-   * plus one common `adjust` applied to every image. */
+   * for the whole job; each image carries its own confirmed rects and its
+   * own `adjust` (undefined = defaults → exported untouched). */
   onExportBatch: (
     format: ImageSaveFormat,
     includeOutlines: boolean,
-    images: { resultId: string; rects: BillboardRect[] }[],
-    adjust?: AdjustmentParams,
+    images: { resultId: string; rects: BillboardRect[]; adjust?: AdjustmentParams }[],
   ) => void;
   downloading: boolean;
   downloadError: string | null;
@@ -247,11 +246,16 @@ export function JobResultPanel({
   const [includeOutlines, setIncludeOutlines] = useState(true);
   const [saveFormat, setSaveFormat] = useState<ImageSaveFormat>("png");
   // MVP 2: manual post-processing adjustments, applied AFTER the automatic
-  // enhancement (see lib/adjustments.ts + AdjustmentControls). One shared
-  // value for the whole job (single photo, or every photo in a gallery
-  // batch) -- mirrors how `saveFormat`/`includeOutlines` are already one
-  // shared setting rather than per-image state.
-  const [adjustments, setAdjustments] = useState<AdjustmentParams>({ ...DEFAULT_ADJUSTMENTS });
+  // enhancement (see lib/adjustments.ts + AdjustmentControls). Keyed by
+  // result id (or SINGLE_ID for a one-photo job) so every enhanced image
+  // keeps its OWN slider state — switching the gallery selection can never
+  // leak one photo's adjustments onto another's, and Export sends each
+  // image's own values. A key that has never been edited reads as the
+  // shared DEFAULT_ADJUSTMENTS constant (never mutated — every write
+  // below stores a fresh object for exactly that id).
+  const [adjustmentsByResult, setAdjustmentsByResult] = useState<Record<string, AdjustmentParams>>(
+    {},
+  );
   const areasPanelRef = useRef<HTMLDivElement>(null);
   const editSnapshotRef = useRef<{ id: string; selection: ImageSelection } | null>(null);
   // MVP 2: each result's REAL pixel dimensions (no longer always
@@ -282,6 +286,17 @@ export function JobResultPanel({
 
   const getSelection = (id: string | null): ImageSelection =>
     (id && selections[id]) || EMPTY_SELECTION;
+
+  // The active image's own adjustment values: an unedited image reads the
+  // (never-mutated) DEFAULT_ADJUSTMENTS constant; every edit stores a fresh
+  // object under exactly that id, so switching away and back restores it.
+  const activeAdjustments: AdjustmentParams =
+    (activeId && adjustmentsByResult[activeId]) || DEFAULT_ADJUSTMENTS;
+
+  const setActiveAdjustments = (next: AdjustmentParams) => {
+    if (!activeId) return;
+    setAdjustmentsByResult((prev) => ({ ...prev, [activeId]: next }));
+  };
 
   const activeSelection = getSelection(activeId);
   const rects = activeSelection.rects;
@@ -433,6 +448,18 @@ export function JobResultPanel({
                     addingMode={adding}
                     onDrawStart={() => setAdding(true)}
                     onDrawCommit={() => setAdding(false)}
+                    background={
+                      <AdjustedPreviewCanvas
+                        srcUrl={activeComparison.afterUrl}
+                        adjustments={activeAdjustments}
+                        aspect={{
+                          width: activeDimensions.width,
+                          height: activeDimensions.height,
+                        }}
+                        alt="Enhanced 4K result"
+                        className="h-full w-full"
+                      />
+                    }
                   />
                 ) : (
                   <CompareSlider
@@ -440,7 +467,7 @@ export function JobResultPanel({
                     after={
                       <AdjustedPreviewCanvas
                         srcUrl={activeComparison.afterUrl}
-                        adjustments={adjustments}
+                        adjustments={activeAdjustments}
                         alt="Enhanced 4K result"
                         className="h-full w-full object-cover"
                       />
@@ -567,8 +594,8 @@ export function JobResultPanel({
         {/* Right column: adjustments + board areas + export */}
         <div ref={areasPanelRef} className="flex min-w-0 scroll-mt-6 flex-col gap-5">
           <AdjustmentControls
-            value={adjustments}
-            onChange={setAdjustments}
+            value={activeAdjustments}
+            onChange={setActiveAdjustments}
             disabled={!activeComparison}
           />
 
@@ -724,10 +751,15 @@ export function JobResultPanel({
                   ? onExportBatch(
                       saveFormat,
                       includeOutlines,
-                      results.map((r) => ({ resultId: r.id, rects: getSelection(r.id).rects })),
-                      adjustments,
+                      results.map((r) => ({
+                        resultId: r.id,
+                        rects: getSelection(r.id).rects,
+                        adjust: isDefaultAdjustments(adjustmentsByResult[r.id] ?? DEFAULT_ADJUSTMENTS)
+                          ? undefined
+                          : { ...adjustmentsByResult[r.id] },
+                      })),
                     )
-                  : onDownload(saveFormat, exportRects, adjustments)
+                  : onDownload(saveFormat, exportRects, activeAdjustments)
               }
             >
               {downloading

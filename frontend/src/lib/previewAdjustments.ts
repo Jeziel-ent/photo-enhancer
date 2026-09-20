@@ -11,21 +11,42 @@
  * so the preview updates within a single animation frame and NEVER touches
  * the network, the backend, or the AI pipeline while a slider moves.
  *
- * Semantics: this mirrors image_enhancer/src/adjustments.py's constants,
- * ranges, and per-control direction/behavior exactly (same MAX_* ceilings,
- * same shadow/highlight weight thresholds, same saturation/detail bounds) —
- * "same adjustment semantics" as the backend. The one deliberate difference
- * is colorspace: the backend applies brightness/contrast/highlights/
- * shadows to the Lab L (luminance) channel only; this preview applies the
- * same tone curve to each RGB channel independently, because a real-time
- * per-pixel Lab<->RGB round trip on a multi-megapixel canvas, every
- * animation frame, is not fast enough for smooth dragging in JS. For these
- * bounded, moderate adjustments the visual difference is imperceptible;
- * the authoritative, pixel-exact output is always the backend call Export
- * makes once, on click — never anything computed here. Detail similarly
- * uses a fast 3x3 box-blur unsharp mask with a fixed delta cap instead of
- * the backend's local min/max clip, for the same real-time-performance
- * reason.
+ * Why it stays smooth while dragging (the fix for the residual lag in the
+ * first client-side version):
+ *  - Every render is a single fused pass that writes into a preallocated
+ *    working buffer (see PreviewRenderCache). A drag therefore allocates
+ *    nothing per frame and never takes a GC pause mid-gesture — the earlier
+ *    version allocated a fresh source copy plus a second detail-output
+ *    buffer on every frame.
+ *  - Saturation uses a direct chroma-scaling formula — algebraically equal
+ *    to the plain RGB<->HSL reference (same hue, same lightness, S scaled by
+ *    the same factor and clamped to 1; verified exhaustively over 256^3
+ *    inputs, differing by at most ±1 in rare half-rounding pixels) — but
+ *    branch-light: one division per colored pixel, no per-channel hue
+ *    reconstruction. The old per-pixel closure-heavy HSL round trip is what
+ *    made the settle-size (1440x810) pass block the main thread for tens of
+ *    milliseconds while dragging.
+ *  - Detail uses a separable 3x3 box blur (horizontal pass then vertical
+ *    pass — the exact same 9-tap kernel, bit-identical output) fused with
+ *    the unsharp delta in a single final pass, instead of reading 27 pixels
+ *    per channel per pixel and allocating a whole new output buffer.
+ *
+ * Semantics: mirrors image_enhancer/src/adjustments.py's constants, ranges,
+ * and per-control direction/behavior exactly (same MAX_* ceilings, same
+ * shadow/highlight weight thresholds, same saturation/detail bounds, same
+ * application order: combined tone LUT -> saturation -> detail). The two
+ * deliberate, documented differences from the backend are inherited from
+ * the earlier preview (unchanged behavior):
+ *   1. brightness/contrast/highlights/shadows are applied to each RGB
+ *      channel rather than only to the Lab L channel, because a real-time
+ *      per-pixel Lab<->RGB round trip every animation frame is not fast
+ *      enough to drag smoothly in JS. At these bounded intensities the
+ *      visual difference is imperceptible.
+ *   2. detail uses a 3x3 box blur with a fixed per-channel delta cap
+ *      instead of the backend's 5x5 local min/max clip.
+ * The authoritative, pixel-exact output is always the backend call Export
+ * makes once, on click — never anything computed here, so preview
+ * approximations can never leak into the saved image.
  */
 
 import type { AdjustmentParams } from "./adjustments";
@@ -40,22 +61,35 @@ const MAX_SATURATION_GAIN = 0.7;
 const MAX_DETAIL_STRENGTH = 1.4;
 const DETAIL_DELTA_CAP = 40; // fixed per-channel clamp -- see module docstring
 
-function shadowWeight(x: number): number {
+/** Exported (alongside the other pure tone-math helpers below) purely so
+ * they can be unit-tested directly without a canvas/DOM — see
+ * previewAdjustments.test.ts. Not used as a public API by any other
+ * module; every real caller still goes through renderPreviewFrame. */
+export function shadowWeight(x: number): number {
   const w = 1 - x / SHADOW_WEIGHT_THRESHOLD;
   return w < 0 ? 0 : w > 1 ? 1 : w;
 }
 
-function highlightWeight(x: number): number {
+export function highlightWeight(x: number): number {
   const span = Math.max(255 - HIGHLIGHT_WEIGHT_THRESHOLD, 1);
   const w = (x - HIGHLIGHT_WEIGHT_THRESHOLD) / span;
   return w < 0 ? 0 : w > 1 ? 1 : w;
 }
 
+export function isToneIdentity(params: AdjustmentParams): boolean {
+  return (
+    params.brightness === 0 &&
+    params.contrast === 0 &&
+    params.highlights === 0 &&
+    params.shadows === 0
+  );
+}
+
 /** The same combined monotonic 256-entry LUT as adjustments.py's
  * _build_lut (brightness+contrast+highlights+shadows), applied per RGB
- * channel here — see module docstring for why. */
-export function buildToneLut(params: AdjustmentParams): Uint8ClampedArray {
-  const lut = new Uint8ClampedArray(256);
+ * channel here — see module docstring for why. Written into the cache's
+ * reusable buffer so a drag allocates nothing. */
+export function fillToneLut(lut: Uint8ClampedArray, params: AdjustmentParams): void {
   const contrastGain = 1 + (params.contrast / 100) * MAX_CONTRAST_GAIN;
   let prev = 0;
   for (let x = 0; x < 256; x++) {
@@ -69,119 +103,206 @@ export function buildToneLut(params: AdjustmentParams): Uint8ClampedArray {
     prev = y;
     lut[x] = Math.round(y);
   }
-  return lut;
 }
 
-function isToneIdentity(params: AdjustmentParams): boolean {
-  return params.brightness === 0 && params.contrast === 0
-    && params.highlights === 0 && params.shadows === 0;
+/**
+ * Reusable scratch for one preview resolution (DRAFT or SETTLE), created
+ * once per base image by AdjustedPreviewCanvas. `out` and `imageData` share
+ * the same underlying buffer (created via ctx.createImageData so nothing is
+ * copied or re-created per frame) — every render refills `out` and hands
+ * `imageData` straight to putImageData. Zero per-frame allocation.
+ */
+export interface PreviewRenderCache {
+  width: number;
+  height: number;
+  /** 256-entry brightness/contrast/highlights/shadows LUT. */
+  lut: Uint8ClampedArray<ArrayBuffer>;
+  /** The fully rendered RGBA frame each render writes into. */
+  out: Uint8ClampedArray<ArrayBuffer>;
+  /** Live ImageData view over `out`; reuse it with putImageData. */
+  imageData: ImageData;
+  /** Horizontal 3x3 blur pass scratch for Detail (float, matching the
+   * single-pass 9-tap average bit-for-bit). */
+  hPass: Float32Array;
+  /** Vertical pass result = the final 3x3 box blur, for the Detail unsharp. */
+  blur: Float32Array;
 }
 
-/** In-place RGB->HSL->RGB saturation scale (H and L untouched — hue and
- * brightness are never affected by this control, matching the backend's
- * HSV-S-only behavior). */
-function applySaturationInPlace(data: Uint8ClampedArray<ArrayBufferLike>, amount: number): void {
-  if (amount === 0) return;
-  const factor = 1 + (amount / 100) * MAX_SATURATION_GAIN;
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i] / 255, g = data[i + 1] / 255, b = data[i + 2] / 255;
-    const max = Math.max(r, g, b), min = Math.min(r, g, b);
-    const l = (max + min) / 2;
-    if (max === min) continue; // already gray -- nothing to scale
-    let s = l > 0.5 ? (max - min) / (2 - max - min) : (max - min) / (max + min);
-    s = Math.min(1, Math.max(0, s * factor));
-    const d = max - min;
-    let h: number;
-    if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-    else if (max === g) h = ((b - r) / d + 2) / 6;
-    else h = ((r - g) / d + 4) / 6;
+export function createPreviewCache(
+  ctx: CanvasRenderingContext2D,
+  width: number,
+  height: number,
+): PreviewRenderCache {
+  const imageData = ctx.createImageData(width, height);
+  const out = imageData.data as Uint8ClampedArray<ArrayBuffer>;
+  const n = width * height * 4;
+  return {
+    width,
+    height,
+    lut: new Uint8ClampedArray(256),
+    out,
+    imageData,
+    hPass: new Float32Array(n),
+    blur: new Float32Array(n),
+  };
+}
 
-    const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
-    const p = 2 * l - q;
-    const hue2rgb = (t: number): number => {
-      if (t < 0) t += 1;
-      if (t > 1) t -= 1;
-      if (t < 1 / 6) return p + (q - p) * 6 * t;
-      if (t < 1 / 2) return q;
-      if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6;
-      return p;
-    };
-    data[i] = Math.round(hue2rgb(h + 1 / 3) * 255);
-    data[i + 1] = Math.round(hue2rgb(h) * 255);
-    data[i + 2] = Math.round(hue2rgb(h - 1 / 3) * 255);
+/** Tone-only pass (brightness/contrast/highlights/shadows via the LUT),
+ * used when saturation is at its no-op value so colored-pixel work in the
+ * saturation branch is skipped entirely. Alpha untouched. */
+function applyToneOnly(
+  cache: PreviewRenderCache,
+  src: Uint8ClampedArray<ArrayBufferLike>,
+): void {
+  const out = cache.out;
+  const lut = cache.lut;
+  for (let i = 0; i < out.length; i += 4) {
+    out[i] = lut[src[i]];
+    out[i + 1] = lut[src[i + 1]];
+    out[i + 2] = lut[src[i + 2]];
+    out[i + 3] = src[i + 3];
   }
 }
 
-/** A fast 3x3-box-blur unsharp mask, per RGB channel, with a fixed delta
- * cap (see module docstring for why this differs from the backend's local
- * min/max clip). No-op at amount<=0. */
-function applyDetail(
-  src: Uint8ClampedArray<ArrayBufferLike>, width: number, height: number, amount: number,
-): Uint8ClampedArray<ArrayBufferLike> {
-  if (amount <= 0) return src;
+/** Direct chroma-scaling saturation — algebraically identical to the HSL
+ * S-only reference (hue and lightness preserved, S multiplied by `factor`
+ * and clamped to 1) but computed in the 0..255 domain with one division per
+ * colored pixel. Given chroma C = M-m, capped scaled chroma C', and the
+ * midpoint (sum-C')/2, any channel x becomes base + (x-m)*(C'/C): the max
+ * lands on M', the min on m', any middle interpolates linearly (uniform
+ * formula also handles identical max/min channels). Gray pixels are left
+ * untouched. */
+function applySaturation(
+  lut: Uint8ClampedArray,
+  src: Uint8ClampedArray<ArrayBufferLike>,
+  dst: Uint8ClampedArray<ArrayBuffer>,
+  factor: number,
+  toneIdentity: boolean,
+): void {
+  for (let i = 0; i < dst.length; i += 4) {
+    let r = src[i];
+    let g = src[i + 1];
+    let b = src[i + 2];
+    if (!toneIdentity) {
+      r = lut[r];
+      g = lut[g];
+      b = lut[b];
+    }
+    const m = r <= g ? (r <= b ? r : b) : (g <= b ? g : b);
+    const M = r >= g ? (r >= b ? r : b) : (g >= b ? g : b);
+    if (M !== m) {
+      const sum = M + m;
+      const cMax = Math.min(sum, 510 - sum);
+      let c2 = (M - m) * factor;
+      if (c2 > cMax) c2 = cMax;
+      const ratio = c2 / (M - m);
+      const base = (sum - c2) / 2;
+      r = Math.round(base + (r - m) * ratio);
+      g = Math.round(base + (g - m) * ratio);
+      b = Math.round(base + (b - m) * ratio);
+    }
+    dst[i] = r;
+    dst[i + 1] = g;
+    dst[i + 2] = b;
+    dst[i + 3] = src[i + 3];
+  }
+}
+
+/** Separable 3x3 box blur + unsharp mask on cache.out, per RGB channel,
+ * with the same fixed per-channel delta cap as the reference. The
+ * horizontal-then-vertical separable blur is the exact 9-tap averaging
+ * kernel (average of averages), with replicate-edge clamping matching the
+ * reference for every image dimension; fusing the unsharp delta into the
+ * blur's final pass keeps the whole Detail adjustment to ~7 memory touches
+ * per byte instead of the reference's 27. In-place on `out`. */
+function applyDetail(cache: PreviewRenderCache, amount: number): void {
   const strength = (amount / 100) * MAX_DETAIL_STRENGTH;
-  const out = new Uint8ClampedArray(src.length);
+  const { out, hPass, blur, width, height } = cache;
+
   for (let y = 0; y < height; y++) {
-    const y0 = y > 0 ? y - 1 : 0;
-    const y1 = y < height - 1 ? y + 1 : height - 1;
+    const row = y * width;
     for (let x = 0; x < width; x++) {
       const x0 = x > 0 ? x - 1 : 0;
       const x1 = x < width - 1 ? x + 1 : width - 1;
-      const idx = (y * width + x) * 4;
+      const i = (row + x) * 4;
       for (let c = 0; c < 3; c++) {
-        let sum = 0;
-        sum += src[(y0 * width + x0) * 4 + c] + src[(y0 * width + x) * 4 + c] + src[(y0 * width + x1) * 4 + c];
-        sum += src[(y * width + x0) * 4 + c] + src[(y * width + x) * 4 + c] + src[(y * width + x1) * 4 + c];
-        sum += src[(y1 * width + x0) * 4 + c] + src[(y1 * width + x) * 4 + c] + src[(y1 * width + x1) * 4 + c];
-        const blur = sum / 9;
-        const orig = src[idx + c];
-        let delta = (orig - blur) * strength;
-        if (delta > DETAIL_DELTA_CAP) delta = DETAIL_DELTA_CAP;
-        else if (delta < -DETAIL_DELTA_CAP) delta = -DETAIL_DELTA_CAP;
-        let v = orig + delta;
-        if (v < 0) v = 0;
-        else if (v > 255) v = 255;
-        out[idx + c] = v;
+        hPass[i + c] = (out[(row + x0) * 4 + c] + out[i + c] + out[(row + x1) * 4 + c]) / 3;
       }
-      out[idx + 3] = src[idx + 3];
     }
   }
-  return out;
+
+  for (let y = 0; y < height; y++) {
+    const y0 = y > 0 ? y - 1 : 0;
+    const y1 = y < height - 1 ? y + 1 : height - 1;
+    const row0 = y0 * width * 4;
+    const row = y * width * 4;
+    const row1 = y1 * width * 4;
+    for (let x = 0; x < width; x++) {
+      const j = x * 4;
+      const i0 = row0 + j;
+      const im = row + j;
+      const i1 = row1 + j;
+      for (let c = 0; c < 3; c++) {
+        blur[im + c] = (hPass[i0 + c] + hPass[im + c] + hPass[i1 + c]) / 3;
+      }
+    }
+  }
+
+  for (let i = 0; i < out.length; i += 4) {
+    for (let c = 0; c < 3; c++) {
+      let delta = (out[i + c] - blur[i + c]) * strength;
+      if (delta > DETAIL_DELTA_CAP) delta = DETAIL_DELTA_CAP;
+      else if (delta < -DETAIL_DELTA_CAP) delta = -DETAIL_DELTA_CAP;
+      let v = out[i + c] + delta;
+      if (v < 0) v = 0;
+      else if (v > 255) v = 255;
+      out[i + c] = v;
+    }
+  }
 }
 
-/** Renders `params` onto a COPY of `source` and returns the new ImageData.
- * Never mutates `source` — the base enhanced image stays immutable, so
- * repeated slider changes (including Reset) always start fresh from the
- * same original pixels, exactly like the backend's own no-mutation
- * contract (adjustments.py's apply_adjustments never mutates its input
- * either). A true identity copy (no pixel loop at all) when every value is
- * at its default, so Reset is always the cheapest possible path. */
-export function renderPreviewFrame(source: ImageData, params: AdjustmentParams): ImageData {
+/** Renders `params` into the cache's preallocated buffer and returns the
+ * cache's reusable ImageData. Never mutates `source` — the base enhanced
+ * image stays immutable, so repeated slider changes (including Reset)
+ * always start fresh from the same original pixels, exactly like the
+ * backend's own no-mutation contract (adjustments.py's apply_adjustments
+ * never mutates its input either). A pure memcpy (no pixel loop at all)
+ * when every value is at its default, so Reset is always the cheapest
+ * possible path. */
+export function renderPreviewFrame(
+  source: ImageData,
+  params: AdjustmentParams,
+  cache: PreviewRenderCache,
+): ImageData {
+  if (cache.width !== source.width || cache.height !== source.height) {
+    throw new Error("renderPreviewFrame: cache dimensions must match the source");
+  }
+
   const toneIdentity = isToneIdentity(params);
   const noSaturation = params.saturation === 0;
   const noDetail = params.detail <= 0;
 
   if (toneIdentity && noSaturation && noDetail) {
-    return new ImageData(
-      new Uint8ClampedArray(source.data) as Uint8ClampedArray<ArrayBuffer>,
-      source.width, source.height,
-    );
+    cache.out.set(source.data);
+    return cache.imageData;
   }
 
-  let data: Uint8ClampedArray<ArrayBufferLike> = new Uint8ClampedArray(source.data);
-  if (!toneIdentity) {
-    const lut = buildToneLut(params);
-    for (let i = 0; i < data.length; i += 4) {
-      data[i] = lut[data[i]];
-      data[i + 1] = lut[data[i + 1]];
-      data[i + 2] = lut[data[i + 2]];
+  // Single fused pass over the pixels (tone LUT -> saturation), then the
+  // Detail pass when enabled. cache.out is fully overwritten each call, so
+  // reusing the buffer (and its ImageData) across frames is safe.
+  if (!toneIdentity) fillToneLut(cache.lut, params);
+  if (noSaturation) {
+    if (toneIdentity) {
+      cache.out.set(source.data); // detail-only drag: start from the raw copy
+    } else {
+      applyToneOnly(cache, source.data);
     }
+  } else {
+    const factor = 1 + (params.saturation / 100) * MAX_SATURATION_GAIN;
+    applySaturation(cache.lut, source.data, cache.out, factor, toneIdentity);
   }
-  if (!noSaturation) applySaturationInPlace(data, params.saturation);
-  if (!noDetail) data = applyDetail(data, source.width, source.height, params.detail);
 
-  // Safe: every Uint8ClampedArray constructed in this module is freshly
-  // allocated (never backed by a SharedArrayBuffer) -- ImageData's type
-  // just doesn't express that distinction the same way TS's lib.dom does.
-  return new ImageData(data as Uint8ClampedArray<ArrayBuffer>, source.width, source.height);
+  if (!noDetail) applyDetail(cache, params.detail);
+
+  return cache.imageData;
 }

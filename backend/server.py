@@ -35,11 +35,13 @@ Endpoints (all JSON except the result-download route):
                                     same semantics as above.
     POST /api/jobs/<job_id>/export  batch export: one ZIP built fresh from a
                                     JSON body {format, include_outlines,
-                                    adjust, images: [{result_id, rects}]} —
-                                    one COMMON format (and, when given, one
-                                    common `adjust`) for every image, each
-                                    image getting only its own rects burned
-                                    in (see output_manager.build_batch_export)
+                                    images: [{result_id, rects, adjust?}]} —
+                                    one COMMON format for every image, each
+                                    image getting only its own rects burned in
+                                    and ONLY its own `adjust` values (an entry
+                                    without `adjust` falls back to the body's
+                                    optional top-level common `adjust`; see
+                                    output_manager.build_batch_export)
     GET  /api/settings              current processing-device preference +
                                     what's actually detected/active
     PUT  /api/settings              persist a new processing-device
@@ -450,7 +452,11 @@ class ApiHandler(BaseHTTPRequestHandler):
             if file_result is None:
                 raise ApiError(f"unknown result_id: {result_id!r}", 404)
             rects = entry.get("rects") or []
-            items.append((file_result.original_filename, file_result.output_path, rects))
+            per_image_adjust = entry.get("adjust")
+            per_image_adjust = per_image_adjust if isinstance(per_image_adjust, dict) else None
+            items.append(
+                (file_result.original_filename, file_result.output_path, rects, per_image_adjust)
+            )
 
         from . import workspace
         from .output_manager import build_batch_export

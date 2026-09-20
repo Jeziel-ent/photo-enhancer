@@ -40,21 +40,44 @@ from backend.jobs import JobManager  # noqa: E402
 from backend.server import make_server  # noqa: E402
 from backend.tests.multipart_helpers import build_multipart_body  # noqa: E402
 
-EXPECTED_W, EXPECTED_H = 3840, 2160
-
-
 def _sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
-def _decode_and_check(data: bytes, label: str) -> None:
+def _expected_wh_for(src_path: Path) -> tuple:
+    """The real aspect-preserving 4K target for this exact source image --
+    computed from the SAME production function the engine itself uses
+    (enhance.aspect_preserving_target), not a fixed 3840x2160 assumption.
+
+    Found while writing the CPU-path regression suite
+    (test_cpu_pipeline.py): several of the originals used by this file
+    (2/3/5.jpeg) do NOT reduce to an exact 16:9 ratio at a 3840 width --
+    e.g. 3.jpeg's real target is 3840x2162, 5.jpeg's is 3840x2158 -- so a
+    fixed EXPECTED_W/EXPECTED_H constant (this file's prior approach,
+    apparently never actually exercised against the current
+    aspect-preserving engine) would silently fail these exact tests. This
+    computes the real per-image target instead."""
+    sys.path.insert(0, str(IMAGE_ENHANCER_SRC))
+    import enhance
+    img = cv2.imread(str(src_path), cv2.IMREAD_COLOR)
+    return enhance.aspect_preserving_target(img.shape[1], img.shape[0])
+
+
+def _decode_and_check(data: bytes, expected_wh: tuple, label: str) -> None:
     arr = np.frombuffer(data, dtype=np.uint8)
     img = cv2.imdecode(arr, cv2.IMREAD_COLOR)
     if img is None:
         raise AssertionError(f"{label}: could not decode as an image")
     h, w = img.shape[:2]
-    if (w, h) != (EXPECTED_W, EXPECTED_H):
-        raise AssertionError(f"{label}: expected {EXPECTED_W}x{EXPECTED_H}, got {w}x{h}")
+    if (w, h) != tuple(expected_wh):
+        raise AssertionError(
+            f"{label}: expected {expected_wh[0]}x{expected_wh[1]} "
+            f"(aspect-preserving 4K target), got {w}x{h}")
+    if max(w, h) != 3840:
+        raise AssertionError(f"{label}: 4K-longest-side target not met (max dim {max(w, h)})")
+    arrf = img.astype(np.float64)
+    if not np.all(np.isfinite(arrf)):
+        raise AssertionError(f"{label}: output contains NaN/Inf pixels")
     std = float(img.std())
     if std < 5.0:
         raise AssertionError(f"{label}: output looks blank/degenerate (std={std:.2f})")
@@ -201,7 +224,7 @@ class RealPipelineIntegrationTestCase(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(headers["Content-Type"], "image/png")
         self.assertTrue(body.startswith(b"\x89PNG\r\n\x1a\n"), "result is not a valid PNG")
-        _decode_and_check(body, "single-image result")
+        _decode_and_check(body, _expected_wh_for(src), "single-image result")
 
         self.assertEqual(_sha256(src), original_hash_before, "original was modified on disk")
 
@@ -238,7 +261,8 @@ class RealPipelineIntegrationTestCase(unittest.TestCase):
         with zipfile.ZipFile(BytesIO(body)) as zf:
             entries = zf.namelist()
             self.assertEqual(len(entries), 1, "zip must contain only the surviving image")
-            _decode_and_check(zf.read(entries[0]), f"partial-failure surviving entry {entries[0]}")
+            _decode_and_check(zf.read(entries[0]), _expected_wh_for(good),
+                              f"partial-failure surviving entry {entries[0]}")
 
         self.assertEqual(_sha256(good), good_hash_before)
         print(f"\n[partial-failure] elapsed={elapsed:.1f}s errors={final['errors']}")
@@ -301,11 +325,13 @@ class RealMultiImageSequentialTestCase(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertEqual(headers["Content-Type"], "application/zip")
         self.assertTrue(body.startswith(b"PK"))
+        expected_by_stem = {p.stem: _expected_wh_for(p) for p in sources}
         with zipfile.ZipFile(BytesIO(body)) as zf:
             entries = sorted(zf.namelist())
             self.assertEqual(len(entries), 3)
             for name in entries:
-                _decode_and_check(zf.read(name), f"zip entry {name}")
+                stem = next(s for s in expected_by_stem if name.startswith(s))
+                _decode_and_check(zf.read(name), expected_by_stem[stem], f"zip entry {name}")
 
         self.assertEqual(len(intervals), 3)
         intervals.sort()
@@ -318,6 +344,102 @@ class RealMultiImageSequentialTestCase(unittest.TestCase):
         per_file = ", ".join(f"{n}={e - s:.1f}s" for s, e, n in intervals)
         print(f"\n[batch-3] total_elapsed={elapsed:.1f}s per_file=({per_file}) "
               f"entries={entries}")
+
+
+@unittest.skipUnless(RUN_GPU_TESTS, "set ADINN_RUN_GPU_TESTS=1 to run the real GPU pipeline")
+class RealGpuDeviceAndRepeatedJobsTestCase(unittest.TestCase):
+    """Forced-GPU device selection + a dedicated repeated-jobs stability
+    run (cold-start vs. warm timing, peak VRAM, CUDA stability across many
+    consecutive real jobs) -- the existing tests above exercise auto/GPU
+    incidentally but don't isolate these specifically."""
+
+    @classmethod
+    def setUpClass(cls):
+        from backend import settings
+        cls._prior_device_preference = settings.get_processing_device_preference()
+        settings.set_processing_device_preference("gpu")
+
+        cls._network_guard = _LoopbackOnlyNetworkGuard()
+        cls._network_guard.__enter__()
+        cls.manager = JobManager()
+        cls.httpd = make_server(port=0, job_manager=cls.manager)
+        cls.base_url = f"http://127.0.0.1:{cls.httpd.server_address[1]}"
+        cls.thread = threading.Thread(target=cls.httpd.serve_forever, daemon=True)
+        cls.thread.start()
+
+        # Force one job through so JobManager._run()'s apply_device_preference
+        # + warmup_engine() actually run (lazy, on first real job) before any
+        # assertion on get_device_state().
+        created = _http_post_job(cls.base_url, [
+            ("files", "2.jpeg", "image/jpeg", (ORIGINALS_DIR / "2.jpeg").read_bytes()),
+        ])
+        _poll_until_done(cls.base_url, created["job_id"], timeout=240, progress_log=[])
+        state = engine_adapter.get_device_state()
+        assert state["effective_device"] == "gpu", (
+            f"setUpClass warmup job did not run on GPU (state={state})")
+
+    @classmethod
+    def tearDownClass(cls):
+        from backend import settings
+        cls.httpd.shutdown()
+        cls.httpd.server_close()
+        cls.thread.join(timeout=5)
+        cls._network_guard.__exit__(None, None, None)
+        settings.set_processing_device_preference(cls._prior_device_preference)
+
+    def test_forced_gpu_preference_resolves_to_gpu(self):
+        state = engine_adapter.get_device_state()
+        self.assertEqual(state["preference"], "gpu")
+        self.assertEqual(state["effective_device"], "gpu")
+        self.assertIsNotNone(state["detected_gpu"])
+
+    def test_5_sequential_and_10_repeated_gpu_jobs(self):
+        """5 sequential single-image GPU jobs across different real
+        photos, then 10 repeated jobs on the same image to isolate warm
+        per-job timing and CUDA/VRAM stability from per-image variance."""
+        import torch
+
+        def run_one(src: Path, timeout=240) -> float:
+            expected_wh = _expected_wh_for(src)
+            hash_before = _sha256(src)
+            t0 = time.time()
+            created = _http_post_job(self.base_url, [
+                ("files", src.name, "image/jpeg", src.read_bytes()),
+            ])
+            final = _poll_until_done(self.base_url, created["job_id"], timeout=timeout, progress_log=[])
+            elapsed = time.time() - t0
+            self.assertEqual(final["status"], "completed")
+            self.assertEqual(final["errors"], [])
+            status, body, headers = _http_get(self.base_url, f"/api/jobs/{created['job_id']}/result")
+            self.assertEqual(status, 200)
+            _decode_and_check(body, expected_wh, f"gpu:{src.name}")
+            self.assertEqual(_sha256(src), hash_before)
+            return elapsed
+
+        names_5 = ["2.jpeg", "5.jpeg", "1.jpeg", "4.jpeg", "6.jpeg"]
+        timings_5 = [(n, run_one(ORIGINALS_DIR / n)) for n in names_5]
+
+        if torch.cuda.is_available():
+            torch.cuda.reset_peak_memory_stats()
+        repeat_src = ORIGINALS_DIR / "2.jpeg"
+        timings_10 = [run_one(repeat_src) for _ in range(10)]
+        peak_vram_mb = (torch.cuda.max_memory_allocated() / (1024 ** 2)
+                         if torch.cuda.is_available() else None)
+
+        mean_t = sum(timings_10) / len(timings_10)
+        five_report = ", ".join(f"{n}={t:.1f}s" for n, t in timings_5)
+        print(f"\n[gpu:5-sequential] {five_report}")
+        print(f"[gpu:10-repeat] mean={mean_t:.1f}s min={min(timings_10):.1f}s "
+              f"max={max(timings_10):.1f}s peak_vram_mb={peak_vram_mb} "
+              f"all={['%.1f' % t for t in timings_10]}")
+
+        # warm per-job timing should be stable, not trending upward
+        # (a growing trend would indicate a leak-driven slowdown)
+        first_half = sum(timings_10[:5]) / 5
+        second_half = sum(timings_10[5:]) / 5
+        self.assertLess(second_half, first_half * 1.5,
+                         f"job time grew suspiciously across repeats: "
+                         f"first5_avg={first_half:.1f}s second5_avg={second_half:.1f}s")
 
 
 if __name__ == "__main__":
